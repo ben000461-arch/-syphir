@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #fff;
+    }
+    .header {
+      background: linear-gradient(135deg, #1a1f2e, #0d1b2a);
+      padding: 16px;
+      border-bottom: 1px solid #1e3a5f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo { font-size: 22px; }
+    .brand { font-size: 16px; font-weight: 700; color: #4fc3f7; }
+    .brand span { color: #fff; }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #00e676;
+      margin-left: auto;
+      box-shadow: 0 0 6px #00e676;
+    }
+    .section { padding: 14px 16px; border-bottom: 1px solid #1a2035; }
+    .section-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: #4fc3f7;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .input-group { margin-bottom: 10px; }
+    .input-group label {
+      font-size: 11px;
+      color: #8892a4;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .input-group input {
+      width: 100%;
+      background: #1a2035;
+      border: 1px solid #2a3a55;
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+    }
+    .input-group input:focus { border-color: #4fc3f7; }
+    .btn {
+      width: 100%;
+      padding: 9px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #4fc3f7; color: #0f1117; }
+    .btn-secondary {
+      background: transparent;
+      color: #8892a4;
+      border: 1px solid #2a3a55;
+      margin-top: 6px;
+      font-size: 11px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .stat-label { font-size: 12px; color: #8892a4; }
+    .stat-value { font-size: 13px; font-weight: 600; }
+    .high { color: #ff4444; }
+    .medium { color: #ff8800; }
+    .low { color: #ffaa00; }
+    .safe { color: #00e676; }
+    .shield-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0d2137;
+      border: 1px solid #1e3a5f;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .shield-icon { font-size: 18px; }
+    .shield-text { font-size: 12px; color: #4fc3f7; font-weight: 600; }
+    .shield-sub { font-size: 10px; color: #8892a4; margin-top: 1px; }
+    .footer {
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-link {
+      font-size: 10px;
+      color: #4fc3f7;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .not-configured { padding: 16px; }
+    .not-configured p {
+      font-size: 12px;
+      color: #8892a4;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🛡️</div>
+    <div>
+      <div class="brand"><span>Sy</span>phir</div>
+    </div>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <div id="setupView" style="display:none;">
+    <div class="section">
+      <div class="section-title">Activate Syphir Shield</div>
+      <div class="not-configured">
+        <p>Enter your Syphir license key and email to start protecting your AI sessions.</p>
+      </div>
+      <div class="input-group">
+        <label>License Key</label>
+        <input type="text" id="keyInput" placeholder="SYP-XXXX-XXXX-XXXX" />
+      </div>
+      <div class="input-group">
+        <label>Your Email</label>
+        <input type="email" id="emailInput" placeholder="you@company.com" />
+      </div>
+      <button class="btn btn-primary" id="activateBtn">Activate Shield</button>
+      <div id="activateMsg" style="font-size:11px;margin-top:8px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <div id="activeView" style="display:none;">
+    <div class="section">
+      <div class="section-title">Protection Status</div>
+      <div class="shield-status">
+        <div class="shield-icon">🛡️</div>
+        <div>
+          <div class="shield-text">Shield Active</div>
+          <div class="shield-sub" id="orgName">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Session Stats</div>
+      <div class="stat-row">
+        <span class="stat-label">Total Scans</span>
+        <span class="stat-value safe" id="totalScans">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">High Risk</span>
+        <span class="stat-value high" id="highRisk">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Medium Risk</span>
+        <span class="stat-value medium" id="medRisk">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Low Risk</span>
+        <span class="stat-value low" id="lowRisk">0</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <button class="btn btn-secondary" id="dashboardBtn">
+        Open Dashboard
+      </button>
+      <button class="btn btn-secondary" id="signOutBtn" style="margin-top:6px;">
+        Sign Out
+      </button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span style="font-size:10px;color:#2a3a55;">Syphir v1.0.0</span>
+    <span class="footer-link">syphir.io</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
