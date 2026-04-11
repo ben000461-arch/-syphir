@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: syphir-scanner
+    env: python
+    buildCommand: pip install -r requirements.txt && python -m spacy download en_core_web_lg
+    startCommand: python server.py
+    envVars:
+      - key: PORT
+        value: 8080

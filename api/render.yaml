@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: syphir-api
+    env: node
+    buildCommand: bun install
+    startCommand: bun run server.js
+    envVars:
+      - key: PORT
+        value: 3000
