@@ -1,4 +1,4 @@
-const API = "http://localhost:3000";
+const API = "https://syphir-api.onrender.com";
 
 chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_org"], (data) => {
   if (data.syphir_key && data.syphir_org) {

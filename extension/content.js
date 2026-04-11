@@ -1,4 +1,4 @@
-const SYPHIR_API = "http://localhost:3000";
+const SYPHIR_API = "https://syphir-api.onrender.com";
 let SYPHIR_KEY = "SYP-DEMO-2026-SYPHIR";
 let USER_EMAIL = "demo@dentalpractice.com";
 let lastScanned = "";
