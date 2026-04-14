@@ -402,7 +402,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">👥 Team Members</div></div>
           <div class="card-body">
-            <div class="inp-group"><label class="inp-lbl">Invite by Email</label><div style="display:flex;gap:8px;"><input class="inp" placeholder="employee@company.com" style="flex:1;"><button class="btn btn-primary">Invite</button></div></div>
+           <div class="inp-group">
+  <label class="inp-lbl">Invite by Email</label>
+  <div style="display:flex;gap:8px;">
+    <input class="inp" id="invite-email" placeholder="employee@company.com" style="flex:1;">
+    <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
+  </div>
+  <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
+</div>
             <div class="tog-row" style="padding:10px 0 0;"><div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div><span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span></div>
           </div>
         </div>
@@ -420,6 +427,37 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
 <script>
 const API='https://syphir-api.onrender.com',ORG_ID='org_demo';
+
+async function inviteUser() {
+  const email = document.getElementById('invite-email').value.trim();
+  const msg = document.getElementById('invite-msg');
+  if (!email) { msg.style.color='var(--red)'; msg.textContent='Enter an email'; return; }
+  msg.style.color='var(--text3)'; msg.textContent='Sending invite...';
+  try {
+    const res = await fetch(`${API}/invite-user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        org_key: 'SYP-DEMO-2026-SYPHIR',
+        employee_email: email,
+        org_name: 'Demo Dental Practice'
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✓ Invite sent!';
+      document.getElementById('invite-email').value = '';
+    } else {
+      msg.style.color = 'var(--red)';
+      msg.textContent = data.message || 'Failed to send';
+    }
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'API offline';
+  }
+}
+
 let incidents=[];
 
 const TITLES={overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
