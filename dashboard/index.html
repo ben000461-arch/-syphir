@@ -652,8 +652,9 @@ function clearFeed(){document.getElementById('feed-list').innerHTML='<div class=
 function copyGateway(){navigator.clipboard.writeText(document.getElementById('gateway-url').value);alert('Copied!');}
 function connectAI(tile,name){const k=prompt(`Enter your ${name} API key:`);if(k){tile.classList.add('connected');tile.querySelector('.ai-status').textContent='✓ Connected';}}
 
-setInterval(loadData,5000);
+setInterval(loadData, 5000);
 loadData();
+loadTeamMembers();
 </script>
 </body>
 </html>

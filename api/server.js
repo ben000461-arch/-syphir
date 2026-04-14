@@ -232,7 +232,7 @@ app.post("/invite-user", async (c) => {
   }
 
   // Send invite email
-  const installUrl = `https://chrome.google.com/webstore/detail/syphir-shield?key=${org_key}&email=${employee_email}&org=${encodeURIComponent(org_name || org.name)}`;
+  const installUrl = `https://syphir-dashboard.vercel.app/install.html?key=${org_key}&email=${employee_email}&org=${encodeURIComponent(org_name || org.name)}`;
 
   try {
     await resend.emails.send({

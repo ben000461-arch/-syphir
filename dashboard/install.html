@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Install Syphir Shield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.card{background:#161b25;border:1px solid #242d3e;border-radius:16px;padding:40px;max-width:520px;width:100%;}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center;}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#2196d3,#1565a8);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.logo-text{font-size:22px;font-weight:800;color:#fff;}
+.logo-text span{color:#4db8f0;}
+h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:8px;}
+.sub{font-size:14px;color:#8b949e;text-align:center;margin-bottom:32px;line-height:1.6;}
+.steps{margin-bottom:32px;}
+.step{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;padding:16px;background:#1c2333;border-radius:10px;border:1px solid #242d3e;}
+.step-num{width:28px;height:28px;background:#2196d3;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.step-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.step-desc{font-size:12px;color:#8b949e;line-height:1.5;}
+.btn{display:block;width:100%;padding:14px;background:#2196d3;color:#fff;text-align:center;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:10px;cursor:pointer;border:none;font-family:'Inter',sans-serif;box-shadow:0 4px 14px rgba(33,150,211,0.3);transition:background 0.15s;}
+.btn:hover{background:#1565a8;}
+.btn-ghost{background:transparent;border:1px solid #242d3e;color:#8b949e;}
+.btn-ghost:hover{border-color:#2196d3;color:#4db8f0;}
+.note{font-size:11px;color:#4a5568;text-align:center;margin-top:16px;line-height:1.6;}
+.badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:#00e676;font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;margin-bottom:16px;}
+.center{text-align:center;}
+#step2,#step3{display:none;}
+.progress{display:flex;gap:6px;justify-content:center;margin-bottom:28px;}
+.prog-dot{width:8px;height:8px;border-radius:50%;background:#242d3e;}
+.prog-dot.active{background:#2196d3;}
+.prog-dot.done{background:#00e676;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div class="logo-text">Sy<span>phir</span></div>
+  </div>
+
+  <div class="progress">
+    <div class="prog-dot active" id="d1"></div>
+    <div class="prog-dot" id="d2"></div>
+    <div class="prog-dot" id="d3"></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1">
+    <h1>Install Syphir Shield</h1>
+    <p class="sub">Your company has added you to their AI data protection system. Install takes about 60 seconds.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Download the extension</div>
+          <div class="step-desc">Click the button below to download Syphir Shield to your computer.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Open Chrome Extensions</div>
+          <div class="step-desc">We'll open the Chrome extensions page for you automatically.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Drag and drop to install</div>
+          <div class="step-desc">Drag the downloaded file into the extensions page. Done.</div>
+        </div>
+      </div>
+    </div>
+
+    <a href="https://drive.google.com/uc?export=download&id=1wPCJNGYQhS9NCjuqmJobjQRAtq2QnQCF" class="btn" onclick="nextStep(1)">
+      ⬇ Download Syphir Shield
+    </a>
+    <p class="note">Free to install · Works on Chrome, Edge, and Brave · No account needed</p>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2">
+    <h1>Open Chrome Extensions</h1>
+    <p class="sub" style="margin-bottom:24px;">Click the button below — it opens the Chrome extensions page where you'll install Syphir.</p>
+
+    <div class="step" style="margin-bottom:24px;">
+      <div class="step-num">!</div>
+      <div>
+        <div class="step-title">Enable Developer Mode</div>
+        <div class="step-desc">On the extensions page, toggle <strong style="color:#e6edf3;">Developer mode</strong> ON in the top right corner. This allows installing verified extensions like Syphir.</div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="openExtensions()">Open Chrome Extensions →</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="nextStep(2)">I've opened it →</button>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3">
+    <div class="center">
+      <div style="font-size:48px;margin-bottom:16px;">🛡️</div>
+      <div class="badge">● Shield Active</div>
+    </div>
+    <h1 style="margin-bottom:8px;">Almost done!</h1>
+    <p class="sub" style="margin-bottom:24px;">
+      On the Chrome extensions page click <strong style="color:#e6edf3;">"Load unpacked"</strong> and select the <strong style="color:#e6edf3;">syphir-extension</strong> folder you downloaded.
+    </p>
+
+    <div class="step" style="margin-bottom:24px;">
+      <div class="step-num">✓</div>
+      <div>
+        <div class="step-title">Your shield activates automatically</div>
+        <div class="step-desc">Once installed Syphir runs silently in the background. You'll see the 🛡️ icon in your Chrome toolbar.</div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="doneInstall()">✓ I've installed it — Done!</button>
+    <p class="note">Having trouble? Email us at support@syphir.io</p>
+  </div>
+
+</div>
+
+<script>
+function nextStep(from) {
+  document.getElementById('step'+from).style.display='none';
+  document.getElementById('step'+(from+1)).style.display='block';
+  document.getElementById('d'+from).classList.remove('active');
+  document.getElementById('d'+from).classList.add('done');
+  document.getElementById('d'+(from+1)).classList.add('active');
+}
+
+function openExtensions() {
+  window.open('chrome://extensions','_blank');
+  setTimeout(()=>nextStep(2), 1000);
+}
+
+function doneInstall() {
+  document.getElementById('step3').innerHTML = `
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-size:52px;margin-bottom:16px;">✅</div>
+      <h1 style="margin-bottom:12px;">You're protected!</h1>
+      <p style="color:#8b949e;font-size:14px;line-height:1.6;">
+        Syphir Shield is now active on your browser.<br>
+        It works silently in the background — you'll see<br>
+        a notification if sensitive data is detected.
+      </p>
+      <div style="margin-top:24px;padding:16px;background:#1c2333;border-radius:10px;border:1px solid #242d3e;">
+        <div style="font-size:12px;color:#8b949e;">Protected by</div>
+        <div style="font-size:16px;font-weight:700;margin-top:4px;">🛡️ Syphir Shield</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('d3').classList.remove('active');
+  document.getElementById('d3').classList.add('done');
+}
+</script>
+</body>
+</html>
