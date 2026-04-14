@@ -399,34 +399,31 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
             <button class="btn btn-ghost" style="width:100%;margin-top:14px;justify-content:center;">Manage via Stripe →</button>
           </div>
         </div>
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">👥 Team Members</div></div>
-          <div class="card-body">
-           <div class="inp-group">
-  <label class="inp-lbl">Invite by Email</label>
-  <div style="display:flex;gap:8px;">
-    <input class="inp" id="invite-email" placeholder="employee@company.com" style="flex:1;">
-    <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
-  </div>
-  <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
-</div>
-            <div class="tog-row" style="padding:10px 0 0;"><div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div><span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span></div>
-          </div>
-        </div>
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">🔔 Notifications</div></div>
-          <div class="tog-row"><div><div class="tog-lbl">Weekly Report Email</div><div class="tog-sub">Summary every Monday</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Instant High Risk Alerts</div><div class="tog-sub">Email immediately</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Monthly Compliance PDF</div><div class="tog-sub">Auto-generated report</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-        </div>
+       <div class="card mb-16">
+  <div class="card-hdr"><div class="card-title">👥 Team Members</div></div>
+  <div class="card-body">
+    <div class="inp-group">
+      <label class="inp-lbl">Invite by Email</label>
+      <div style="display:flex;gap:8px;">
+        <input class="inp" id="invite-email" placeholder="employee@company.com" style="flex:1;">
+        <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
+      </div>
+      <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
+    </div>
+    <div id="team-members-list">
+      <div class="tog-row" style="padding:10px 0 0;">
+        <div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div>
+        <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
       </div>
     </div>
+  </div>
+</div>
 
   </div>
 </main>
 
 <script>
-const API='https://syphir-api.onrender.com',ORG_ID='org_demo';
+const API='http://localhost:3000',ORG_ID='org_demo';
 
 async function inviteUser() {
   const email = document.getElementById('invite-email').value.trim();
@@ -587,6 +584,48 @@ async function loadData(){
     }
     document.getElementById('last-updated').textContent=new Date().toLocaleTimeString();
   }catch(e){document.getElementById('last-updated').textContent='API offline';}
+}
+
+async function loadTeamMembers() {
+  try {
+    const res = await fetch(`${API}/team/org_demo`);
+    const data = await res.json();
+    const list = document.getElementById('team-members-list');
+    if (!list) return;
+    const members = data.users || [];
+    if (!members.length) return;
+    const rows = members.map(u => `
+      <div class="tog-row" style="padding:10px 0 0;">
+        <div>
+          <div class="tog-lbl">${u.email}</div>
+          <div class="tog-sub">${u.role} · ${u.status}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:${u.status==='invited'?'var(--yellow)':'var(--green)'};font-weight:600;">
+            ${u.status==='invited'?'● Invited':'● Active'}
+          </span>
+          <button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;">Remove</button>
+        </div>
+      </div>
+    `).join('');
+    list.innerHTML = `
+      <div class="tog-row" style="padding:10px 0 0;">
+        <div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div>
+        <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
+      </div>
+      ${rows}
+    `;
+  } catch(e) {
+    console.log('Could not load team members:', e.message);
+  }
+}
+
+async function removeUser(id) {
+  if (!confirm('Remove this team member?')) return;
+  try {
+    await fetch(`${API}/team/${id}/remove`, { method: 'PATCH' });
+    loadTeamMembers();
+  } catch(e) {}
 }
 
 async function resolve(id){

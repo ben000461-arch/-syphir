@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "hono": "^4.12.12"
+    "hono": "^4.12.12",
+    "resend": "^6.11.0"
   }
 }
