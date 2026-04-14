@@ -83,7 +83,7 @@ h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:8px;}
   </div>
 
   <!-- STEP 2 -->
-  <div id="step2">
+  <div id="step2" style="display:none;">
     <h1>Open Chrome Extensions</h1>
     <p class="sub" style="margin-bottom:24px;">Click the button below — it opens the Chrome extensions page where you'll install Syphir.</p>
 
@@ -149,14 +149,20 @@ h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:8px;}
 </div>
 
 <script>
+document.getElementById('step1').style.display='block';
+document.getElementById('step2').style.display='none';
+document.getElementById('step3').style.display='none';
+
 function nextStep(from) {
   document.getElementById('step'+from).style.display='none';
-  document.getElementById('step'+(from+1)).style.display='block';
-  document.getElementById('d'+from).classList.remove('active');
-  document.getElementById('d'+from).classList.add('done');
-  document.getElementById('d'+(from+1)).classList.add('active');
+  const next = from + 1;
+  const nextEl = document.getElementById('step'+next);
+  if(nextEl) nextEl.style.display='block';
+  const dot = document.getElementById('d'+from);
+  const nextDot = document.getElementById('d'+next);
+  if(dot){dot.classList.remove('active');dot.classList.add('done');}
+  if(nextDot) nextDot.classList.add('active');
 }
-
 function openExtensions() {
   // Copy the URL to clipboard so user can paste it
   navigator.clipboard.writeText('chrome://extensions').then(() => {
