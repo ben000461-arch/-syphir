@@ -109,28 +109,44 @@ h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:8px;}
 <button class="btn btn-ghost" style="margin-top:8px;" onclick="nextStep(2)">I've installed it →</button>
 
   <!-- STEP 3 -->
-  <div id="step3">
-    <div class="center">
-      <div style="font-size:48px;margin-bottom:16px;">🛡️</div>
-      <div class="badge">● Shield Active</div>
-    </div>
-    <h1 style="margin-bottom:8px;">Almost done!</h1>
-    <p class="sub" style="margin-bottom:24px;">
-      On the Chrome extensions page click <strong style="color:#e6edf3;">"Load unpacked"</strong> and select the <strong style="color:#e6edf3;">syphir-extension</strong> folder you downloaded.
-    </p>
+  <!-- STEP 3 -->
+<div id="step3" style="display:none;">
+  <h1>Load the Extension</h1>
+  <p class="sub" style="margin-bottom:24px;">Follow these steps on the Chrome extensions page.</p>
 
-    <div class="step" style="margin-bottom:24px;">
-      <div class="step-num">✓</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
       <div>
-        <div class="step-title">Your shield activates automatically</div>
-        <div class="step-desc">Once installed Syphir runs silently in the background. You'll see the 🛡️ icon in your Chrome toolbar.</div>
+        <div class="step-title">Unzip the downloaded file</div>
+        <div class="step-desc">Find <strong style="color:#e6edf3;">syphir-extension.zip</strong> in your Downloads folder. Double click it to unzip — you'll get a folder called <strong style="color:#e6edf3;">extension</strong>.</div>
       </div>
     </div>
-
-    <button class="btn" onclick="doneInstall()">✓ I've installed it — Done!</button>
-    <p class="note">Having trouble? Email us at support@syphir.io</p>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">Click "Load unpacked"</div>
+        <div class="step-desc">On the Chrome extensions page click the <strong style="color:#e6edf3;">Load unpacked</strong> button in the top left corner.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">Select the extension folder</div>
+        <div class="step-desc">In the file picker navigate to your Downloads folder and select the <strong style="color:#e6edf3;">extension</strong> folder — not the zip file, the folder inside it.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">✓</div>
+      <div>
+        <div class="step-title">You're done</div>
+        <div class="step-desc">Syphir Shield will appear in your extensions. Click the puzzle piece 🧩 in Chrome toolbar and pin it.</div>
+      </div>
+    </div>
   </div>
 
+  <button class="btn" onclick="doneInstall()">✓ Shield is installed — Done!</button>
+  <p class="note">Having trouble? Email us at support@syphir.io</p>
 </div>
 
 <script>
