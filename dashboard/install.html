@@ -166,11 +166,15 @@ function nextStep(from) {
   if(nextDot) nextDot.classList.add('active');
 }
 function openExtensions() {
-  // Copy the URL to clipboard so user can paste it
   navigator.clipboard.writeText('chrome://extensions').then(() => {
-    document.getElementById('ext-instruction').style.display = 'block';
+    const el = document.getElementById('ext-instruction');
+    if(el) el.style.display = 'block';
+  }).catch(() => {
+    const el = document.getElementById('ext-instruction');
+    if(el) el.style.display = 'block';
   });
-  setTimeout(()=>nextStep(2), 1500);
+  // Remove the setTimeout that was jumping to step 3
+  // User clicks "I've installed it" manually instead
 }
 
 function doneInstall() {
