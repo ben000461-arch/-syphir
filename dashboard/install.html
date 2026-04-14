@@ -149,9 +149,11 @@ h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:8px;}
 </div>
 
 <script>
-document.getElementById('step1').style.display='block';
-document.getElementById('step2').style.display='none';
-document.getElementById('step3').style.display='none';
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('step1').style.display='block';
+  document.getElementById('step2').style.display='none';
+  document.getElementById('step3').style.display='none';
+});
 
 function nextStep(from) {
   document.getElementById('step'+from).style.display='none';
