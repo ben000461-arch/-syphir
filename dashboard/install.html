@@ -95,9 +95,18 @@ h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:8px;}
       </div>
     </div>
 
-    <button class="btn" onclick="openExtensions()">Open Chrome Extensions →</button>
-    <button class="btn btn-ghost" style="margin-top:8px;" onclick="nextStep(2)">I've opened it →</button>
+    <button class="btn" onclick="openExtensions()">Copy Extensions URL →</button>
+<div id="ext-instruction" style="display:none;margin-top:12px;padding:12px;background:#1c2333;border-radius:8px;border:1px solid #2196d3;">
+  <div style="font-size:12px;color:#4db8f0;font-weight:600;margin-bottom:4px;">✓ URL Copied!</div>
+  <div style="font-size:12px;color:#8b949e;line-height:1.6;">
+    1. Open a <strong style="color:#e6edf3;">new Chrome tab</strong><br>
+    2. Paste in the address bar: <code style="background:#0d1117;padding:2px 6px;border-radius:4px;color:#a3e635;">chrome://extensions</code><br>
+    3. Press Enter<br>
+    4. Toggle <strong style="color:#e6edf3;">Developer mode</strong> ON (top right)<br>
+    5. Click <strong style="color:#e6edf3;">Load unpacked</strong> → select the syphir-extension folder
   </div>
+</div>
+<button class="btn btn-ghost" style="margin-top:8px;" onclick="nextStep(2)">I've installed it →</button>
 
   <!-- STEP 3 -->
   <div id="step3">
@@ -134,8 +143,11 @@ function nextStep(from) {
 }
 
 function openExtensions() {
-  window.open('chrome://extensions','_blank');
-  setTimeout(()=>nextStep(2), 1000);
+  // Copy the URL to clipboard so user can paste it
+  navigator.clipboard.writeText('chrome://extensions').then(() => {
+    document.getElementById('ext-instruction').style.display = 'block';
+  });
+  setTimeout(()=>nextStep(2), 1500);
 }
 
 function doneInstall() {
