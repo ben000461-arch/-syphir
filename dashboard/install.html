@@ -179,7 +179,9 @@ function openExtensions() {
 
 function doneInstall() {
   const s3 = document.getElementById('step3');
-  if(s3) s3.innerHTML = `
+  if (!s3) return;
+  s3.style.display = 'block';
+  s3.innerHTML = `
     <div style="text-align:center;padding:20px 0;">
       <div style="font-size:56px;margin-bottom:16px;">✅</div>
       <h1 style="margin-bottom:12px;color:#e6edf3;">You're protected!</h1>
@@ -199,7 +201,7 @@ function doneInstall() {
     </div>
   `;
   const d3 = document.getElementById('d3');
-  if(d3){d3.classList.remove('active');d3.classList.add('done');}
+  if (d3) { d3.classList.remove('active'); d3.classList.add('done'); }
 }
 </script>
 </body>
