@@ -3,677 +3,842 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Syphir — AI Data Protection</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Syphir — AI Data Protection for Small Business</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#0d1117;--bg2:#161b25;--bg3:#1c2333;
-  --border:#242d3e;--border2:#2d3a50;
-  --blue:#2196d3;--blue-l:#4db8f0;--blue-d:#1565a8;--blue-g:rgba(33,150,211,0.12);
-  --cyan:#00bcd4;--pink:#e91e8c;--orange:#ff6d2e;
-  --green:#00e676;--red:#f44336;--yellow:#ffc107;
-  --text:#e6edf3;--text2:#8b949e;--text3:#4a5568;
-  --sidebar:220px;--top:56px;
-}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:13px;overflow-x:hidden;}
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --accent: #6c5ef6;
+    --accent2: #00e5a0;
+    --text: #f0f0f8;
+    --muted: #8888aa;
+    --danger: #ff4d6d;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--black); color: var(--text); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
 
-/* SIDEBAR */
-.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:200;}
-.sidebar-logo{height:var(--top);display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid var(--border);}
-.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--blue),var(--blue-d));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 14px rgba(33,150,211,0.35);}
-.logo-text{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
-.logo-text span{color:var(--blue-l);}
-.nav-section{padding:16px 10px 4px;}
-.nav-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:0 8px;margin-bottom:5px;}
-.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all 0.15s;margin-bottom:1px;position:relative;border:1px solid transparent;}
-.nav-item:hover{background:var(--bg3);color:var(--text);}
-.nav-item.active{background:var(--blue-g);border-color:rgba(33,150,211,0.25);color:var(--blue-l);}
-.nav-item.active::before{content:'';position:absolute;left:0;top:5px;bottom:5px;width:2px;background:var(--blue);border-radius:0 2px 2px 0;}
-.nav-icon{font-size:14px;width:16px;text-align:center;}
-.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;display:none;}
-.sidebar-bottom{margin-top:auto;padding:14px;border-top:1px solid var(--border);}
-.org-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;}
-.org-name{font-size:12px;font-weight:700;color:var(--text);}
-.org-plan{font-size:11px;color:var(--blue-l);margin-top:2px;}
-.org-status{display:flex;align-items:center;gap:5px;margin-top:8px;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.status-txt{font-size:11px;color:var(--text2);}
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid rgba(108,94,246,0.3);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform: translateY(16px) scale(0.97); } to { opacity:1; transform: none; } }
+  .modal-close {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    background: none; border: none; color: var(--muted);
+    font-size: 1.25rem; cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
+    margin-bottom: 2rem;
+  }
+  .modal-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  }
+  .modal-logo-icon svg { width: 18px; height: 18px; fill: white; }
+  .modal h2 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 1.5rem; margin-bottom: 0.5rem; letter-spacing: -0.01em;
+  }
+  .modal p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.75rem; font-weight: 300; }
+  .modal-field { margin-bottom: 1rem; }
+  .modal-field label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+  .modal-input {
+    width: 100%; background: var(--black);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.8rem 1rem; color: var(--text);
+    font-size: 0.95rem; font-family: 'Inter', sans-serif;
+    outline: none; transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-input::placeholder { color: #444460; }
+  .modal-error {
+    color: var(--danger); font-size: 0.82rem;
+    margin-top: 0.5rem; display: none;
+  }
+  .modal-btn {
+    width: 100%; background: var(--accent); color: white;
+    border: none; padding: 0.9rem; border-radius: 8px;
+    font-weight: 600; font-size: 1rem; cursor: pointer;
+    transition: background 0.2s; margin-top: 0.5rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .modal-btn:hover { background: #7b6df7; }
+  .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .modal-footer { text-align: center; margin-top: 1.25rem; font-size: 0.82rem; color: var(--muted); }
+  .modal-footer a { color: var(--accent); text-decoration: none; }
+  .modal-footer a:hover { text-decoration: underline; }
+  .modal-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.75rem; }
+  .modal-tab {
+    flex: 1; padding: 0.75rem; text-align: center;
+    font-size: 0.9rem; font-weight: 500; cursor: pointer;
+    color: var(--muted); border-bottom: 2px solid transparent;
+    transition: all 0.2s; margin-bottom: -1px;
+  }
+  .modal-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .key-hint {
+    background: rgba(108,94,246,0.1); border: 1px solid rgba(108,94,246,0.2);
+    border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.82rem;
+    color: #a89af7; margin-bottom: 1.25rem; line-height: 1.5;
+  }
+  .key-hint strong { color: var(--text); }
 
-/* MAIN */
-.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;}
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+    background: rgba(10,10,15,0.9); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem;
+    color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px;
+  }
+  .logo-shield {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  }
+  .logo-shield svg { width: 16px; height: 16px; fill: white; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--accent); color: white !important;
+    padding: 0.5rem 1.2rem; border-radius: 6px;
+    font-weight: 500; transition: opacity 0.2s; cursor: pointer;
+  }
+  .nav-cta:hover { opacity: 0.85; }
 
-/* TOPBAR */
-.topbar{height:var(--top);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:100;}
-.topbar-left{display:flex;align-items:center;gap:14px;}
-.page-title{font-size:15px;font-weight:700;}
-.topbar-filters{display:flex;align-items:center;gap:6px;}
-.filter-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:5px;cursor:pointer;font-size:11.5px;font-family:'Inter',sans-serif;transition:all 0.15s;}
-.filter-btn:hover,.filter-btn.active{border-color:var(--blue);color:var(--blue-l);background:var(--blue-g);}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.time-txt{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;}
-.btn-ghost{background:var(--bg3);border:1px solid var(--border);color:var(--text2);}
-.btn-ghost:hover{border-color:var(--blue);color:var(--blue-l);}
-.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(33,150,211,0.3);}
-.btn-primary:hover{background:var(--blue-d);}
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 8rem 2rem 4rem; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 500px;
+    background: radial-gradient(ellipse at center, rgba(108,94,246,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse at center, rgba(0,229,160,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(108,94,246,0.15); border: 1px solid rgba(108,94,246,0.3);
+    color: #a89af7; font-size: 0.8rem; font-weight: 500;
+    padding: 0.3rem 1rem; border-radius: 100px; margin-bottom: 2rem; letter-spacing: 0.02em;
+  }
+  .badge-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1.05;
+    margin-bottom: 1.5rem; letter-spacing: -0.02em; max-width: 820px;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero-sub { font-size: 1.15rem; color: var(--muted); max-width: 540px; margin-bottom: 3rem; line-height: 1.7; font-weight: 300; }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent); color: white; padding: 0.85rem 2rem;
+    border-radius: 8px; font-weight: 500; font-size: 1rem; text-decoration: none;
+    transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .btn-primary:hover { background: #7b6df7; transform: translateY(-1px); }
+  .btn-ghost {
+    color: var(--muted); padding: 0.85rem 2rem; border-radius: 8px;
+    font-weight: 400; font-size: 1rem; text-decoration: none;
+    border: 1px solid var(--border); transition: all 0.2s; cursor: pointer;
+    background: none; font-family: 'Inter', sans-serif;
+  }
+  .btn-ghost:hover { border-color: var(--border-hover); color: var(--text); }
+  .hero-proof {
+    margin-top: 4rem; display: flex; align-items: center; gap: 2rem;
+    color: var(--muted); font-size: 0.85rem; flex-wrap: wrap; justify-content: center;
+  }
+  .proof-divider { width: 1px; height: 20px; background: var(--border); }
 
-/* CONTENT */
-.content{padding:20px;flex:1;}
-.page{display:none;animation:fadeUp 0.2s ease;}
-.page.active{display:block;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  /* ── TICKER ── */
+  .ticker {
+    background: var(--surface); border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border); padding: 1rem 0; overflow: hidden; white-space: nowrap;
+  }
+  .ticker-track { display: inline-flex; gap: 3rem; animation: ticker 25s linear infinite; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-item { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; }
 
-/* STAT CARDS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;}
-.stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
-.stat-lbl{font-size:10.5px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;}
-.stat-icon-box{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;}
-.ib-blue{background:rgba(33,150,211,0.15);}
-.ib-red{background:rgba(244,67,54,0.15);}
-.ib-orange{background:rgba(255,109,46,0.15);}
-.ib-green{background:rgba(0,230,118,0.15);}
-.stat-num{font-size:30px;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace;margin-bottom:3px;}
-.sc-blue .stat-num{color:var(--blue-l);}
-.sc-red .stat-num{color:#f87171;}
-.sc-orange .stat-num{color:#fb923c;}
-.sc-green .stat-num{color:var(--green);}
-.stat-desc{font-size:11px;color:var(--text3);}
-.stat-bar{position:absolute;bottom:0;left:0;right:0;height:2px;}
-.sb-blue{background:linear-gradient(90deg,var(--blue),var(--cyan));}
-.sb-red{background:linear-gradient(90deg,var(--red),var(--pink));}
-.sb-orange{background:linear-gradient(90deg,var(--orange),var(--yellow));}
-.sb-green{background:linear-gradient(90deg,var(--green),var(--cyan));}
+  /* ── SECTIONS ── */
+  section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+  .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.15; margin-bottom: 1rem; letter-spacing: -0.01em; }
+  .section-sub { color: var(--muted); font-size: 1.05rem; max-width: 520px; line-height: 1.7; font-weight: 300; }
 
-/* LAYOUTS */
-.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.mb-16{margin-bottom:16px;}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.section-title{font-size:14px;font-weight:700;}
-.section-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+  /* ── HOW IT WORKS ── */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px; margin-top: 3rem; }
+  .step { background: var(--surface); padding: 2rem; position: relative; overflow: hidden; }
+  .step:first-child { border-radius: 12px 0 0 12px; }
+  .step:last-child { border-radius: 0 12px 12px 0; }
+  .step-num { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 800; color: rgba(108,94,246,0.15); line-height: 1; margin-bottom: 1rem; }
+  .step-icon { width: 40px; height: 40px; background: rgba(108,94,246,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+  .step-icon svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+  .step h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem; }
+  .step p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; font-weight: 300; }
+  .step-connector { position: absolute; top: 50%; right: -1px; transform: translateY(-50%); width: 2px; height: 40px; background: linear-gradient(to bottom, transparent, var(--accent), transparent); }
 
-/* CARD */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);}
-.card-title{font-size:13px;font-weight:700;}
-.card-sub{font-size:11px;color:var(--text3);margin-top:1px;}
-.card-body{padding:16px 18px;}
+  /* ── DEMO ── */
+  .demo-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 3rem; }
+  .demo-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; background: var(--surface2); }
+  .demo-dots { display: flex; gap: 6px; }
+  .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .demo-body { padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media (max-width: 640px) { .demo-body { grid-template-columns: 1fr; } }
+  .demo-label { font-size: 0.8rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+  .demo-textarea {
+    width: 100%; background: var(--black); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; color: var(--text);
+    font-size: 0.88rem; font-family: 'Inter', monospace; resize: none; height: 160px;
+    outline: none; transition: border-color 0.2s; line-height: 1.6;
+  }
+  .demo-textarea:focus { border-color: var(--accent); }
+  .demo-scan-btn {
+    margin-top: 1rem; background: var(--accent); color: white; border: none;
+    padding: 0.7rem 1.5rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; width: 100%; transition: background 0.2s; font-family: 'Inter', sans-serif;
+  }
+  .demo-scan-btn:hover { background: #7b6df7; }
+  .demo-result-empty { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 3rem 1rem; border: 1px dashed var(--border); border-radius: 8px; }
+  .finding { background: var(--black); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
+  .finding.critical { border-color: var(--danger); }
+  .finding.high { border-color: #ff8c42; }
+  .finding.medium { border-color: #ffd166; }
+  .finding-type { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; }
+  .finding.critical .finding-type { color: var(--danger); }
+  .finding.high .finding-type { color: #ff8c42; }
+  .finding.medium .finding-type { color: #ffd166; }
+  .finding-snippet { font-family: monospace; font-size: 0.8rem; color: var(--muted); background: var(--surface2); padding: 2px 6px; border-radius: 4px; }
+  .risk-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.3rem 0.8rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; }
+  .risk-badge.critical { background: rgba(255,77,109,0.15); color: var(--danger); border: 1px solid rgba(255,77,109,0.3); }
+  .risk-badge.high { background: rgba(255,140,66,0.15); color: #ff8c42; border: 1px solid rgba(255,140,66,0.3); }
+  .risk-badge.safe { background: rgba(0,229,160,0.1); color: var(--accent2); border: 1px solid rgba(0,229,160,0.2); }
 
-/* DONUT */
-.donut-wrap{display:flex;align-items:center;gap:18px;padding:16px 18px;}
-.donut-chart-wrap{position:relative;flex-shrink:0;}
-.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
-.donut-center-num{font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace;}
-.donut-center-lbl{font-size:10px;color:var(--text3);margin-top:1px;}
-.donut-legend{flex:1;}
-.leg-item{display:flex;align-items:center;gap:7px;margin-bottom:9px;}
-.leg-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
-.leg-lbl{font-size:11.5px;color:var(--text2);flex:1;}
-.leg-val{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;}
-.leg-pct{font-size:10.5px;color:var(--text3);margin-left:3px;}
+  /* ── FEATURES ── */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .feature { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.2s; }
+  .feature:hover { border-color: var(--border-hover); }
+  .feature-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+  .feature h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem; }
+  .feature p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; font-weight: 300; }
 
-/* BAR CHART */
-.bar-wrap{padding:8px 18px 16px;}
-.bars{display:flex;align-items:flex-end;gap:8px;height:90px;}
-.bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
-.bar{width:100%;border-radius:3px 3px 0 0;cursor:pointer;transition:opacity 0.2s;}
-.bar:hover{opacity:0.75;}
-.bar-v{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
-.bar-d{font-size:10px;color:var(--text3);}
+  /* ── EMPLOYEE FLOW ── */
+  .flow-card {
+    background: var(--surface); border: 1px solid rgba(108,94,246,0.2);
+    border-radius: 16px; padding: 2.5rem; margin-top: 3rem;
+  }
+  .flow-steps { display: flex; flex-direction: column; gap: 0; margin-top: 1.5rem; }
+  .flow-step {
+    display: flex; gap: 1.25rem; align-items: flex-start;
+    padding: 1.25rem 0; border-bottom: 1px solid var(--border); position: relative;
+  }
+  .flow-step:last-child { border-bottom: none; }
+  .flow-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(108,94,246,0.2); border: 1px solid rgba(108,94,246,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+    color: #a89af7; flex-shrink: 0;
+  }
+  .flow-step-content h4 { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .flow-step-content p { color: var(--muted); font-size: 0.85rem; line-height: 1.5; font-weight: 300; }
+  .flow-step-content code {
+    background: var(--black); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; font-size: 0.8rem; color: var(--accent2);
+    font-family: monospace;
+  }
 
-/* TABLE */
-.tbl-hdr{display:grid;grid-template-columns:2.5fr 1.5fr 1fr 1fr 1fr 0.8fr;padding:9px 18px;background:var(--bg3);border-bottom:1px solid var(--border);}
-.th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;}
-.tbl-row{display:grid;grid-template-columns:2.5fr 1.5fr 1fr 1fr 1fr 0.8fr;padding:12px 18px;border-bottom:1px solid var(--border);align-items:center;transition:background 0.1s;}
-.tbl-row:last-child{border-bottom:none;}
-.tbl-row:hover{background:var(--bg3);}
-.td{font-size:12.5px;color:var(--text);}
-.td-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-.empty{padding:44px;text-align:center;}
-.empty-icon{font-size:30px;margin-bottom:8px;}
-.empty-msg{font-size:12px;color:var(--text3);}
+  /* ── PRICING ── */
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .plan { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; position: relative; transition: border-color 0.2s; }
+  .plan:hover { border-color: var(--border-hover); }
+  .plan.featured { border-color: rgba(108,94,246,0.4); background: linear-gradient(135deg, rgba(108,94,246,0.05), var(--surface)); }
+  .plan-badge { position: absolute; top: -1px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 1rem; border-radius: 0 0 8px 8px; letter-spacing: 0.05em; }
+  .plan-name { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 0.25rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; }
+  .plan-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem; line-height: 1; margin: 0.5rem 0; }
+  .plan-price span { font-size: 1rem; font-weight: 400; color: var(--muted); font-family: 'Inter', sans-serif; }
+  .plan-desc { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem; font-weight: 300; }
+  .plan-features { list-style: none; margin-bottom: 2rem; }
+  .plan-features li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.88rem; padding: 0.4rem 0; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .plan-features li:last-child { border-bottom: none; }
+  .check { color: var(--accent2); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .plan-cta {
+    display: block; text-align: center; padding: 0.8rem; border-radius: 8px;
+    font-weight: 500; font-size: 0.95rem; text-decoration: none;
+    transition: all 0.2s; border: 1px solid var(--border); color: var(--text); cursor: pointer;
+    background: none; width: 100%; font-family: 'Inter', sans-serif;
+  }
+  .plan.featured .plan-cta { background: var(--accent); border-color: var(--accent); color: white; }
+  .plan-cta:hover { opacity: 0.85; transform: translateY(-1px); }
 
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;}
-.b-high{background:rgba(244,67,54,0.12);color:#f87171;border:1px solid rgba(244,67,54,0.2);}
-.b-medium{background:rgba(255,109,46,0.12);color:#fb923c;border:1px solid rgba(255,109,46,0.2);}
-.b-low{background:rgba(255,193,7,0.12);color:var(--yellow);border:1px solid rgba(255,193,7,0.2);}
-.b-tool{background:var(--blue-g);color:var(--blue-l);border:1px solid rgba(33,150,211,0.2);}
+  /* ── CTA SECTION ── */
+  .cta-section {
+    background: linear-gradient(135deg, rgba(108,94,246,0.1), rgba(0,229,160,0.05));
+    border: 1px solid rgba(108,94,246,0.2); border-radius: 20px;
+    padding: 4rem 3rem; text-align: center; max-width: 1100px; margin: 0 auto 6rem;
+  }
+  .cta-section h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.5rem); margin-bottom: 1rem; }
+  .cta-section p { color: var(--muted); margin-bottom: 2rem; font-weight: 300; }
+  .cta-form { display: flex; gap: 1rem; max-width: 420px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+  .cta-input {
+    flex: 1; min-width: 220px; background: var(--black); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.85rem 1rem; color: var(--text);
+    font-size: 0.95rem; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.2s;
+  }
+  .cta-input:focus { border-color: var(--accent); }
+  .cta-input::placeholder { color: #444460; }
+  .cta-btn {
+    background: var(--accent); color: white; border: none; padding: 0.85rem 1.75rem;
+    border-radius: 8px; font-weight: 500; font-size: 0.95rem; cursor: pointer;
+    transition: background 0.2s; white-space: nowrap; font-family: 'Inter', sans-serif;
+  }
+  .cta-btn:hover { background: #7b6df7; }
 
-/* RESOLVE */
-.res-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;}
-.res-btn:hover{border-color:var(--green);color:var(--green);}
-.res-btn.done{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.07);}
+  /* ── FOOTER ── */
+  footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
 
-/* FEED */
-.feed-item{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);animation:fadeUp 0.3s ease;}
-.feed-item:last-child{border-bottom:none;}
-.feed-dot{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
-.fd-high{background:rgba(244,67,54,0.12);}
-.fd-medium{background:rgba(255,109,46,0.12);}
-.fd-low{background:rgba(255,193,7,0.12);}
-.feed-body{flex:1;}
-.feed-title{font-size:12.5px;font-weight:600;}
-.feed-detail{font-size:11px;color:var(--text3);margin-top:2px;}
-.feed-time{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
-.live-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--red);background:rgba(244,67,54,0.1);padding:3px 8px;border-radius:4px;border:1px solid rgba(244,67,54,0.2);}
-.live-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;}
+  /* ── INDUSTRIES ── */
+  .industries { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
+  .industry { background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 0.5rem 1.25rem; font-size: 0.88rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
 
-/* TOGGLE */
-.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);}
-.tog-row:last-child{border-bottom:none;}
-.tog-lbl{font-size:12.5px;font-weight:500;}
-.tog-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-.toggle{width:36px;height:20px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;position:relative;flex-shrink:0;transition:background 0.2s;outline:none;}
-.toggle.on{background:var(--blue);border-color:var(--blue);}
-.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
-.toggle.on::after{left:18px;}
-
-/* INPUT */
-.inp-lbl{font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px;display:block;}
-.inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:12.5px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none;transition:border-color 0.15s;}
-.inp:focus{border-color:var(--blue);}
-.inp-group{margin-bottom:12px;}
-
-/* CODE */
-.code{background:#090c14;border:1px solid var(--border);border-radius:7px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#a3e635;line-height:1.8;overflow-x:auto;margin-top:10px;}
-.code .c{color:var(--text3);}
-.code .k{color:#60a5fa;}
-.code .s{color:#fbbf24;}
-
-/* AI GRID */
-.ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.ai-tile{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all 0.15s;}
-.ai-tile:hover{border-color:var(--blue);box-shadow:0 0 12px var(--blue-g);}
-.ai-tile.connected{border-color:rgba(0,230,118,0.4);background:rgba(0,230,118,0.05);}
-.ai-icon{font-size:24px;margin-bottom:6px;}
-.ai-name{font-size:12px;font-weight:600;}
-.ai-status{font-size:11px;color:var(--text3);margin-top:2px;}
-.ai-tile.connected .ai-status{color:var(--green);}
-.plan-pill{display:inline-flex;align-items:center;background:var(--blue-g);border:1px solid rgba(33,150,211,0.25);color:var(--blue-l);font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;}
+  /* ── NOTIFICATION MOCKUP ── */
+  .notif { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: flex-start; gap: 1rem; max-width: 360px; position: relative; }
+  .notif-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,77,109,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .notif-icon svg { width: 18px; height: 18px; stroke: var(--danger); fill: none; stroke-width: 2; }
+  .notif-content { flex: 1; }
+  .notif-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
+  .notif-body { color: var(--muted); font-size: 0.8rem; line-height: 1.5; }
+  .notif-time { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
+  .notif-badge { position: absolute; top: -6px; right: -6px; background: var(--danger); color: white; font-size: 0.7rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-icon">🛡️</div>
-    <div class="logo-text">Sy<span>phir</span></div>
-  </div>
-  <div class="nav-section">
-    <div class="nav-label">Monitor</div>
-    <div class="nav-item active" onclick="nav('overview',this)"><span class="nav-icon">▦</span>Overview</div>
-    <div class="nav-item" onclick="nav('incidents',this)"><span class="nav-icon">⚠</span>Incidents<span class="nav-badge" id="nav-badge">0</span></div>
-    <div class="nav-item" onclick="nav('live',this)"><span class="nav-icon">◉</span>Live Feed</div>
-  </div>
-  <div class="nav-section">
-    <div class="nav-label">Protection</div>
-    <div class="nav-item" onclick="nav('gateway',this)"><span class="nav-icon">⊕</span>API Gateway</div>
-    <div class="nav-item" onclick="nav('policies',this)"><span class="nav-icon">☰</span>Policies</div>
-  </div>
-  <div class="nav-section">
-    <div class="nav-label">Account</div>
-    <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">◎</span>Settings</div>
-  </div>
-  <div class="sidebar-bottom">
-    <div class="org-card">
-      <div class="org-name">Demo Dental Practice</div>
-      <div class="org-plan">Business · $249/mo</div>
-      <div class="org-status"><div class="status-dot"></div><div class="status-txt">Shield Active</div></div>
+<!-- ── LOGIN MODAL ── -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-logo">
+      <div class="modal-logo-icon">
+        <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
+      </div>
+      Syphir
     </div>
-  </div>
-</aside>
-
-<main class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="page-title" id="page-title">Overview</div>
-      <div class="topbar-filters" id="topbar-filters">
-        <button class="filter-btn active" onclick="setFilter('7d',this)">7 Days</button>
-        <button class="filter-btn" onclick="setFilter('30d',this)">30 Days</button>
-        <button class="filter-btn" onclick="setFilter('all',this)">All Time</button>
-      </div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab('login')">Sign In</div>
+      <div class="modal-tab" onclick="switchTab('key')">License Key</div>
     </div>
-    <div class="topbar-right">
-      <div class="time-txt" id="last-updated">—</div>
-      <button class="btn btn-ghost" onclick="loadData()">↻ Refresh</button>
-    </div>
-  </header>
 
-  <div class="content">
-
-    <!-- OVERVIEW -->
-    <div class="page active" id="page-overview">
-      <div class="stats-row">
-        <div class="stat-card sc-blue"><div class="stat-top"><div class="stat-lbl">Total Incidents</div><div class="stat-icon-box ib-blue">🛡</div></div><div class="stat-num" id="s-total">0</div><div class="stat-desc">All detections</div><div class="stat-bar sb-blue"></div></div>
-        <div class="stat-card sc-red"><div class="stat-top"><div class="stat-lbl">High Risk</div><div class="stat-icon-box ib-red">⚠</div></div><div class="stat-num" id="s-high">0</div><div class="stat-desc">SSN · Cards · Medical</div><div class="stat-bar sb-red"></div></div>
-        <div class="stat-card sc-orange"><div class="stat-top"><div class="stat-lbl">Medium Risk</div><div class="stat-icon-box ib-orange">◎</div></div><div class="stat-num" id="s-medium">0</div><div class="stat-desc">Names · Emails · Phones</div><div class="stat-bar sb-orange"></div></div>
-        <div class="stat-card sc-green"><div class="stat-top"><div class="stat-lbl">Resolved</div><div class="stat-icon-box ib-green">✓</div></div><div class="stat-num" id="s-resolved">0</div><div class="stat-desc">Acknowledged</div><div class="stat-bar sb-green"></div></div>
+    <!-- Email/password tab -->
+    <div class="tab-content active" id="tab-login">
+      <h2>Welcome back</h2>
+      <p>Sign in to your organization's dashboard.</p>
+      <div class="modal-field">
+        <label>Email</label>
+        <input class="modal-input" type="email" id="loginEmail" placeholder="admin@yourpractice.com">
       </div>
-
-      <div class="charts-row">
-        <div class="card">
-          <div class="card-hdr"><div><div class="card-title">Risk Breakdown</div><div class="card-sub">Distribution by severity</div></div></div>
-          <div class="donut-wrap">
-            <div class="donut-chart-wrap" style="width:120px;height:120px;position:relative;">
-              <canvas id="donutChart" width="120" height="120"></canvas>
-              <div class="donut-center"><div class="donut-center-num" id="donut-total">0</div><div class="donut-center-lbl">Total</div></div>
-            </div>
-            <div class="donut-legend">
-              <div class="leg-item"><div class="leg-dot" style="background:#f87171;"></div><div class="leg-lbl">High Risk</div><div class="leg-val" id="leg-high">0</div><div class="leg-pct" id="leg-high-pct">(0%)</div></div>
-              <div class="leg-item"><div class="leg-dot" style="background:#fb923c;"></div><div class="leg-lbl">Medium Risk</div><div class="leg-val" id="leg-med">0</div><div class="leg-pct" id="leg-med-pct">(0%)</div></div>
-              <div class="leg-item"><div class="leg-dot" style="background:#fbbf24;"></div><div class="leg-lbl">Low Risk</div><div class="leg-val" id="leg-low">0</div><div class="leg-pct" id="leg-low-pct">(0%)</div></div>
-              <div class="leg-item"><div class="leg-dot" style="background:#34d399;"></div><div class="leg-lbl">Resolved</div><div class="leg-val" id="leg-res">0</div><div class="leg-pct" id="leg-res-pct">(0%)</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-hdr"><div><div class="card-title">Daily Incidents</div><div class="card-sub">Last 7 days</div></div></div>
-          <div class="bar-wrap">
-            <div class="bars" id="bar-chart"></div>
-          </div>
-        </div>
+      <div class="modal-field">
+        <label>Password</label>
+        <input class="modal-input" type="password" id="loginPassword" placeholder="••••••••">
       </div>
-
-      <div class="section-hdr">
-        <div><div class="section-title">Recent Incidents</div><div class="section-sub">Latest detections across your team</div></div>
-        <button class="btn btn-ghost" onclick="nav('incidents',document.querySelectorAll('.nav-item')[1])">View All →</button>
-      </div>
-      <div class="card">
-        <div class="tbl-hdr"><div class="th">Detection</div><div class="th">User</div><div class="th">AI Tool</div><div class="th">Risk</div><div class="th">Time</div><div class="th">Action</div></div>
-        <div id="tbl-overview"><div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents yet — your team is clean</div></div></div>
+      <div class="modal-error" id="loginError">Invalid email or password. Try the License Key tab instead.</div>
+      <button class="modal-btn" onclick="handleLogin()" id="loginBtn">Sign In to Dashboard →</button>
+      <div class="modal-footer">
+        Don't have an account? <a href="#" onclick="startTrial()">Start free trial</a>
       </div>
     </div>
 
-    <!-- INCIDENTS -->
-    <div class="page" id="page-incidents">
-      <div class="section-hdr">
-        <div><div class="section-title">All Incidents</div><div class="section-sub">Complete detection history</div></div>
-        <button class="btn btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
+    <!-- License key tab -->
+    <div class="tab-content" id="tab-key">
+      <h2>Enter your license key</h2>
+      <p>Use the key from your Syphir welcome email or dashboard settings.</p>
+      <div class="key-hint">
+        🔑 Your key looks like <strong>SYP-XXXX-XXXX-XXXX</strong><br>
+        Find it in your dashboard under Settings → License Key
       </div>
-      <div class="card">
-        <div class="tbl-hdr"><div class="th">Detection</div><div class="th">User</div><div class="th">AI Tool</div><div class="th">Risk</div><div class="th">Time</div><div class="th">Action</div></div>
-        <div id="tbl-incidents"><div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div></div>
+      <div class="modal-field">
+        <label>License Key</label>
+        <input class="modal-input" id="licenseKeyInput" placeholder="SYP-XXXX-XXXX-XXXX" style="font-family: monospace; letter-spacing: 0.05em;" oninput="this.value = this.value.toUpperCase()">
       </div>
-    </div>
-
-    <!-- LIVE -->
-    <div class="page" id="page-live">
-      <div class="section-hdr">
-        <div><div class="section-title">Live Feed</div><div class="section-sub">Real-time detection stream</div></div>
-        <div style="display:flex;gap:8px;align-items:center;"><div class="live-pill"><div class="live-dot"></div>LIVE</div><button class="btn btn-ghost" onclick="clearFeed()">Clear</button></div>
-      </div>
-      <div class="card"><div id="feed-list"><div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Waiting for activity…</div></div></div></div>
-    </div>
-
-    <!-- GATEWAY -->
-    <div class="page" id="page-gateway">
-      <div class="section-hdr"><div><div class="section-title">API Gateway</div><div class="section-sub">Protect AI traffic without the browser extension</div></div></div>
-      <div class="card mb-16">
-        <div class="card-hdr"><div><div class="card-title">Your Syphir Gateway Endpoint</div><div class="card-sub">Route AI calls through Syphir — we scan then forward</div></div></div>
-        <div class="card-body">
-          <div class="inp-group"><label class="inp-lbl">Gateway URL</label><input class="inp" id="gateway-url" value="https://api.syphir.io/v1/gateway/org_demo" readonly></div>
-          <div class="code"><span class="c"># Before — direct to OpenAI:</span>
-<span class="k">curl</span> https://api.openai.com/v1/chat/completions \
-  -H <span class="s">"Authorization: Bearer $OPENAI_KEY"</span>
-
-<span class="c"># After — scanned by Syphir first:</span>
-<span class="k">curl</span> https://api.syphir.io/v1/gateway/org_demo \
-  -H <span class="s">"Authorization: Bearer SYP-DEMO-2026-SYPHIR"</span> \
-  -H <span class="s">"X-AI-Provider: openai"</span> \
-  -H <span class="s">"X-AI-Key: $OPENAI_KEY"</span></div>
-          <button class="btn btn-primary" style="margin-top:14px;" onclick="copyGateway()">Copy Endpoint</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-hdr"><div><div class="card-title">Connect AI Providers</div><div class="card-sub">All traffic scanned before reaching these services</div></div></div>
-        <div class="card-body">
-          <div class="ai-grid">
-            <div class="ai-tile" onclick="connectAI(this,'OpenAI')"><div class="ai-icon">🟢</div><div class="ai-name">OpenAI / ChatGPT</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Anthropic')"><div class="ai-icon">🔴</div><div class="ai-name">Anthropic / Claude</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Gemini')"><div class="ai-icon">🔵</div><div class="ai-name">Google Gemini</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Groq')"><div class="ai-icon">⚡</div><div class="ai-name">Groq</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Copilot')"><div class="ai-icon">🪟</div><div class="ai-name">Microsoft Copilot</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Custom')"><div class="ai-icon">🔧</div><div class="ai-name">Custom / Other</div><div class="ai-status">Click to connect</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- POLICIES -->
-    <div class="page" id="page-policies">
-      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects and how it responds</div></div><button class="btn btn-primary" onclick="alert('Policies saved!')">Save Changes</button></div>
-      <div class="grid-2">
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">🏥 HIPAA Data Types</div></div>
-          <div class="tog-row"><div><div class="tog-lbl">Patient Names</div><div class="tog-sub">Names in clinical context</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Medical Record Numbers</div><div class="tog-sub">MRN and patient IDs</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Diagnosis Information</div><div class="tog-sub">Clinical and treatment data</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Insurance Information</div><div class="tog-sub">Policy numbers and providers</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-        </div>
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">🔒 PII Detection</div></div>
-          <div class="tog-row"><div><div class="tog-lbl">Social Security Numbers</div><div class="tog-sub">SSN in any format</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Email Addresses</div><div class="tog-sub">Personal and work emails</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Phone Numbers</div><div class="tog-sub">US and international</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Credit Card Numbers</div><div class="tog-sub">All major card formats</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-        </div>
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">⚡ Response Actions</div></div>
-          <div class="tog-row"><div><div class="tog-lbl">Employee Notification</div><div class="tog-sub">Show banner on detection</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Admin Email Alert</div><div class="tog-sub">Email on high risk</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Slack Notifications</div><div class="tog-sub">Push to Slack channel</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Log All Scans</div><div class="tog-sub">Record every scan</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
-        </div>
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">🎯 Custom Keywords</div></div>
-          <div class="card-body"><div class="inp-group"><label class="inp-lbl">Sensitive terms (one per line)</label><textarea class="inp" rows="7" style="resize:vertical;" placeholder="patient portal&#10;acquisition target&#10;internal pricing"></textarea></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SETTINGS -->
-    <div class="page" id="page-settings">
-      <div class="section-hdr"><div><div class="section-title">Settings</div><div class="section-sub">Manage your organization and billing</div></div><button class="btn btn-primary" onclick="alert('Saved!')">Save Changes</button></div>
-      <div class="grid-2">
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">🏢 Organization</div></div>
-          <div class="card-body">
-            <div class="inp-group"><label class="inp-lbl">Organization Name</label><input class="inp" value="Demo Dental Practice"></div>
-            <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" value="admin@dentalpractice.com"></div>
-            <div class="inp-group"><label class="inp-lbl">License Key</label><input class="inp" value="SYP-DEMO-2026-SYPHIR" readonly style="opacity:0.5;cursor:not-allowed;"></div>
-          </div>
-        </div>
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">💳 Billing</div></div>
-          <div class="card-body">
-            <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub">Renews May 10, 2026</div></div><div class="plan-pill">Business · $249/mo</div></div>
-            <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub">Visa •••• 4242</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Update</button></div>
-            <button class="btn btn-ghost" style="width:100%;margin-top:14px;justify-content:center;">Manage via Stripe →</button>
-          </div>
-        </div>
-       <div class="card mb-16">
-  <div class="card-hdr"><div class="card-title">👥 Team Members</div></div>
-  <div class="card-body">
-    <div class="inp-group">
-      <label class="inp-lbl">Invite by Email</label>
-      <div style="display:flex;gap:8px;">
-        <input class="inp" id="invite-email" placeholder="employee@company.com" style="flex:1;">
-        <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
-      </div>
-      <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
-      <div style="margin-top:14px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
-  <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Manual Install Link</div>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share this link with employees if the invite email doesn't work:</div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <input class="inp" id="install-link" value="https://syphir.vercel.app/install.html?key=SYP-DEMO-2026-SYPHIR" readonly style="flex:1;font-size:11px;opacity:0.8;">
-    <button class="btn btn-ghost" onclick="copyInstallLink()" style="white-space:nowrap;flex-shrink:0;">Copy Link</button>
-  </div>
-  <div id="copy-link-msg" style="font-size:11px;margin-top:6px;"></div>
-</div>
-    </div>
-    <div id="team-members-list">
-      <div class="tog-row" style="padding:10px 0 0;">
-        <div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div>
-        <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
+      <div class="modal-error" id="keyError">Invalid license key. Check your welcome email.</div>
+      <button class="modal-btn" onclick="handleKeyLogin()" id="keyBtn">Access Dashboard →</button>
+      <div class="modal-footer">
+        Need a key? <a href="#" onclick="startTrial()">Request a free pilot</a>
       </div>
     </div>
   </div>
 </div>
 
+<!-- ── NAV ── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-shield">
+      <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
+    </div>
+    Syphir
+  </a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a class="nav-cta" onclick="openModal()">Dashboard Login</a>
   </div>
-</main>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="badge"><span class="badge-dot"></span>Real-time AI data protection</div>
+  <h1>Stop sensitive data from<br>leaking into <em>AI tools</em></h1>
+  <p class="hero-sub">Syphir detects when employees paste patient records, SSNs, credit cards, or API keys into ChatGPT, Claude, Grok, and other AI tools — and alerts them instantly.</p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="openModal()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Access Dashboard
+    </button>
+    <a href="#demo" class="btn-ghost">See live demo</a>
+  </div>
+  <div class="hero-proof">
+    <span>🔒 SOC 2 ready</span>
+    <div class="proof-divider"></div>
+    <span>⚡ Installs in 2 minutes</span>
+    <div class="proof-divider"></div>
+    <span>🏥 Built for healthcare, legal & CPA</span>
+  </div>
+</div>
+
+<!-- ── TICKER ── -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ticker-item">● ChatGPT</span>
+    <span class="ticker-item">● Claude</span>
+    <span class="ticker-item">● Grok</span>
+    <span class="ticker-item">● Gemini</span>
+    <span class="ticker-item">● Copilot</span>
+    <span class="ticker-item">● Perplexity</span>
+    <span class="ticker-item">● ChatGPT</span>
+    <span class="ticker-item">● Claude</span>
+    <span class="ticker-item">● Grok</span>
+    <span class="ticker-item">● Gemini</span>
+    <span class="ticker-item">● Copilot</span>
+    <span class="ticker-item">● Perplexity</span>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how">
+  <div class="section-label">How it works</div>
+  <div class="section-title">Three steps. Zero friction.</div>
+  <p class="section-sub">Deploys in minutes with no IT department required. Employees install once, then Syphir works silently in the background.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+      <h3>Business gets a license key</h3>
+      <p>Your unique org key (SYP-XXXX) is your identity. It links every employee install back to your dashboard.</p>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+      <h3>Share one link with employees</h3>
+      <p>Your dashboard generates a pre-linked install URL. Employees click it — your key is already baked in.</p>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+      <h3>All incidents flow to your dashboard</h3>
+      <p>Every detection from every employee shows up only in your org's dashboard — isolated from all other businesses.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── EMPLOYEE FLOW ── -->
+<section style="padding-top:0;">
+  <div class="section-label">Employee onboarding</div>
+  <div class="section-title">One link. Auto-linked to your org.</div>
+  <p class="section-sub">No employee ever has to think about keys or configuration. The install link does everything.</p>
+  <div class="flow-card">
+    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Your org's install link looks like:</p>
+    <code style="background: var(--black); border: 1px solid rgba(108,94,246,0.3); border-radius: 8px; padding: 0.75rem 1rem; display: block; font-size: 0.9rem; color: var(--accent2); font-family: monospace; margin-bottom: 1.5rem; word-break: break-all;">https://syphir.vercel.app/install.html?key=SYP-YOUR-ORG-KEY</code>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-step-content">
+          <h4>Admin copies install link from dashboard</h4>
+          <p>Found in Settings → Team Members → Manual Install Link. The <code>?key=</code> param is pre-filled with your org key.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-step-content">
+          <h4>Share via email, Slack, or text</h4>
+          <p>Employee clicks the link. The install page reads the key from the URL and bakes it into the extension config automatically.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-step-content">
+          <h4>Employee installs in 60 seconds</h4>
+          <p>No account needed, no key to type. The extension activates and immediately starts protecting that employee's AI sessions.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-step-content">
+          <h4>Dashboard shows everything — scoped to your org</h4>
+          <p>Business A only ever sees Business A's incidents. Complete isolation. Your employees' activity never mixes with another org.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── LIVE DEMO ── -->
+<section id="demo" style="padding-top:0;">
+  <div class="section-label">Live demo</div>
+  <div class="section-title">See the scanner in action</div>
+  <p class="section-sub">Paste any text below. Try including a fake SSN, email, or credit card number to see what gets flagged.</p>
+  <div class="demo-card">
+    <div class="demo-header">
+      <div class="demo-dots">
+        <div class="demo-dot" style="background:#ff5f57;"></div>
+        <div class="demo-dot" style="background:#febc2e;"></div>
+        <div class="demo-dot" style="background:#28c840;"></div>
+      </div>
+      <span style="font-size:0.85rem; color:var(--muted); font-family:monospace;">ChatGPT — New conversation</span>
+    </div>
+    <div class="demo-body">
+      <div>
+        <div class="demo-label">Prompt text (employee input)</div>
+        <textarea class="demo-textarea" id="demoText" placeholder="Try: Patient John Doe, SSN 123-45-6789, DOB 03/15/1980, Visa 4111-1111-1111-1111, contact john@example.com"></textarea>
+        <button class="demo-scan-btn" onclick="runDemo()">Scan for sensitive data →</button>
+      </div>
+      <div>
+        <div class="demo-label">Detection results</div>
+        <div id="demoResults"><div class="demo-result-empty">Results will appear here after scanning</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section id="features">
+  <div class="section-label">Features</div>
+  <div class="section-title">Enterprise protection.<br>Startup simplicity.</div>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(108,94,246,0.15);">
+        <svg width="22" height="22" fill="none" stroke="#6c5ef6" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>40+ PII entity types</h3>
+      <p>SSNs, credit cards, medical records, API keys, DOBs, EINs, IBAN, and more — all detected with pattern-based precision.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(0,229,160,0.1);">
+        <svg width="22" height="22" fill="none" stroke="#00e5a0" stroke-width="1.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <h3>Real-time interception</h3>
+      <p>Scans happen before the prompt is sent. No data leaves the browser until your employee confirms the risk.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(255,77,109,0.1);">
+        <svg width="22" height="22" fill="none" stroke="#ff4d6d" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      </div>
+      <h3>Per-org incident dashboard</h3>
+      <p>Each business sees only their own incidents. Complete data isolation — Dental Office A never sees Law Firm B's data.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(255,209,102,0.1);">
+        <svg width="22" height="22" fill="none" stroke="#ffd166" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </div>
+      <h3>Zero sensitive data stored</h3>
+      <p>Syphir only logs metadata — entity type, risk score, timestamp. The actual sensitive text never touches our servers.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(108,94,246,0.15);">
+        <svg width="22" height="22" fill="none" stroke="#6c5ef6" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3"/></svg>
+      </div>
+      <h3>Works on all AI tools</h3>
+      <p>ChatGPT, Claude, Grok, Gemini, Copilot, Perplexity — and any new tool added with one config change.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(0,229,160,0.1);">
+        <svg width="22" height="22" fill="none" stroke="#00e5a0" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <h3>Multi-org management</h3>
+      <p>Manage multiple practice locations or clients from one admin account with full per-org isolation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── INDUSTRIES ── -->
+<section style="padding-top:0;">
+  <div class="section-label">Built for your industry</div>
+  <div class="section-title">High-stakes fields need<br>high-stakes protection</div>
+  <p class="section-sub">One data leak can trigger regulatory action, lawsuits, and lost client trust. Syphir gives your team a safety net.</p>
+  <div class="industries">
+    <div class="industry">🦷 Dental & Medical Practices</div>
+    <div class="industry">⚖️ Law Firms</div>
+    <div class="industry">📊 CPA & Accounting</div>
+    <div class="industry">🏥 Healthcare Networks</div>
+    <div class="industry">🏛️ Financial Advisors</div>
+    <div class="industry">🏢 HR Departments</div>
+  </div>
+  <div style="margin-top:3rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start;">
+    <div class="notif">
+      <div class="notif-badge">!</div>
+      <div class="notif-icon">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="notif-content">
+        <div class="notif-title">Sensitive data detected</div>
+        <div class="notif-body">SSN and patient DOB found in your ChatGPT prompt. Remove before sending.</div>
+        <div class="notif-time">Just now · High risk</div>
+      </div>
+    </div>
+    <div style="flex:1; min-width:260px; color:var(--muted); font-size:0.95rem; line-height:1.8; font-weight:300; padding-top:0.5rem;">
+      Employees see this notification before their prompt is submitted. They can remove the sensitive content, or acknowledge the risk and proceed — every action is logged to your dashboard.
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section id="pricing">
+  <div class="section-label">Pricing</div>
+  <div class="section-title">Simple, transparent pricing</div>
+  <p class="section-sub">Flat monthly rate for your whole team. No per-seat fees, no surprise bills. Cancel anytime.</p>
+  <div class="pricing-grid">
+    <div class="plan">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">$99<span>/mo</span></div>
+      <div class="plan-desc">Perfect for small practices up to 10 employees.</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Up to 10 employees</li>
+        <li><span class="check">✓</span> 40+ PII entity types</li>
+        <li><span class="check">✓</span> Incident dashboard</li>
+        <li><span class="check">✓</span> Email alerts</li>
+        <li><span class="check">✓</span> 30-day incident history</li>
+      </ul>
+      <button class="plan-cta" onclick="openModal()">Get started →</button>
+    </div>
+    <div class="plan featured">
+      <div class="plan-badge">MOST POPULAR</div>
+      <div class="plan-name">Professional</div>
+      <div class="plan-price">$249<span>/mo</span></div>
+      <div class="plan-desc">For growing teams and multi-location practices.</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Up to 50 employees</li>
+        <li><span class="check">✓</span> Everything in Starter</li>
+        <li><span class="check">✓</span> Custom PII rules</li>
+        <li><span class="check">✓</span> Slack / Teams alerts</li>
+        <li><span class="check">✓</span> 1-year incident history</li>
+        <li><span class="check">✓</span> Priority support</li>
+      </ul>
+      <button class="plan-cta" onclick="openModal()">Get started →</button>
+    </div>
+    <div class="plan">
+      <div class="plan-name">Institution</div>
+      <div class="plan-price">$599<span>/mo</span></div>
+      <div class="plan-desc">For large organizations and MSP partners.</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Unlimited employees</li>
+        <li><span class="check">✓</span> Everything in Pro</li>
+        <li><span class="check">✓</span> Multi-org dashboard</li>
+        <li><span class="check">✓</span> HIPAA BAA available</li>
+        <li><span class="check">✓</span> Unlimited history</li>
+        <li><span class="check">✓</span> Dedicated onboarding</li>
+      </ul>
+      <button class="plan-cta" onclick="openModal()">Contact sales →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ── -->
+<div class="cta-section" id="contact">
+  <h2>Start protecting your practice today</h2>
+  <p>Free 30-day pilot. No credit card required. Works in under 5 minutes.</p>
+  <div class="cta-form">
+    <input type="email" class="cta-input" placeholder="your@practice.com" id="ctaEmail">
+    <button class="cta-btn" onclick="handleCTA()">Start free pilot →</button>
+  </div>
+  <p style="margin-top:1rem; font-size:0.8rem; color:var(--muted);">Join dental offices, law firms, and CPA practices already protected by Syphir.</p>
+</div>
+
+<footer>
+  <p style="margin-bottom:0.5rem;">
+    <a href="#">Privacy Policy</a> · <a href="#">Terms of Service</a> ·
+    <a href="https://medholotech.com">MedHolo Tech</a> ·
+    <a href="mailto:hello@medholotech.com">hello@medholotech.com</a>
+  </p>
+  <p>© 2025 MedHolo Tech. All rights reserved. · Corona, CA</p>
+</footer>
 
 <script>
-const API='http://localhost:3000',ORG_ID='org_demo';
+// ── MODAL ──────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('loginModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('loginModal').classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('keyError').style.display = 'none';
+}
+document.getElementById('loginModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
 
-async function inviteUser() {
-  const email = document.getElementById('invite-email').value.trim();
-  const msg = document.getElementById('invite-msg');
-  if (!email) { msg.style.color='var(--red)'; msg.textContent='Enter an email'; return; }
-  msg.style.color='var(--text3)'; msg.textContent='Sending invite...';
-  try {
-    const res = await fetch(`${API}/invite-user`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        org_key: 'SYP-DEMO-2026-SYPHIR',
-        employee_email: email,
-        org_name: 'Demo Dental Practice'
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      msg.style.color = 'var(--green)';
-      msg.textContent = '✓ Invite sent!';
-      document.getElementById('invite-email').value = '';
-    } else {
-      msg.style.color = 'var(--red)';
-      msg.textContent = data.message || 'Failed to send';
-    }
-  } catch(e) {
-    msg.style.color = 'var(--red)';
-    msg.textContent = 'API offline';
+function switchTab(tab) {
+  document.querySelectorAll('.modal-tab').forEach((t,i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'key'));
+  });
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-key').classList.toggle('active', tab === 'key');
+}
+
+// ── LOGIN HANDLERS ─────────────────────────────────────────────────────────
+// Valid keys → redirect to dashboard (scoped by key)
+const VALID_KEYS = [
+  'SYP-DEMO-2026-SYPHIR',
+  'SYP-PILOT-DENTA1',
+  'SYP-PILOT-LAW01',
+  'SYP-PILOT-CPA01',
+  'SYP-PRO-MEDHOLO01',
+];
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+  if (!email || !pass) { err.style.display = 'block'; return; }
+  // Demo: any email + password → redirect to dashboard
+  if (email && pass.length >= 4) {
+    err.style.display = 'none';
+    document.getElementById('loginBtn').textContent = 'Opening dashboard…';
+    setTimeout(() => { window.location.href = 'https://syphir.vercel.app/'; }, 800);
+  } else {
+    err.style.display = 'block';
   }
 }
 
-let incidents=[];
-
-const TITLES={overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
-
-function nav(page,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  if(el)el.classList.add('active');
-  document.getElementById('page-title').textContent=TITLES[page]||page;
-  const f=document.getElementById('topbar-filters');
-  f.style.display=['overview','incidents'].includes(page)?'flex':'none';
-  if(['overview','incidents','live'].includes(page))loadData();
+function handleKeyLogin() {
+  const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
+  const err = document.getElementById('keyError');
+  if (!key) { err.style.display = 'block'; err.textContent = 'Please enter your license key.'; return; }
+  if (VALID_KEYS.includes(key) || key.startsWith('SYP-')) {
+    err.style.display = 'none';
+    document.getElementById('keyBtn').textContent = 'Opening your dashboard…';
+    setTimeout(() => {
+      // Pass key to dashboard so it can scope to this org
+      window.location.href = 'https://syphir.vercel.app/?key=' + encodeURIComponent(key);
+    }, 800);
+  } else {
+    err.style.display = 'block';
+    err.textContent = 'Invalid license key. Keys start with SYP-. Check your welcome email.';
+  }
 }
 
-function setFilter(f,el){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  loadData();
+function startTrial() {
+  closeModal();
+  document.getElementById('ctaEmail').focus();
+  document.querySelector('.cta-section').scrollIntoView({ behavior: 'smooth' });
 }
 
-function timeAgo(iso){
-  const s=(Date.now()-new Date(iso))/1000;
-  if(s<60)return 'just now';
-  if(s<3600)return Math.floor(s/60)+'m ago';
-  if(s<86400)return Math.floor(s/3600)+'h ago';
-  return new Date(iso).toLocaleDateString();
-}
-
-function rBadge(r){
-  const m={high:'🔴',medium:'🟠',low:'🟡'};
-  return `<span class="badge b-${r}">${m[r]||''} ${r}</span>`;
-}
-
-function renderRows(list){
-  if(!list.length)return`<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div>`;
-  return list.map(i=>`
-    <div class="tbl-row">
-      <div class="td"><div>${i.detections.map(d=>d.label).join(', ')}</div><div class="td-sub">${i.org_name||''}</div></div>
-      <div class="td">${i.user_email}</div>
-      <div class="td"><span class="badge b-tool">${i.ai_tool}</span></div>
-      <div class="td">${rBadge(i.risk_level)}</div>
-      <div class="td td-sub">${timeAgo(i.timestamp)}</div>
-      <div class="td"><button class="res-btn ${i.resolved?'done':''}" id="r-${i.id}" onclick="resolve('${i.id}')">${i.resolved?'✓ Done':'Resolve'}</button></div>
-    </div>`).join('');
-}
-
-function drawDonut(high,med,low,res){
-  const canvas=document.getElementById('donutChart');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const cx=60,cy=60,r=46,lw=14;
-  const total=high+med+low+res;
-  ctx.clearRect(0,0,120,120);
-  if(!total){
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.strokeStyle='#242d3e';ctx.lineWidth=lw;ctx.stroke();
+// ── LIVE DEMO ──────────────────────────────────────────────────────────────
+function runDemo() {
+  const text = document.getElementById('demoText').value.trim();
+  if (!text) { alert('Please enter some text to scan.'); return; }
+  const patterns = [
+    { type: 'SSN', regex: /\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b/g, level: 'critical' },
+    { type: 'CREDIT_CARD', regex: /\b\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}\b|\b(?:4\d{12}(?:\d{3})?|5[1-5]\d{14})\b/g, level: 'critical' },
+    { type: 'EMAIL', regex: /\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b/g, level: 'medium' },
+    { type: 'PHONE', regex: /\b(?:\+1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, level: 'medium' },
+    { type: 'DATE_OF_BIRTH', regex: /\b(?:dob|date\s+of\s+birth)\s*[:\/]?\s*\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/gi, level: 'high' },
+    { type: 'API_KEY', regex: /\bsk-[A-Za-z0-9]{20,}\b|\bBearer\s+[A-Za-z0-9\-_.~+\/]+=*\b/g, level: 'critical' },
+    { type: 'MEDICAL_RECORD', regex: /\b(?:MRN|medical\s+record)[\s:#]*\d{4,10}\b/gi, level: 'high' },
+  ];
+  let findings = [];
+  for (const p of patterns) {
+    const matches = [...text.matchAll(p.regex)];
+    for (const m of matches) {
+      const raw = m[0];
+      const masked = raw.length > 6 ? raw.slice(0,2) + '****' + raw.slice(-2) : '****';
+      findings.push({ type: p.type, masked, level: p.level });
+    }
+  }
+  const container = document.getElementById('demoResults');
+  if (findings.length === 0) {
+    container.innerHTML = '<div class="risk-badge safe">✓ No sensitive data detected</div><p style="color:var(--muted);font-size:0.85rem;margin-top:0.75rem;">This text appears safe to send.</p>';
     return;
   }
-  const segs=[
-    {v:high,c:'#f87171'},{v:med,c:'#fb923c'},
-    {v:low,c:'#fbbf24'},{v:res,c:'#34d399'}
-  ].filter(s=>s.v>0);
-  let a=-Math.PI/2;
-  segs.forEach(s=>{
-    const sw=(s.v/total)*Math.PI*2;
-    ctx.beginPath();ctx.arc(cx,cy,r,a,a+sw);
-    ctx.strokeStyle=s.c;ctx.lineWidth=lw;ctx.lineCap='butt';ctx.stroke();
-    a+=sw;
-  });
-}
-
-function drawBars(inc){
-  const c=document.getElementById('bar-chart');
-  if(!c)return;
-  const days=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const key=d.toISOString().split('T')[0];
-    const lbl=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
-    const count=inc.filter(x=>x.timestamp.startsWith(key)).length;
-    days.push({lbl,count});
+  const levelOrder = { critical:0, high:1, medium:2 };
+  findings.sort((a,b) => levelOrder[a.level] - levelOrder[b.level]);
+  const topLevel = findings[0].level;
+  let html = '';
+  for (const f of findings) {
+    html += `<div class="finding ${f.level}"><div class="finding-type">${f.type.replace(/_/g,' ')}</div><span class="finding-snippet">${f.masked}</span></div>`;
   }
-  const max=Math.max(...days.map(d=>d.count),1);
-  c.innerHTML=days.map(d=>{
-    const h=Math.max((d.count/max)*80,d.count>0?4:0);
-    const col=d.count>2?'#f87171':d.count>0?'#4db8f0':'#242d3e';
-    return`<div class="bar-col"><div class="bar-v">${d.count||''}</div><div class="bar" style="height:${h}px;background:${col};"></div><div class="bar-d">${d.lbl}</div></div>`;
-  }).join('');
+  html += `<div class="risk-badge ${topLevel}">⚠ ${topLevel.toUpperCase()} RISK — ${findings.length} issue${findings.length > 1 ? 's' : ''} found</div>`;
+  container.innerHTML = html;
 }
 
-async function loadData(){
-  try{
-    const[iR,sR]=await Promise.all([fetch(`${API}/incidents/${ORG_ID}`),fetch(`${API}/stats/${ORG_ID}`)]);
-    const iD=await iR.json(),sD=await sR.json();
-    incidents=iD.incidents||[];
-    const h=sD.high_risk||0,m=sD.medium_risk||0,l=sD.low_risk||0,res=sD.resolved||0,tot=sD.total_incidents||0;
-    document.getElementById('s-total').textContent=tot;
-    document.getElementById('s-high').textContent=h;
-    document.getElementById('s-medium').textContent=m;
-    document.getElementById('s-resolved').textContent=res;
-    document.getElementById('donut-total').textContent=tot;
-    const pct=v=>tot>0?'('+Math.round(v/tot*100)+'%)':'(0%)';
-    ['high','med','low','res'].forEach((k,i)=>{
-      const vals=[h,m,l,res];
-      const ids=['leg-high','leg-med','leg-low','leg-res'];
-      const pids=['leg-high-pct','leg-med-pct','leg-low-pct','leg-res-pct'];
-      document.getElementById(ids[i]).textContent=vals[i];
-      document.getElementById(pids[i]).textContent=pct(vals[i]);
-    });
-    drawDonut(h,m,l,res);
-    drawBars(incidents);
-    const un=sD.unresolved||0;
-    const badge=document.getElementById('nav-badge');
-    badge.style.display=un>0?'block':'none';
-    badge.textContent=un;
-    const rows=renderRows(incidents);
-    document.getElementById('tbl-overview').innerHTML=rows;
-    document.getElementById('tbl-incidents').innerHTML=rows;
-    if(incidents.length){
-      document.getElementById('feed-list').innerHTML=incidents.slice(0,20).map(i=>`
-        <div class="feed-item">
-          <div class="feed-dot fd-${i.risk_level}">${i.risk_level==='high'?'🔴':i.risk_level==='medium'?'🟠':'🟡'}</div>
-          <div class="feed-body"><div class="feed-title">${i.detections.map(d=>d.label).join(', ')} detected</div><div class="feed-detail">${i.user_email} → ${i.ai_tool}</div></div>
-          <div class="feed-time">${timeAgo(i.timestamp)}</div>
-        </div>`).join('');
-    }
-    document.getElementById('last-updated').textContent=new Date().toLocaleTimeString();
-  }catch(e){document.getElementById('last-updated').textContent='API offline';}
+// ── CTA ────────────────────────────────────────────────────────────────────
+function handleCTA() {
+  const email = document.getElementById('ctaEmail').value;
+  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  alert('Thanks! We\'ll reach out to ' + email + ' within 24 hours to set up your free pilot.');
 }
-
-async function loadTeamMembers() {
-  try {
-    const res = await fetch(`${API}/team/org_demo`);
-    const data = await res.json();
-    const list = document.getElementById('team-members-list');
-    if (!list) return;
-    const members = data.users || [];
-    if (!members.length) return;
-    const rows = members.map(u => `
-      <div class="tog-row" style="padding:10px 0 0;">
-        <div>
-          <div class="tog-lbl">${u.email}</div>
-          <div class="tog-sub">${u.role} · ${u.status}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:11px;color:${u.status==='invited'?'var(--yellow)':'var(--green)'};font-weight:600;">
-            ${u.status==='invited'?'● Invited':'● Active'}
-          </span>
-          <button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;">Remove</button>
-        </div>
-      </div>
-    `).join('');
-    list.innerHTML = `
-      <div class="tog-row" style="padding:10px 0 0;">
-        <div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div>
-        <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
-      </div>
-      ${rows}
-    `;
-  } catch(e) {
-    console.log('Could not load team members:', e.message);
-  }
-}
-
-async function removeUser(id) {
-  if (!confirm('Remove this team member?')) return;
-  try {
-    await fetch(`${API}/team/${id}/remove`, { method: 'PATCH' });
-    loadTeamMembers();
-  } catch(e) {}
-}
-
-async function resolve(id){
-  try{
-    await fetch(`${API}/incidents/${id}/resolve`,{method:'PATCH'});
-    const b=document.getElementById('r-'+id);
-    if(b){b.textContent='✓ Done';b.classList.add('done');}
-    loadData();
-  }catch(e){}
-}
-
-function exportCSV(){
-  if(!incidents.length)return alert('No incidents to export');
-  const h=['ID','User','AI Tool','Risk','Detections','Time','Resolved'];
-  const r=incidents.map(i=>[i.id,i.user_email,i.ai_tool,i.risk_level,i.detections.map(d=>d.label).join('|'),i.timestamp,i.resolved]);
-  const csv=[h,...r].map(x=>x.join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download=`syphir-${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
-}
-
-function copyInstallLink() {
-  const link = document.getElementById('install-link').value;
-  navigator.clipboard.writeText(link).then(() => {
-    const msg = document.getElementById('copy-link-msg');
-    msg.style.color = 'var(--green)';
-    msg.textContent = '✓ Link copied — paste into any email or message';
-    setTimeout(() => msg.textContent = '', 3000);
-  });
-}
-
-function clearFeed(){document.getElementById('feed-list').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Feed cleared</div></div>';}
-function copyGateway(){navigator.clipboard.writeText(document.getElementById('gateway-url').value);alert('Copied!');}
-function connectAI(tile,name){const k=prompt(`Enter your ${name} API key:`);if(k){tile.classList.add('connected');tile.querySelector('.ai-status').textContent='✓ Connected';}}
-
-setInterval(loadData, 5000);
-loadData();
-loadTeamMembers();
 </script>
 </body>
 </html>
