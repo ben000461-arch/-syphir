@@ -178,13 +178,12 @@ function openExtensions() {
 }
 
 function doneInstall() {
-  const s3 = document.getElementById('step3');
-  if (!s3) return;
-  s3.style.display = 'block';
-  s3.innerHTML = `
+  const card = document.querySelector('.card');
+  if (!card) return;
+  card.innerHTML = `
     <div style="text-align:center;padding:20px 0;">
       <div style="font-size:56px;margin-bottom:16px;">✅</div>
-      <h1 style="margin-bottom:12px;color:#e6edf3;">You're protected!</h1>
+      <h1 style="margin-bottom:12px;color:#e6edf3;font-size:20px;font-weight:700;">You're protected!</h1>
       <p style="color:#8b949e;font-size:14px;line-height:1.7;margin-bottom:24px;">
         Syphir Shield is now active on your browser.<br>
         It runs silently in the background and will alert<br>
@@ -200,8 +199,6 @@ function doneInstall() {
       <p style="font-size:11px;color:#4a5568;">Questions? Email us at support@syphir.io</p>
     </div>
   `;
-  const d3 = document.getElementById('d3');
-  if (d3) { d3.classList.remove('active'); d3.classList.add('done'); }
 }
 </script>
 </body>
