@@ -291,10 +291,11 @@ app.post("/admin/create-org", async (c) => {
       method: "POST",
       prefer: "return=representation",
       body: JSON.stringify({
-        name,
-        plan,
-        active: status === "active",
-      }),
+  id: "org_" + Date.now(),
+  name,
+  plan,
+  active: status === "active",
+}),
     });
 
     if (!orgRows || orgRows.length === 0) {
