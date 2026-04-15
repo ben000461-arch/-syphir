@@ -766,7 +766,7 @@ function handleLogin() {
   if (email && pass.length >= 4) {
     err.style.display = 'none';
     document.getElementById('loginBtn').textContent = 'Opening dashboard…';
-    setTimeout(() => { window.location.href = 'https://syphir.vercel.app/'; }, 800);
+    setTimeout(() => { window.location.href = 'https://syphir.vercel.app/app.html'; }, 800);
   } else {
     err.style.display = 'block';
   }
@@ -781,7 +781,7 @@ function handleKeyLogin() {
     document.getElementById('keyBtn').textContent = 'Opening your dashboard…';
     setTimeout(() => {
       // Pass key to dashboard so it can scope to this org
-      window.location.href = 'https://syphir.vercel.app/?key=' + encodeURIComponent(key);
+      window.location.href = 'https://syphir.vercel.app/app.html?key=' + encodeURIComponent(key);
     }, 800);
   } else {
     err.style.display = 'block';
