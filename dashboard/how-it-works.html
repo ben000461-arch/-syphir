@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Syphir Works — AI Data Protection</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .step-full { display: flex; gap: 3rem; align-items: flex-start; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+  .step-full:last-child { border-bottom: none; }
+  .step-full-num { font-family: 'JetBrains Mono', monospace; font-size: 3.5rem; font-weight: 700; color: rgba(91,79,232,0.15); line-height: 1; min-width: 80px; }
+  .step-full-body h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.65rem; letter-spacing: -0.01em; }
+  .step-full-body p { color: var(--muted); line-height: 1.75; margin-bottom: 0.75rem; }
+  .step-full-body code { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 1rem; display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; color: var(--accent2); margin-top: 0.75rem; word-break: break-all; }
+  @media (max-width: 600px) { .step-full { flex-direction: column; gap: 1rem; } .step-full-num { font-size: 2rem; min-width: auto; } }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+    Syphir
+  </a>
+  <div class="nav-links">
+    <a href="how-it-works.html" class="active">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
+</nav>
+
+<!-- MODAL (reused) -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-logo"><div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>Syphir</div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab('key')">License Key</div>
+      <div class="modal-tab" onclick="switchTab('email')">Email Login</div>
+    </div>
+    <div class="tab-pane active" id="tab-key">
+      <h2>Access your dashboard</h2>
+      <p class="modal-sub">Enter the license key from your welcome email.</p>
+      <div class="field-hint">🔑 Keys look like <strong>SYP-XXXX-XXXX-XXXX</strong></div>
+      <div class="field"><label>License Key</label><input class="mono" id="keyInput" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()"><div class="err-msg" id="keyErr"></div></div>
+      <button class="modal-btn" onclick="handleKey()" id="keyBtn">Open Dashboard →</button>
+    </div>
+    <div class="tab-pane" id="tab-email">
+      <h2>Welcome back</h2>
+      <p class="modal-sub">Sign in with your admin account.</p>
+      <div class="field"><label>Email</label><input type="email" id="emailIn" placeholder="admin@yourpractice.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="passIn" placeholder="••••••••"></div>
+      <div class="err-msg" id="emailErr"></div>
+      <button class="modal-btn" onclick="handleEmail()" id="emailBtn">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-hero">
+  <span class="eyebrow">How it works</span>
+  <h1>Simple by design.<br><em>Powerful by default.</em></h1>
+  <p>No IT department, no complex setup, no training required. Syphir is built so that any small business can deploy enterprise-grade AI data protection in minutes.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div class="step-full">
+    <div class="step-full-num">01</div>
+    <div class="step-full-body">
+      <h3>Your business gets a unique license key</h3>
+      <p>When you sign up, Syphir generates a unique key for your organization — something like <strong>SYP-DENT-2026-A3B7</strong>. This key is your org's identity in the system. It gates your dashboard, links your employees, and scopes all incident data exclusively to you.</p>
+      <p>Your key never expires unless you cancel. It's stored in your dashboard under Settings → License Key and in your welcome email.</p>
+    </div>
+  </div>
+  <div class="step-full">
+    <div class="step-full-num">02</div>
+    <div class="step-full-body">
+      <h3>Share one install link with your employees</h3>
+      <p>Your dashboard generates a pre-linked install URL that has your key already embedded in it. You copy it and send it to your staff however you like — email, Slack, a group text, whatever you use.</p>
+      <code>https://syphir.vercel.app/install.html?key=SYP-YOUR-ORG-KEY</code>
+      <p style="margin-top:0.75rem;">Employees click the link, download the Chrome extension, and install in about 60 seconds. They never need to type a key or create an account.</p>
+    </div>
+  </div>
+  <div class="step-full">
+    <div class="step-full-num">03</div>
+    <div class="step-full-body">
+      <h3>The extension watches every AI prompt in real time</h3>
+      <p>Once installed, Syphir Shield runs silently in the background on ChatGPT, Claude, Grok, Gemini, Copilot, Perplexity, and more. Before any prompt is submitted, it scans the text for 40+ types of sensitive data including SSNs, credit card numbers, patient records, API keys, dates of birth, and more.</p>
+      <p>If something is flagged, a banner appears instantly — before the data leaves the browser — giving the employee a chance to remove it. They can also acknowledge and proceed, which gets logged.</p>
+    </div>
+  </div>
+  <div class="step-full">
+    <div class="step-full-num">04</div>
+    <div class="step-full-body">
+      <h3>Every incident is logged to your dashboard only</h3>
+      <p>All detections from all your employees flow into your organization's dashboard in real time. You see the AI tool used, the risk level, timestamp, and what type of data was found — but never the actual sensitive text itself (only masked snippets).</p>
+      <p>Your data is completely isolated. Business A cannot see Business B's incidents, even though they're on the same platform. Each org's key scopes every query exclusively to that org.</p>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center; padding:2rem 1rem 5rem;">
+  <button class="btn btn-primary" onclick="openModal()">Access Your Dashboard →</button>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="mailto:hello@medholotech.com">hello@medholotech.com</a>
+  </div>
+  <p>© 2025 MedHolo Tech · Corona, CA</p>
+</footer>
+<script src="auth.js"></script>
+</body>
+</html>

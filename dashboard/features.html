@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Features — Syphir AI Data Protection</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+    Syphir
+  </a>
+  <div class="nav-links">
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html" class="active">Features</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
+</nav>
+
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-logo"><div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>Syphir</div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab('key')">License Key</div>
+      <div class="modal-tab" onclick="switchTab('email')">Email Login</div>
+    </div>
+    <div class="tab-pane active" id="tab-key">
+      <h2>Access your dashboard</h2><p class="modal-sub">Enter the license key from your welcome email.</p>
+      <div class="field-hint">🔑 Keys look like <strong>SYP-XXXX-XXXX-XXXX</strong></div>
+      <div class="field"><label>License Key</label><input class="mono" id="keyInput" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()"><div class="err-msg" id="keyErr"></div></div>
+      <button class="modal-btn" onclick="handleKey()" id="keyBtn">Open Dashboard →</button>
+    </div>
+    <div class="tab-pane" id="tab-email">
+      <h2>Welcome back</h2><p class="modal-sub">Sign in with your admin account.</p>
+      <div class="field"><label>Email</label><input type="email" id="emailIn" placeholder="admin@yourpractice.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="passIn" placeholder="••••••••"></div>
+      <div class="err-msg" id="emailErr"></div>
+      <button class="modal-btn" onclick="handleEmail()" id="emailBtn">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-hero">
+  <span class="eyebrow">Features</span>
+  <h1>Everything you need to<br><em>protect your team</em></h1>
+  <p>Built for small businesses that handle sensitive data daily — without the complexity or price tag of enterprise solutions.</p>
+</div>
+
+<!-- FEATURE GRID -->
+<div class="section" style="padding-top:0;">
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon" style="background:rgba(91,79,232,0.12);"><svg width="20" height="20" fill="none" stroke="#7b6df7" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <h3>40+ PII entity types</h3>
+      <p>SSNs, credit cards, medical records, API keys, DOBs, EINs, IBAN numbers, driver's licenses, and more — all detected with precision.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(0,214,143,0.1);"><svg width="20" height="20" fill="none" stroke="#00d68f" stroke-width="1.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <h3>Real-time interception</h3>
+      <p>Scans happen before the prompt is submitted. No data leaves the browser until the employee confirms the risk is intentional.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(255,77,109,0.1);"><svg width="20" height="20" fill="none" stroke="#ff4d6d" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+      <h3>Per-org incident dashboard</h3>
+      <p>Each business sees only their own incidents. Complete isolation — your data never mixes with another organization's.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(255,179,71,0.1);"><svg width="20" height="20" fill="none" stroke="#ffb347" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+      <h3>Zero sensitive data stored</h3>
+      <p>Syphir only logs metadata — entity type, risk score, timestamp. The actual sensitive text never touches our servers.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(91,79,232,0.12);"><svg width="20" height="20" fill="none" stroke="#7b6df7" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3"/></svg></div>
+      <h3>Works on all major AI tools</h3>
+      <p>ChatGPT, Claude, Grok, Gemini, Copilot, Perplexity — and any new tool can be added to the allowlist with one config change.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(0,214,143,0.1);"><svg width="20" height="20" fill="none" stroke="#00d68f" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <h3>One-link employee onboarding</h3>
+      <p>Share one pre-linked URL with your team. They install in 60 seconds with no account, no key to type, no configuration.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(255,77,109,0.1);"><svg width="20" height="20" fill="none" stroke="#ff4d6d" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 17H2a3 3 0 000 6h20a3 3 0 000-6zM6 17V7a6 6 0 0112 0v10"/></svg></div>
+      <h3>Custom detection policies</h3>
+      <p>Turn on or off specific PII types, set custom keywords, configure alert thresholds, and choose how employees are notified.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(255,179,71,0.1);"><svg width="20" height="20" fill="none" stroke="#ffb347" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <h3>Live incident feed</h3>
+      <p>See detections in real time as they happen across your team. Filter by employee, AI tool, risk level, or date range.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(91,79,232,0.12);"><svg width="20" height="20" fill="none" stroke="#7b6df7" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <h3>CSV export & audit logs</h3>
+      <p>Export your full incident history for compliance audits, HIPAA reporting, or internal reviews with one click.</p>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE DEMO -->
+<div class="section" style="padding-top:0;">
+  <div class="section-eyebrow">Live scanner demo</div>
+  <div class="section-title">Try the detection engine</div>
+  <p class="section-sub" style="margin-bottom:2rem;">Paste any text below and see what Syphir detects. Try including a fake SSN, email, or credit card number.</p>
+  <div class="scanner-card">
+    <div class="scanner-bar">
+      <div class="dots">
+        <div class="dot" style="background:#ff5f57;"></div>
+        <div class="dot" style="background:#febc2e;"></div>
+        <div class="dot" style="background:#28c840;"></div>
+      </div>
+      <span style="font-size:0.82rem; color:var(--muted); font-family:'JetBrains Mono',monospace;">ChatGPT — New conversation</span>
+    </div>
+    <div class="scanner-body">
+      <div class="scanner-input">
+        <div class="scan-label">Prompt text</div>
+        <textarea class="scan-textarea" id="demoText" placeholder="Try: Patient John Doe, SSN 123-45-6789, DOB 03/15/1980, Visa 4111-1111-1111-1111, email john@example.com"></textarea>
+        <button class="scan-btn" onclick="runDemo()">Scan for sensitive data →</button>
+      </div>
+      <div class="scanner-results">
+        <div class="scan-label">Detection results</div>
+        <div id="demoResults"><div class="scan-empty">Results will appear here after scanning</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center; padding:2rem 1rem 5rem;">
+  <a href="pricing.html" class="btn btn-primary">See pricing →</a>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="how-it-works.html">How it works</a>
+    <a href="pricing.html">Pricing</a><a href="mailto:hello@medholotech.com">hello@medholotech.com</a>
+  </div>
+  <p>© 2025 MedHolo Tech · Corona, CA</p>
+</footer>
+<script src="auth.js"></script>
+<script>
+function runDemo() {
+  const text = document.getElementById('demoText').value.trim();
+  if (!text) { alert('Enter some text to scan.'); return; }
+  const patterns = [
+    { type:'SSN', regex:/\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b/g, level:'critical' },
+    { type:'CREDIT_CARD', regex:/\b\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}\b|\b(?:4\d{12}(?:\d{3})?|5[1-5]\d{14})\b/g, level:'critical' },
+    { type:'EMAIL', regex:/\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b/g, level:'medium' },
+    { type:'PHONE', regex:/\b(?:\+1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, level:'medium' },
+    { type:'DATE_OF_BIRTH', regex:/\b(?:dob|date\s+of\s+birth)\s*[:\\/]?\s*\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/gi, level:'high' },
+    { type:'API_KEY', regex:/\bsk-[A-Za-z0-9]{20,}\b|\bBearer\s+[A-Za-z0-9\-_.~+\/]+=*\b/g, level:'critical' },
+    { type:'MEDICAL_RECORD', regex:/\b(?:MRN|medical\s+record)[\s:#]*\d{4,10}\b/gi, level:'high' },
+  ];
+  let findings = [];
+  for (const p of patterns) {
+    for (const m of [...text.matchAll(p.regex)]) {
+      const raw = m[0];
+      findings.push({ type:p.type, masked: raw.length>6 ? raw.slice(0,2)+'****'+raw.slice(-2) : '****', level:p.level });
+    }
+  }
+  const c = document.getElementById('demoResults');
+  if (!findings.length) { c.innerHTML='<div class="risk-pill safe">✓ No sensitive data detected</div>'; return; }
+  const ord = {critical:0,high:1,medium:2};
+  findings.sort((a,b)=>ord[a.level]-ord[b.level]);
+  c.innerHTML = findings.map(f=>`<div class="finding ${f.level}"><div class="finding-type">${f.type.replace(/_/g,' ')}</div><span class="finding-val">${f.masked}</span></div>`).join('')
+    + `<div class="risk-pill ${findings[0].level}">⚠ ${findings[0].level.toUpperCase()} RISK — ${findings.length} issue${findings.length>1?'s':''} found</div>`;
+}
+</script>
+</body>
+</html>

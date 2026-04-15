@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Syphir AI Data Protection</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .faq { max-width: 680px; margin: 3rem auto 0; }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 1.25rem 0; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-q { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .faq-a { color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+  .compare-table { width: 100%; border-collapse: collapse; margin-top: 2.5rem; font-size: 0.88rem; }
+  .compare-table th { text-align: center; padding: 0.85rem 1rem; font-weight: 600; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .compare-table th:first-child { text-align: left; }
+  .compare-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); text-align: center; color: var(--muted); }
+  .compare-table td:first-child { text-align: left; font-weight: 500; color: var(--text); }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table .yes { color: var(--accent2); font-size: 1.1rem; }
+  .compare-table .no { color: var(--muted2); font-size: 1.1rem; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+    Syphir
+  </a>
+  <div class="nav-links">
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html" class="active">Pricing</a>
+  </div>
+  <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
+</nav>
+
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-logo"><div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>Syphir</div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab('key')">License Key</div>
+      <div class="modal-tab" onclick="switchTab('email')">Email Login</div>
+    </div>
+    <div class="tab-pane active" id="tab-key">
+      <h2>Access your dashboard</h2><p class="modal-sub">Enter the license key from your welcome email.</p>
+      <div class="field-hint">🔑 Keys look like <strong>SYP-XXXX-XXXX-XXXX</strong></div>
+      <div class="field"><label>License Key</label><input class="mono" id="keyInput" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()"><div class="err-msg" id="keyErr"></div></div>
+      <button class="modal-btn" onclick="handleKey()" id="keyBtn">Open Dashboard →</button>
+    </div>
+    <div class="tab-pane" id="tab-email">
+      <h2>Welcome back</h2><p class="modal-sub">Sign in with your admin account.</p>
+      <div class="field"><label>Email</label><input type="email" id="emailIn" placeholder="admin@yourpractice.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="passIn" placeholder="••••••••"></div>
+      <div class="err-msg" id="emailErr"></div>
+      <button class="modal-btn" onclick="handleEmail()" id="emailBtn">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-hero">
+  <span class="eyebrow">Pricing</span>
+  <h1>Simple pricing.<br><em>No surprises.</em></h1>
+  <p>Flat monthly rate for your whole team. No per-seat fees. Start with a free 30-day pilot — no credit card required.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div class="pricing-grid">
+    <div class="plan">
+      <div class="plan-tier">Starter</div>
+      <div class="plan-price">$99<span>/mo</span></div>
+      <div class="plan-desc">Perfect for small practices up to 10 employees.</div>
+      <ul class="plan-list">
+        <li><span class="plan-check">✓</span> Up to 10 employees</li>
+        <li><span class="plan-check">✓</span> 40+ PII entity types</li>
+        <li><span class="plan-check">✓</span> Incident dashboard</li>
+        <li><span class="plan-check">✓</span> Email alerts</li>
+        <li><span class="plan-check">✓</span> 30-day incident history</li>
+        <li><span class="plan-check">✓</span> One install link</li>
+      </ul>
+      <button class="plan-btn" onclick="openModal()">Start free pilot →</button>
+    </div>
+    <div class="plan featured">
+      <div class="plan-pop">MOST POPULAR</div>
+      <div class="plan-tier">Professional</div>
+      <div class="plan-price">$249<span>/mo</span></div>
+      <div class="plan-desc">For growing teams and multi-location practices.</div>
+      <ul class="plan-list">
+        <li><span class="plan-check">✓</span> Up to 50 employees</li>
+        <li><span class="plan-check">✓</span> Everything in Starter</li>
+        <li><span class="plan-check">✓</span> Custom PII rules</li>
+        <li><span class="plan-check">✓</span> Slack & Teams alerts</li>
+        <li><span class="plan-check">✓</span> 1-year incident history</li>
+        <li><span class="plan-check">✓</span> Priority support</li>
+      </ul>
+      <button class="plan-btn" onclick="openModal()">Start free pilot →</button>
+    </div>
+    <div class="plan">
+      <div class="plan-tier">Institution</div>
+      <div class="plan-price">$599<span>/mo</span></div>
+      <div class="plan-desc">For large organizations and MSP partners.</div>
+      <ul class="plan-list">
+        <li><span class="plan-check">✓</span> Unlimited employees</li>
+        <li><span class="plan-check">✓</span> Everything in Professional</li>
+        <li><span class="plan-check">✓</span> Multi-org dashboard</li>
+        <li><span class="plan-check">✓</span> HIPAA BAA available</li>
+        <li><span class="plan-check">✓</span> Unlimited history</li>
+        <li><span class="plan-check">✓</span> Dedicated onboarding</li>
+      </ul>
+      <button class="plan-btn" onclick="openModal()">Contact sales →</button>
+    </div>
+  </div>
+
+  <!-- Compare -->
+  <div style="margin-top:4rem;">
+    <div class="section-eyebrow">Compare plans</div>
+    <div class="section-title" style="font-size:1.5rem;">Feature breakdown</div>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:40%;">Feature</th>
+          <th>Starter</th>
+          <th>Professional</th>
+          <th>Institution</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Employees</td><td>Up to 10</td><td>Up to 50</td><td>Unlimited</td></tr>
+        <tr><td>PII detection types</td><td>40+</td><td>40+</td><td>40+ custom</td></tr>
+        <tr><td>Incident dashboard</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Email alerts</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Slack / Teams alerts</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Custom keywords</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Incident history</td><td>30 days</td><td>1 year</td><td>Unlimited</td></tr>
+        <tr><td>Multi-org management</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+        <tr><td>HIPAA BAA</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+        <tr><td>CSV export</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>API gateway</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Priority support</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Dedicated onboarding</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq">
+    <div class="section-eyebrow" style="text-align:center;">FAQ</div>
+    <div class="section-title" style="text-align:center; font-size:1.5rem; margin-bottom:0;">Common questions</div>
+    <div class="faq-item">
+      <div class="faq-q">Is there a free trial?</div>
+      <div class="faq-a">Yes — all plans come with a free 30-day pilot. No credit card required. We'll reach out to set it up after you submit your email.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Does Syphir store the text my employees type?</div>
+      <div class="faq-a">No. Syphir only logs metadata — entity type (e.g. "SSN detected"), risk level, timestamp, and AI tool used. The actual prompt text never leaves the browser or touches our servers.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How does the per-org data isolation work?</div>
+      <div class="faq-a">Every incident is tagged with your organization's ID (derived from your license key). All dashboard queries filter exclusively by that ID. Business A cannot see Business B's data even though they're on the same platform.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I add employees after signing up?</div>
+      <div class="faq-a">Yes, unlimited. Just share your install link and new employees are automatically linked to your org. Your plan determines the max number of active employees.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Does it work on browsers other than Chrome?</div>
+      <div class="faq-a">The extension currently supports Chrome, Edge, and Brave. Firefox support is on the roadmap.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I cancel anytime?</div>
+      <div class="faq-a">Yes. No contracts, no cancellation fees. Your key stays active until the end of your billing period.</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center; padding:3rem 1rem 5rem;">
+  <p style="color:var(--muted); margin-bottom:1.25rem;">Ready to protect your team?</p>
+  <button class="btn btn-primary" onclick="openModal()">Start free 30-day pilot →</button>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a><a href="mailto:hello@medholotech.com">hello@medholotech.com</a>
+  </div>
+  <p>© 2025 MedHolo Tech · Corona, CA</p>
+</footer>
+<script src="auth.js"></script>
+</body>
+</html>
