@@ -409,6 +409,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
       </div>
       <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
+      <div style="margin-top:14px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+  <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Manual Install Link</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share this link with employees if the invite email doesn't work:</div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input class="inp" id="install-link" value="https://syphir.vercel.app/install.html?key=SYP-DEMO-2026-SYPHIR" readonly style="flex:1;font-size:11px;opacity:0.8;">
+    <button class="btn btn-ghost" onclick="copyInstallLink()" style="white-space:nowrap;flex-shrink:0;">Copy Link</button>
+  </div>
+  <div id="copy-link-msg" style="font-size:11px;margin-top:6px;"></div>
+</div>
     </div>
     <div id="team-members-list">
       <div class="tog-row" style="padding:10px 0 0;">
@@ -646,6 +655,16 @@ function exportCSV(){
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download=`syphir-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
+}
+
+function copyInstallLink() {
+  const link = document.getElementById('install-link').value;
+  navigator.clipboard.writeText(link).then(() => {
+    const msg = document.getElementById('copy-link-msg');
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✓ Link copied — paste into any email or message';
+    setTimeout(() => msg.textContent = '', 3000);
+  });
 }
 
 function clearFeed(){document.getElementById('feed-list').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Feed cleared</div></div>';}
