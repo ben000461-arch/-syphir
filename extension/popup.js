@@ -22,7 +22,6 @@ async function showActiveView(orgName, key, keyType) {
   document.getElementById("statusDot").className = "status-dot dot-on";
   document.getElementById("orgName").textContent = orgName;
 
-  // Show key type pill
   const pill = document.getElementById("keyTypePill");
   if (keyType === "employee") {
     pill.innerHTML = '<span style="font-size:9px;font-weight:700;background:rgba(0,214,143,0.1);color:#00d68f;border:1px solid rgba(0,214,143,0.2);padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;">Employee</span>';
@@ -30,7 +29,6 @@ async function showActiveView(orgName, key, keyType) {
     pill.innerHTML = '<span style="font-size:9px;font-weight:700;background:rgba(91,79,232,0.12);color:#7b6df7;border:1px solid rgba(91,79,232,0.25);padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;">Business</span>';
   }
 
-  // Load stats from API
   try {
     const orgRes = await fetch(`${API}/org/${key}`);
     const org = await orgRes.json();
@@ -41,14 +39,14 @@ async function showActiveView(orgName, key, keyType) {
       document.getElementById("highRisk").textContent   = stats.high_risk || 0;
       document.getElementById("medRisk").textContent    = stats.medium_risk || 0;
       document.getElementById("lowRisk").textContent    = stats.low_risk || 0;
-      setBadge(stats.unresolved || 0, "high");
+      setBadge(stats.unresolved || 0);
     }
   } catch (e) {
     console.log("Stats load failed:", e.message);
   }
 }
 
-// ── SETUP TABS ─────────────────────────────────────────────────────────────
+// ── TABS ───────────────────────────────────────────────────────────────────
 function switchSetupTab(tab) {
   document.getElementById("tabEmpBtn").classList.toggle("active", tab === "emp");
   document.getElementById("tabBizBtn").classList.toggle("active", tab === "biz");
@@ -76,7 +74,6 @@ async function activateEmployee() {
       body: JSON.stringify({ key, context: "extension" }),
     });
     const data = await res.json();
-
     if (data.valid) {
       chrome.storage.local.set({ syphir_key: key, syphir_email: email, syphir_org: data.org_name, syphir_key_type: "employee" });
       setMsg(msg, "green", "✓ Shield activated!");
@@ -110,7 +107,6 @@ async function activateBusiness() {
       body: JSON.stringify({ key, context: "extension" }),
     });
     const data = await res.json();
-
     if (data.valid) {
       chrome.storage.local.set({ syphir_key: key, syphir_email: email, syphir_org: data.org_name, syphir_key_type: data.key_type || "business" });
       setMsg(msg, "green", "✓ Shield activated!");
@@ -126,9 +122,8 @@ async function activateBusiness() {
 }
 
 // ── BADGE ──────────────────────────────────────────────────────────────────
-function setBadge(count, riskLevel) {
-  const color = riskLevel === "high" ? "#ff4d6d" : "#ffb347";
-  chrome.action.setBadgeBackgroundColor({ color });
+function setBadge(count) {
+  chrome.action.setBadgeBackgroundColor({ color: "#ff4d6d" });
   if (count <= 0) {
     chrome.action.setBadgeText({ text: "" });
   } else {
@@ -136,33 +131,53 @@ function setBadge(count, riskLevel) {
   }
 }
 
-// ── BUTTONS ────────────────────────────────────────────────────────────────
-document.getElementById("signOutBtn")?.addEventListener("click", () => {
-  chrome.storage.local.clear();
-  chrome.action.setBadgeText({ text: "" });
-  showSetupView();
-});
-
-document.getElementById("dashboardBtn")?.addEventListener("click", () => {
-  chrome.storage.local.get(["syphir_key", "syphir_org"], (data) => {
-    const url = data.syphir_key
-      ? `https://syphir.vercel.app/app.html?key=${encodeURIComponent(data.syphir_key)}&org=${encodeURIComponent(data.syphir_org || '')}`
-      : "https://syphir.vercel.app/app.html";
-    chrome.tabs.create({ url });
-  });
-});
-
-// ── ENTER KEY SUPPORT ──────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("empEmailInput")?.addEventListener("keydown", e => { if (e.key==="Enter") activateEmployee(); });
-  document.getElementById("empKeyInput")?.addEventListener("keydown",   e => { if (e.key==="Enter") document.getElementById("empEmailInput")?.focus(); });
-  document.getElementById("bizEmailInput")?.addEventListener("keydown", e => { if (e.key==="Enter") activateBusiness(); });
-  document.getElementById("bizKeyInput")?.addEventListener("keydown",   e => { if (e.key==="Enter") document.getElementById("bizEmailInput")?.focus(); });
-});
-
 // ── HELPERS ────────────────────────────────────────────────────────────────
 function setMsg(el, color, text) {
   const colors = { red:"#ff4d6d", green:"#00d68f", gray:"#7878a0", orange:"#ffb347" };
   el.style.color = colors[color] || color;
   el.textContent = text;
 }
+
+// ── ALL EVENT LISTENERS ────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Tab switching
+  document.getElementById("tabEmpBtn").addEventListener("click", () => switchSetupTab("emp"));
+  document.getElementById("tabBizBtn").addEventListener("click", () => switchSetupTab("biz"));
+
+  // Auto uppercase key inputs
+  document.getElementById("empKeyInput").addEventListener("input", function() { this.value = this.value.toUpperCase(); });
+  document.getElementById("bizKeyInput").addEventListener("input", function() { this.value = this.value.toUpperCase(); });
+
+  // Activate buttons
+  document.getElementById("empActivateBtn").addEventListener("click", activateEmployee);
+  document.getElementById("bizActivateBtn").addEventListener("click", activateBusiness);
+
+  // Enter key support
+  document.getElementById("empKeyInput").addEventListener("keydown",   e => { if (e.key==="Enter") document.getElementById("empEmailInput").focus(); });
+  document.getElementById("empEmailInput").addEventListener("keydown", e => { if (e.key==="Enter") activateEmployee(); });
+  document.getElementById("bizKeyInput").addEventListener("keydown",   e => { if (e.key==="Enter") document.getElementById("bizEmailInput").focus(); });
+  document.getElementById("bizEmailInput").addEventListener("keydown", e => { if (e.key==="Enter") activateBusiness(); });
+
+  // Sign out
+  document.getElementById("signOutBtn").addEventListener("click", () => {
+    chrome.storage.local.clear();
+    chrome.action.setBadgeText({ text: "" });
+    showSetupView();
+  });
+
+  // Open dashboard
+  document.getElementById("dashboardBtn").addEventListener("click", () => {
+    chrome.storage.local.get(["syphir_key", "syphir_org"], (data) => {
+      const url = data.syphir_key
+        ? `https://syphir.vercel.app/app.html?key=${encodeURIComponent(data.syphir_key)}&org=${encodeURIComponent(data.syphir_org || "")}`
+        : "https://syphir.vercel.app/app.html";
+      chrome.tabs.create({ url });
+    });
+  });
+
+  // Footer site link
+  document.getElementById("siteLink").addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://syphir.vercel.app" });
+  });
+});

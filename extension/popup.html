@@ -2,22 +2,17 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       width: 320px;
-      font-family: 'DM Sans', -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #08080d;
       color: #eeeef5;
     }
-
-    /* HEADER */
     .header {
       padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 9px;
+      display: flex; align-items: center; gap: 9px;
       border-bottom: 1px solid rgba(255,255,255,0.07);
       background: #0f0f18;
     }
@@ -25,143 +20,108 @@
       width: 28px; height: 28px;
       background: linear-gradient(135deg, #5b4fe8, #00d68f);
       border-radius: 7px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .logo-wrap svg { width: 15px; height: 15px; fill: white; }
     .brand { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      margin-left: auto; flex-shrink: 0;
-    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
     .dot-on  { background: #00d68f; box-shadow: 0 0 6px #00d68f; }
     .dot-off { background: #ff4d6d; box-shadow: 0 0 6px #ff4d6d; }
 
-    /* SETUP VIEW */
-    .setup-tabs {
-      display: flex;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-    }
+    .setup-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.07); }
     .setup-tab {
-      flex: 1; padding: 11px 8px;
-      text-align: center; font-size: 12px; font-weight: 600;
-      cursor: pointer; color: #7878a0;
-      border-bottom: 2px solid transparent;
-      transition: all 0.15s; margin-bottom: -1px;
+      flex: 1; padding: 11px 8px; text-align: center;
+      font-size: 12px; font-weight: 600; cursor: pointer; color: #7878a0;
+      border-bottom: 2px solid transparent; transition: all 0.15s; margin-bottom: -1px;
+      background: none; border-top: none; border-left: none; border-right: none;
+      font-family: inherit;
     }
     .setup-tab.active { color: #eeeef5; border-bottom-color: #5b4fe8; }
+
     .tab-pane { display: none; padding: 14px 16px; }
     .tab-pane.active { display: block; }
 
-    .tab-desc {
-      font-size: 11px; color: #7878a0; line-height: 1.5;
-      margin-bottom: 12px;
+    .key-type-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 2px 7px; border-radius: 100px; margin-bottom: 10px;
     }
+    .badge-emp { background: rgba(0,214,143,0.1); color: #00d68f; border: 1px solid rgba(0,214,143,0.2); }
+    .badge-biz { background: rgba(91,79,232,0.12); color: #7b6df7; border: 1px solid rgba(91,79,232,0.25); }
+
+    .tab-desc { font-size: 11px; color: #7878a0; line-height: 1.5; margin-bottom: 12px; }
     .tab-desc strong { color: #eeeef5; }
 
     .inp-group { margin-bottom: 9px; }
     .inp-group label {
       display: block; font-size: 10px; font-weight: 600;
-      color: #7878a0; text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 4px;
+      color: #7878a0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;
     }
     .inp-group input {
       width: 100%; background: #0f0f18;
       border: 1px solid rgba(255,255,255,0.07);
       border-radius: 7px; padding: 8px 10px;
-      color: #eeeef5; font-size: 12px;
-      font-family: inherit; outline: none;
-      transition: border-color 0.15s;
+      color: #eeeef5; font-size: 12px; font-family: inherit;
+      outline: none; transition: border-color 0.15s;
     }
     .inp-group input:focus { border-color: #5b4fe8; }
     .inp-group input::placeholder { color: #3a3a55; }
-    .inp-group input.mono { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; font-size: 11px; }
+    .inp-group input.mono { font-family: 'Courier New', monospace; letter-spacing: 0.04em; font-size: 11px; }
 
     .activate-btn {
       width: 100%; padding: 9px;
       background: #5b4fe8; color: white; border: none;
       border-radius: 7px; font-size: 13px; font-weight: 600;
-      cursor: pointer; font-family: inherit;
-      transition: background 0.15s; margin-top: 2px;
+      cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 2px;
     }
     .activate-btn:hover { background: #7b6df7; }
+    .activate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .activate-msg { font-size: 11px; margin-top: 7px; text-align: center; min-height: 16px; }
 
-    /* ACTIVE VIEW */
-    .active-section {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-    }
-    .section-label {
-      font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: #5b4fe8; margin-bottom: 9px;
-    }
+    .active-section { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .section-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #5b4fe8; margin-bottom: 9px; }
+
     .shield-card {
-      background: rgba(91,79,232,0.1);
-      border: 1px solid rgba(91,79,232,0.2);
+      background: rgba(91,79,232,0.1); border: 1px solid rgba(91,79,232,0.2);
       border-radius: 9px; padding: 10px 12px;
       display: flex; align-items: center; gap: 10px;
     }
     .shield-icon-wrap {
-      width: 32px; height: 32px;
-      background: rgba(91,79,232,0.2);
-      border-radius: 8px; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      width: 32px; height: 32px; background: rgba(91,79,232,0.2);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .shield-icon-wrap svg { width: 16px; height: 16px; fill: #7b6df7; }
     .shield-name { font-size: 13px; font-weight: 600; color: #7b6df7; }
-    .shield-org { font-size: 11px; color: #7878a0; margin-top: 1px; }
+    .shield-org  { font-size: 11px; color: #7878a0; margin-top: 1px; }
 
-    .stat-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 5px 0;
-    }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
     .stat-row + .stat-row { border-top: 1px solid rgba(255,255,255,0.04); }
     .stat-lbl { font-size: 12px; color: #7878a0; }
-    .stat-val { font-size: 13px; font-weight: 600; }
-    .c-safe   { color: #00d68f; }
-    .c-high   { color: #ff4d6d; }
-    .c-med    { color: #ffb347; }
-    .c-low    { color: #ffd166; }
+    .stat-val  { font-size: 13px; font-weight: 600; }
+    .c-safe { color: #00d68f; } .c-high { color: #ff4d6d; }
+    .c-med  { color: #ffb347; } .c-low  { color: #ffd166; }
 
     .action-btn {
-      width: 100%; padding: 8px;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 7px; color: #7878a0;
-      font-size: 12px; font-weight: 500;
-      cursor: pointer; font-family: inherit;
-      transition: all 0.15s; margin-bottom: 6px;
-      text-align: center;
+      width: 100%; padding: 8px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.07); border-radius: 7px;
+      color: #7878a0; font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: inherit; transition: all 0.15s; margin-bottom: 6px;
     }
     .action-btn:last-child { margin-bottom: 0; }
     .action-btn:hover { border-color: rgba(255,255,255,0.14); color: #eeeef5; }
     .action-btn.primary { background: #5b4fe8; border-color: #5b4fe8; color: white; }
-    .action-btn.primary:hover { background: #7b6df7; border-color: #7b6df7; }
+    .action-btn.primary:hover { background: #7b6df7; }
 
-    /* FOOTER */
     .footer {
-      padding: 8px 16px;
-      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 16px; display: flex; justify-content: space-between; align-items: center;
       border-top: 1px solid rgba(255,255,255,0.05);
     }
-    .footer-ver { font-size: 10px; color: #3a3a55; }
-    .footer-link { font-size: 10px; color: #5b4fe8; text-decoration: none; cursor: pointer; }
-
-    /* KEY TYPE BADGE */
-    .key-type-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
-      text-transform: uppercase; padding: 2px 7px;
-      border-radius: 100px; margin-bottom: 10px;
-    }
-    .badge-emp  { background: rgba(0,214,143,0.1); color: #00d68f; border: 1px solid rgba(0,214,143,0.2); }
-    .badge-biz  { background: rgba(91,79,232,0.12); color: #7b6df7; border: 1px solid rgba(91,79,232,0.25); }
+    .footer-ver  { font-size: 10px; color: #3a3a55; }
+    .footer-link { font-size: 10px; color: #5b4fe8; text-decoration: none; cursor: pointer; background: none; border: none; font-family: inherit; }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
   <div class="header">
     <div class="logo-wrap">
       <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
@@ -173,39 +133,37 @@
   <!-- SETUP VIEW -->
   <div id="setupView" style="display:none;">
     <div class="setup-tabs">
-      <div class="setup-tab active" id="tabEmpBtn" onclick="switchSetupTab('emp')">👤 Employee</div>
-      <div class="setup-tab" id="tabBizBtn" onclick="switchSetupTab('biz')">🏢 Business / Admin</div>
+      <button class="setup-tab active" id="tabEmpBtn">👤 Employee</button>
+      <button class="setup-tab" id="tabBizBtn">🏢 Business / Admin</button>
     </div>
 
-    <!-- Employee tab -->
     <div class="tab-pane active" id="tabEmp">
       <div class="key-type-badge badge-emp">● Employee Key</div>
-      <div class="tab-desc">Enter the <strong>employee key</strong> your admin shared with you. It looks like <strong>EMP-XXXX-XXXX</strong>.</div>
+      <div class="tab-desc">Enter the <strong>employee key</strong> your admin shared. Looks like <strong>EMP-XXXX-XXXX</strong>.</div>
       <div class="inp-group">
         <label>Employee Key</label>
-        <input class="mono" id="empKeyInput" placeholder="EMP-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()">
+        <input class="mono" id="empKeyInput" placeholder="EMP-XXXX-XXXX">
       </div>
       <div class="inp-group">
         <label>Your Work Email</label>
         <input type="email" id="empEmailInput" placeholder="you@company.com">
       </div>
-      <button class="activate-btn" id="empActivateBtn" onclick="activateEmployee()">Activate Shield →</button>
+      <button class="activate-btn" id="empActivateBtn">Activate Shield →</button>
       <div class="activate-msg" id="empMsg"></div>
     </div>
 
-    <!-- Business tab -->
     <div class="tab-pane" id="tabBiz">
       <div class="key-type-badge badge-biz">● Business Key</div>
-      <div class="tab-desc">Enter your <strong>dashboard key</strong> from the Syphir admin panel. It looks like <strong>SYP-XXXX-XXXX-XXXX</strong>.</div>
+      <div class="tab-desc">Enter your <strong>dashboard key</strong> from the admin panel. Looks like <strong>SYP-XXXX-XXXX-XXXX</strong>.</div>
       <div class="inp-group">
         <label>Dashboard Key</label>
-        <input class="mono" id="bizKeyInput" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()">
+        <input class="mono" id="bizKeyInput" placeholder="SYP-XXXX-XXXX-XXXX">
       </div>
       <div class="inp-group">
         <label>Your Email</label>
         <input type="email" id="bizEmailInput" placeholder="admin@yourpractice.com">
       </div>
-      <button class="activate-btn" id="bizActivateBtn" onclick="activateBusiness()">Activate Shield →</button>
+      <button class="activate-btn" id="bizActivateBtn">Activate Shield →</button>
       <div class="activate-msg" id="bizMsg"></div>
     </div>
   </div>
@@ -225,7 +183,6 @@
         <div id="keyTypePill" style="margin-left:auto;"></div>
       </div>
     </div>
-
     <div class="active-section">
       <div class="section-label">Session Stats</div>
       <div class="stat-row"><span class="stat-lbl">Total Scans</span><span class="stat-val c-safe" id="totalScans">0</span></div>
@@ -233,7 +190,6 @@
       <div class="stat-row"><span class="stat-lbl">Medium Risk</span><span class="stat-val c-med" id="medRisk">0</span></div>
       <div class="stat-row"><span class="stat-lbl">Low Risk</span><span class="stat-val c-low" id="lowRisk">0</span></div>
     </div>
-
     <div class="active-section">
       <button class="action-btn primary" id="dashboardBtn">Open Dashboard</button>
       <button class="action-btn" id="signOutBtn">Sign Out</button>
@@ -242,7 +198,7 @@
 
   <div class="footer">
     <span class="footer-ver">Syphir v1.0.0</span>
-    <span class="footer-link" onclick="chrome.tabs.create({url:'https://syphir.vercel.app'})">syphir.io</span>
+    <button class="footer-link" id="siteLink">syphir.io</button>
   </div>
 
   <script src="popup.js"></script>
