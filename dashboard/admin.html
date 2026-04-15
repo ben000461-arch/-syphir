@@ -180,22 +180,27 @@ function mrr(list) {
   return list.filter(b=>b.status==='active').reduce((s,b) => s+(prices[b.plan]||0), 0).toLocaleString();
 }
 
-function addBusiness() {
-  const name   = document.getElementById('newBizName').value.trim();
-  const email  = document.getElementById('newBizEmail').value.trim();
-  const plan   = document.getElementById('newBizPlan').value;
-  const status = document.getElementById('newBizStatus').value;
+async function addBusiness() {
+  const name      = document.getElementById('newBizName').value.trim();
+  const email     = document.getElementById('newBizEmail').value.trim();
+  const plan      = document.getElementById('newBizPlan').value;
+  const status    = document.getElementById('newBizStatus').value;
   const customKey = document.getElementById('newBizKey').value.trim().toUpperCase();
-  const err = document.getElementById('addErr');
+  const err       = document.getElementById('addErr');
+  const btn       = document.querySelector('.add-btn');
 
   if (!name || !email) { err.textContent='Business name and email are required.'; err.style.display='block'; return; }
   if (!email.includes('@')) { err.textContent='Enter a valid email address.'; err.style.display='block'; return; }
 
   const key = customKey || generateKey(name);
   const existing = findBusinessByKey(key);
-  if (existing) { err.textContent='That key already exists. Choose a different one.'; err.style.display='block'; return; }
+  if (existing) { err.textContent='That key already exists.'; err.style.display='block'; return; }
 
   err.style.display = 'none';
+  btn.textContent = 'Adding…';
+  btn.disabled = true;
+
+  // 1. Save to localStorage immediately so dashboard login works
   const bizList = getBusinesses();
   const newBiz = {
     id: 'biz_' + Date.now(),
@@ -205,19 +210,54 @@ function addBusiness() {
   bizList.push(newBiz);
   saveBusinesses(bizList);
 
+  // 2. Sync to Supabase via API so extension validates the key
+  try {
+    const res = await fetch('https://syphir-api.onrender.com/admin/create-org', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Secret': 'bridgeline2025',
+      },
+      body: JSON.stringify({ name, email, plan, status, key }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✓ ' + name + ' added & synced · Key: ' + key);
+    } else {
+      showToast('⚠ Added locally — API sync failed: ' + (data.error || 'unknown'));
+    }
+  } catch (e) {
+    showToast('⚠ Saved locally — API offline. Key works on site only.');
+  }
+
   // Clear form
   document.getElementById('newBizName').value = '';
   document.getElementById('newBizEmail').value = '';
   document.getElementById('newBizKey').value = '';
+  btn.textContent = '+ Add Business';
+  btn.disabled = false;
 
   renderAdmin();
-  showToast('✓ ' + name + ' added · Key: ' + key);
 }
 
-function removeBiz(id) {
+async function removeBiz(id) {
   if (!confirm('Remove this business? Their license key will stop working.')) return;
-  const updated = getBusinesses().filter(b => b.id !== id);
-  saveBusinesses(updated);
+  const list = getBusinesses();
+  const biz  = list.find(b => b.id === id);
+
+  // Remove from localStorage
+  saveBusinesses(list.filter(b => b.id !== id));
+
+  // Deactivate key in Supabase
+  if (biz) {
+    try {
+      await fetch(`https://syphir-api.onrender.com/admin/remove-org/${biz.key}`, {
+        method: 'DELETE',
+        headers: { 'X-Admin-Secret': 'bridgeline2025' },
+      });
+    } catch(e) { /* API offline - still removed locally */ }
+  }
+
   renderAdmin();
   showToast('Business removed.');
 }

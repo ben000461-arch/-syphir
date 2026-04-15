@@ -269,4 +269,80 @@ app.post("/invite-user", async (c) => {
 });
 
 console.log("🛡️  Syphir API running on http://localhost:3000");
+// ── ADD THESE TWO ENDPOINTS TO api/server.js ──────────────────────────────
+// Paste them right before the final export default line (line 272)
+
+// POST /admin/create-org — creates org + license key in Supabase
+// Called by admin panel when adding a new business
+app.post("/admin/create-org", async (c) => {
+  const { name, email, plan, status, key } = await c.req.json();
+  const adminSecret = c.req.header("X-Admin-Secret");
+
+  // Simple admin auth — same secret used in your Railway key generator
+  if (adminSecret !== "bridgeline2025") {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  try {
+    // 1. Insert into organizations table
+    const orgRows = await db("organizations", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        admin_email: email,
+        plan,
+        status,
+      }),
+      prefer: "return=representation",
+    });
+
+    if (!orgRows || orgRows.length === 0) {
+      return c.json({ error: "Failed to create organization" }, 500);
+    }
+
+    const org = orgRows[0];
+
+    // 2. Insert into license_keys table linked to this org
+    const keyRows = await db("license_keys", {
+      method: "POST",
+      body: JSON.stringify({
+        key,
+        org_id: org.id,
+        status: "active",
+        plan,
+      }),
+      prefer: "return=representation",
+    });
+
+    return c.json({
+      success: true,
+      org_id: org.id,
+      org_name: org.name,
+      key,
+    });
+  } catch (err) {
+    return c.json({ error: "Failed to create org: " + err.message }, 500);
+  }
+});
+
+// DELETE /admin/remove-org/:key — deactivates a license key in Supabase
+app.delete("/admin/remove-org/:key", async (c) => {
+  const { key } = c.req.param();
+  const adminSecret = c.req.header("X-Admin-Secret");
+
+  if (adminSecret !== "bridgeline2025") {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  try {
+    await db(`license_keys?key=eq.${key}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "inactive" }),
+      prefer: "return=representation",
+    });
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: "Failed: " + err.message }, 500);
+  }
+});
 export default { port: 3000, fetch: app.fetch };
