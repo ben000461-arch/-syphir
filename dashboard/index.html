@@ -4,840 +4,228 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Syphir — AI Data Protection for Small Business</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --black: #0a0a0f;
-    --surface: #111118;
-    --surface2: #1a1a24;
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.16);
-    --accent: #6c5ef6;
-    --accent2: #00e5a0;
-    --text: #f0f0f8;
-    --muted: #8888aa;
-    --danger: #ff4d6d;
-  }
-  html { scroll-behavior: smooth; }
-  body { background: var(--black); color: var(--text); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
-
-  /* ── MODAL OVERLAY ── */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0; z-index: 999;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(8px);
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid rgba(108,94,246,0.3);
-    border-radius: 20px;
-    padding: 3rem 2.5rem;
-    width: 100%;
-    max-width: 420px;
-    position: relative;
-    animation: modalIn 0.25s ease;
-  }
-  @keyframes modalIn { from { opacity:0; transform: translateY(16px) scale(0.97); } to { opacity:1; transform: none; } }
-  .modal-close {
-    position: absolute; top: 1.25rem; right: 1.25rem;
-    background: none; border: none; color: var(--muted);
-    font-size: 1.25rem; cursor: pointer; line-height: 1;
-    transition: color 0.2s;
-  }
-  .modal-close:hover { color: var(--text); }
-  .modal-logo {
-    display: flex; align-items: center; gap: 10px;
-    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
-    margin-bottom: 2rem;
-  }
-  .modal-logo-icon {
-    width: 32px; height: 32px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  }
-  .modal-logo-icon svg { width: 18px; height: 18px; fill: white; }
-  .modal h2 {
-    font-family: 'Syne', sans-serif; font-weight: 700;
-    font-size: 1.5rem; margin-bottom: 0.5rem; letter-spacing: -0.01em;
-  }
-  .modal p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.75rem; font-weight: 300; }
-  .modal-field { margin-bottom: 1rem; }
-  .modal-field label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
-  .modal-input {
-    width: 100%; background: var(--black);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 0.8rem 1rem; color: var(--text);
-    font-size: 0.95rem; font-family: 'Inter', sans-serif;
-    outline: none; transition: border-color 0.2s;
-  }
-  .modal-input:focus { border-color: var(--accent); }
-  .modal-input::placeholder { color: #444460; }
-  .modal-error {
-    color: var(--danger); font-size: 0.82rem;
-    margin-top: 0.5rem; display: none;
-  }
-  .modal-btn {
-    width: 100%; background: var(--accent); color: white;
-    border: none; padding: 0.9rem; border-radius: 8px;
-    font-weight: 600; font-size: 1rem; cursor: pointer;
-    transition: background 0.2s; margin-top: 0.5rem;
-    font-family: 'Inter', sans-serif;
-  }
-  .modal-btn:hover { background: #7b6df7; }
-  .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .modal-footer { text-align: center; margin-top: 1.25rem; font-size: 0.82rem; color: var(--muted); }
-  .modal-footer a { color: var(--accent); text-decoration: none; }
-  .modal-footer a:hover { text-decoration: underline; }
-  .modal-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.75rem; }
-  .modal-tab {
-    flex: 1; padding: 0.75rem; text-align: center;
-    font-size: 0.9rem; font-weight: 500; cursor: pointer;
-    color: var(--muted); border-bottom: 2px solid transparent;
-    transition: all 0.2s; margin-bottom: -1px;
-  }
-  .modal-tab.active { color: var(--text); border-bottom-color: var(--accent); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .key-hint {
-    background: rgba(108,94,246,0.1); border: 1px solid rgba(108,94,246,0.2);
-    border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.82rem;
-    color: #a89af7; margin-bottom: 1.25rem; line-height: 1.5;
-  }
-  .key-hint strong { color: var(--text); }
-
-  /* ── NAV ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
-    background: rgba(10,10,15,0.9); backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-logo {
-    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem;
-    color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px;
-  }
-  .logo-shield {
-    width: 28px; height: 28px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 6px; display: flex; align-items: center; justify-content: center;
-  }
-  .logo-shield svg { width: 16px; height: 16px; fill: white; }
-  .nav-links { display: flex; align-items: center; gap: 2rem; }
-  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--text); }
-  .nav-cta {
-    background: var(--accent); color: white !important;
-    padding: 0.5rem 1.2rem; border-radius: 6px;
-    font-weight: 500; transition: opacity 0.2s; cursor: pointer;
-  }
-  .nav-cta:hover { opacity: 0.85; }
-
-  /* ── HERO ── */
-  .hero {
-    min-height: 100vh; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 8rem 2rem 4rem; text-align: center; position: relative; overflow: hidden;
-  }
-  .hero::before {
-    content: ''; position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
-    width: 800px; height: 500px;
-    background: radial-gradient(ellipse at center, rgba(108,94,246,0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .hero::after {
-    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 600px; height: 300px;
-    background: radial-gradient(ellipse at center, rgba(0,229,160,0.07) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(108,94,246,0.15); border: 1px solid rgba(108,94,246,0.3);
-    color: #a89af7; font-size: 0.8rem; font-weight: 500;
-    padding: 0.3rem 1rem; border-radius: 100px; margin-bottom: 2rem; letter-spacing: 0.02em;
-  }
-  .badge-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-  h1 {
-    font-family: 'Syne', sans-serif; font-weight: 800;
-    font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1.05;
-    margin-bottom: 1.5rem; letter-spacing: -0.02em; max-width: 820px;
-  }
-  h1 em {
-    font-style: normal;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .hero-sub { font-size: 1.15rem; color: var(--muted); max-width: 540px; margin-bottom: 3rem; line-height: 1.7; font-weight: 300; }
-  .hero-actions { display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
-  .btn-primary {
-    background: var(--accent); color: white; padding: 0.85rem 2rem;
-    border-radius: 8px; font-weight: 500; font-size: 1rem; text-decoration: none;
-    transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
-    border: none; cursor: pointer; font-family: 'Inter', sans-serif;
-  }
-  .btn-primary:hover { background: #7b6df7; transform: translateY(-1px); }
-  .btn-ghost {
-    color: var(--muted); padding: 0.85rem 2rem; border-radius: 8px;
-    font-weight: 400; font-size: 1rem; text-decoration: none;
-    border: 1px solid var(--border); transition: all 0.2s; cursor: pointer;
-    background: none; font-family: 'Inter', sans-serif;
-  }
-  .btn-ghost:hover { border-color: var(--border-hover); color: var(--text); }
-  .hero-proof {
-    margin-top: 4rem; display: flex; align-items: center; gap: 2rem;
-    color: var(--muted); font-size: 0.85rem; flex-wrap: wrap; justify-content: center;
-  }
-  .proof-divider { width: 1px; height: 20px; background: var(--border); }
-
-  /* ── TICKER ── */
-  .ticker {
-    background: var(--surface); border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border); padding: 1rem 0; overflow: hidden; white-space: nowrap;
-  }
-  .ticker-track { display: inline-flex; gap: 3rem; animation: ticker 25s linear infinite; }
-  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  .ticker-item { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; }
-
-  /* ── SECTIONS ── */
-  section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
-  .section-label { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
-  .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.15; margin-bottom: 1rem; letter-spacing: -0.01em; }
-  .section-sub { color: var(--muted); font-size: 1.05rem; max-width: 520px; line-height: 1.7; font-weight: 300; }
-
-  /* ── HOW IT WORKS ── */
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px; margin-top: 3rem; }
-  .step { background: var(--surface); padding: 2rem; position: relative; overflow: hidden; }
+  .hero-glow { position: absolute; top: 8%; left: 50%; transform: translateX(-50%); width: 700px; height: 450px; background: radial-gradient(ellipse, rgba(91,79,232,0.13) 0%, transparent 70%); pointer-events: none; }
+  .hero-glow2 { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 500px; height: 250px; background: radial-gradient(ellipse, rgba(0,214,143,0.07) 0%, transparent 70%); pointer-events: none; }
+  .pulse-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(91,79,232,0.12); border: 1px solid rgba(91,79,232,0.25); color: #a89af7; font-size: 0.78rem; font-weight: 500; padding: 0.3rem 1rem; border-radius: 100px; margin-bottom: 1.75rem; }
+  .steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 2px; margin-top: 2.5rem; }
+  .step { background: var(--surface); padding: 1.75rem; position: relative; }
   .step:first-child { border-radius: 12px 0 0 12px; }
   .step:last-child { border-radius: 0 12px 12px 0; }
-  .step-num { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 800; color: rgba(108,94,246,0.15); line-height: 1; margin-bottom: 1rem; }
-  .step-icon { width: 40px; height: 40px; background: rgba(108,94,246,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
-  .step-icon svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
-  .step h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem; }
-  .step p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; font-weight: 300; }
-  .step-connector { position: absolute; top: 50%; right: -1px; transform: translateY(-50%); width: 2px; height: 40px; background: linear-gradient(to bottom, transparent, var(--accent), transparent); }
-
-  /* ── DEMO ── */
-  .demo-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 3rem; }
-  .demo-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; background: var(--surface2); }
-  .demo-dots { display: flex; gap: 6px; }
-  .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .demo-body { padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-  @media (max-width: 640px) { .demo-body { grid-template-columns: 1fr; } }
-  .demo-label { font-size: 0.8rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
-  .demo-textarea {
-    width: 100%; background: var(--black); border: 1px solid var(--border);
-    border-radius: 8px; padding: 1rem; color: var(--text);
-    font-size: 0.88rem; font-family: 'Inter', monospace; resize: none; height: 160px;
-    outline: none; transition: border-color 0.2s; line-height: 1.6;
-  }
-  .demo-textarea:focus { border-color: var(--accent); }
-  .demo-scan-btn {
-    margin-top: 1rem; background: var(--accent); color: white; border: none;
-    padding: 0.7rem 1.5rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500;
-    cursor: pointer; width: 100%; transition: background 0.2s; font-family: 'Inter', sans-serif;
-  }
-  .demo-scan-btn:hover { background: #7b6df7; }
-  .demo-result-empty { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 3rem 1rem; border: 1px dashed var(--border); border-radius: 8px; }
-  .finding { background: var(--black); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
-  .finding.critical { border-color: var(--danger); }
-  .finding.high { border-color: #ff8c42; }
-  .finding.medium { border-color: #ffd166; }
-  .finding-type { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; }
-  .finding.critical .finding-type { color: var(--danger); }
-  .finding.high .finding-type { color: #ff8c42; }
-  .finding.medium .finding-type { color: #ffd166; }
-  .finding-snippet { font-family: monospace; font-size: 0.8rem; color: var(--muted); background: var(--surface2); padding: 2px 6px; border-radius: 4px; }
-  .risk-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.3rem 0.8rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; }
-  .risk-badge.critical { background: rgba(255,77,109,0.15); color: var(--danger); border: 1px solid rgba(255,77,109,0.3); }
-  .risk-badge.high { background: rgba(255,140,66,0.15); color: #ff8c42; border: 1px solid rgba(255,140,66,0.3); }
-  .risk-badge.safe { background: rgba(0,229,160,0.1); color: var(--accent2); border: 1px solid rgba(0,229,160,0.2); }
-
-  /* ── FEATURES ── */
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
-  .feature { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.2s; }
-  .feature:hover { border-color: var(--border-hover); }
-  .feature-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
-  .feature h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem; }
-  .feature p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; font-weight: 300; }
-
-  /* ── EMPLOYEE FLOW ── */
-  .flow-card {
-    background: var(--surface); border: 1px solid rgba(108,94,246,0.2);
-    border-radius: 16px; padding: 2.5rem; margin-top: 3rem;
-  }
-  .flow-steps { display: flex; flex-direction: column; gap: 0; margin-top: 1.5rem; }
-  .flow-step {
-    display: flex; gap: 1.25rem; align-items: flex-start;
-    padding: 1.25rem 0; border-bottom: 1px solid var(--border); position: relative;
-  }
-  .flow-step:last-child { border-bottom: none; }
-  .flow-num {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(108,94,246,0.2); border: 1px solid rgba(108,94,246,0.3);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
-    color: #a89af7; flex-shrink: 0;
-  }
-  .flow-step-content h4 { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
-  .flow-step-content p { color: var(--muted); font-size: 0.85rem; line-height: 1.5; font-weight: 300; }
-  .flow-step-content code {
-    background: var(--black); border: 1px solid var(--border);
-    border-radius: 4px; padding: 1px 6px; font-size: 0.8rem; color: var(--accent2);
-    font-family: monospace;
-  }
-
-  /* ── PRICING ── */
-  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
-  .plan { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; position: relative; transition: border-color 0.2s; }
-  .plan:hover { border-color: var(--border-hover); }
-  .plan.featured { border-color: rgba(108,94,246,0.4); background: linear-gradient(135deg, rgba(108,94,246,0.05), var(--surface)); }
-  .plan-badge { position: absolute; top: -1px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 1rem; border-radius: 0 0 8px 8px; letter-spacing: 0.05em; }
-  .plan-name { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 0.25rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; }
-  .plan-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem; line-height: 1; margin: 0.5rem 0; }
-  .plan-price span { font-size: 1rem; font-weight: 400; color: var(--muted); font-family: 'Inter', sans-serif; }
-  .plan-desc { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem; font-weight: 300; }
-  .plan-features { list-style: none; margin-bottom: 2rem; }
-  .plan-features li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.88rem; padding: 0.4rem 0; color: var(--muted); border-bottom: 1px solid var(--border); }
-  .plan-features li:last-child { border-bottom: none; }
-  .check { color: var(--accent2); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
-  .plan-cta {
-    display: block; text-align: center; padding: 0.8rem; border-radius: 8px;
-    font-weight: 500; font-size: 0.95rem; text-decoration: none;
-    transition: all 0.2s; border: 1px solid var(--border); color: var(--text); cursor: pointer;
-    background: none; width: 100%; font-family: 'Inter', sans-serif;
-  }
-  .plan.featured .plan-cta { background: var(--accent); border-color: var(--accent); color: white; }
-  .plan-cta:hover { opacity: 0.85; transform: translateY(-1px); }
-
-  /* ── CTA SECTION ── */
-  .cta-section {
-    background: linear-gradient(135deg, rgba(108,94,246,0.1), rgba(0,229,160,0.05));
-    border: 1px solid rgba(108,94,246,0.2); border-radius: 20px;
-    padding: 4rem 3rem; text-align: center; max-width: 1100px; margin: 0 auto 6rem;
-  }
-  .cta-section h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.5rem); margin-bottom: 1rem; }
-  .cta-section p { color: var(--muted); margin-bottom: 2rem; font-weight: 300; }
-  .cta-form { display: flex; gap: 1rem; max-width: 420px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
-  .cta-input {
-    flex: 1; min-width: 220px; background: var(--black); border: 1px solid var(--border);
-    border-radius: 8px; padding: 0.85rem 1rem; color: var(--text);
-    font-size: 0.95rem; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.2s;
-  }
+  .step-num { font-size: 2.25rem; font-weight: 700; color: rgba(91,79,232,0.18); line-height: 1; margin-bottom: 0.85rem; font-family: 'JetBrains Mono', monospace; }
+  .step-icon { width: 38px; height: 38px; background: rgba(91,79,232,0.12); border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.85rem; }
+  .step-icon svg { width: 19px; height: 19px; stroke: var(--accent-light); fill: none; stroke-width: 1.5; }
+  .step h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .step p { color: var(--muted); font-size: 0.84rem; line-height: 1.6; }
+  .step-conn { position: absolute; top: 50%; right: -1px; transform: translateY(-50%); width: 2px; height: 36px; background: linear-gradient(to bottom, transparent, var(--accent), transparent); }
+  .flow-box { background: var(--surface); border: 1px solid rgba(91,79,232,0.18); border-radius: 14px; padding: 2rem; }
+  .flow-item { display: flex; gap: 1.1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+  .flow-item:last-child { border-bottom: none; }
+  .flow-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(91,79,232,0.15); border: 1px solid rgba(91,79,232,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #a89af7; flex-shrink: 0; }
+  .flow-text h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .flow-text p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+  .flow-text code { background: var(--black); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.78rem; color: var(--accent2); font-family: 'JetBrains Mono', monospace; }
+  .industries { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .ind-tag { background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 0.4rem 1rem; font-size: 0.84rem; color: var(--muted); }
+  .cta-box { background: linear-gradient(135deg, rgba(91,79,232,0.1), rgba(0,214,143,0.05)); border: 1px solid rgba(91,79,232,0.18); border-radius: 18px; padding: 3.5rem 2.5rem; text-align: center; max-width: 1080px; margin: 0 auto 5rem; }
+  .cta-box h2 { font-size: clamp(1.6rem, 3.5vw, 2.25rem); font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.015em; }
+  .cta-box p { color: var(--muted); margin-bottom: 1.75rem; }
+  .cta-row { display: flex; gap: 0.75rem; max-width: 400px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+  .cta-input { flex: 1; min-width: 200px; background: var(--black); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; color: var(--text); font-size: 0.9rem; outline: none; font-family: inherit; transition: border-color 0.15s; }
   .cta-input:focus { border-color: var(--accent); }
-  .cta-input::placeholder { color: #444460; }
-  .cta-btn {
-    background: var(--accent); color: white; border: none; padding: 0.85rem 1.75rem;
-    border-radius: 8px; font-weight: 500; font-size: 0.95rem; cursor: pointer;
-    transition: background 0.2s; white-space: nowrap; font-family: 'Inter', sans-serif;
-  }
-  .cta-btn:hover { background: #7b6df7; }
-
-  /* ── FOOTER ── */
-  footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
-  footer a { color: var(--muted); text-decoration: none; }
-  footer a:hover { color: var(--text); }
-
-  /* ── INDUSTRIES ── */
-  .industries { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
-  .industry { background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 0.5rem 1.25rem; font-size: 0.88rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-
-  /* ── NOTIFICATION MOCKUP ── */
-  .notif { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: flex-start; gap: 1rem; max-width: 360px; position: relative; }
-  .notif-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,77,109,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .notif-icon svg { width: 18px; height: 18px; stroke: var(--danger); fill: none; stroke-width: 2; }
-  .notif-content { flex: 1; }
-  .notif-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
-  .notif-body { color: var(--muted); font-size: 0.8rem; line-height: 1.5; }
-  .notif-time { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
-  .notif-badge { position: absolute; top: -6px; right: -6px; background: var(--danger); color: white; font-size: 0.7rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .cta-input::placeholder { color: var(--muted2); }
+  .cta-submit { background: var(--accent); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background 0.15s; }
+  .cta-submit:hover { background: var(--accent-light); }
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN MODAL ── -->
+<!-- MODAL -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-logo">
-      <div class="modal-logo-icon">
-        <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
-      </div>
+      <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
       Syphir
     </div>
     <div class="modal-tabs">
-      <div class="modal-tab active" onclick="switchTab('login')">Sign In</div>
-      <div class="modal-tab" onclick="switchTab('key')">License Key</div>
+      <div class="modal-tab active" onclick="switchTab('key')">License Key</div>
+      <div class="modal-tab" onclick="switchTab('email')">Email Login</div>
     </div>
-
-    <!-- Email/password tab -->
-    <div class="tab-content active" id="tab-login">
-      <h2>Welcome back</h2>
-      <p>Sign in to your organization's dashboard.</p>
-      <div class="modal-field">
-        <label>Email</label>
-        <input class="modal-input" type="email" id="loginEmail" placeholder="admin@yourpractice.com">
-      </div>
-      <div class="modal-field">
-        <label>Password</label>
-        <input class="modal-input" type="password" id="loginPassword" placeholder="••••••••">
-      </div>
-      <div class="modal-error" id="loginError">Invalid email or password. Try the License Key tab instead.</div>
-      <button class="modal-btn" onclick="handleLogin()" id="loginBtn">Sign In to Dashboard →</button>
-      <div class="modal-footer">
-        Don't have an account? <a href="#" onclick="startTrial()">Start free trial</a>
-      </div>
-    </div>
-
-    <!-- License key tab -->
-    <div class="tab-content" id="tab-key">
-      <h2>Enter your license key</h2>
-      <p>Use the key from your Syphir welcome email or dashboard settings.</p>
-      <div class="key-hint">
-        🔑 Your key looks like <strong>SYP-XXXX-XXXX-XXXX</strong><br>
-        Find it in your dashboard under Settings → License Key
-      </div>
-      <div class="modal-field">
+    <div class="tab-pane active" id="tab-key">
+      <h2>Access your dashboard</h2>
+      <p class="modal-sub">Enter the license key from your welcome email.</p>
+      <div class="field-hint">🔑 Your key looks like <strong>SYP-XXXX-XXXX-XXXX</strong></div>
+      <div class="field">
         <label>License Key</label>
-        <input class="modal-input" id="licenseKeyInput" placeholder="SYP-XXXX-XXXX-XXXX" style="font-family: monospace; letter-spacing: 0.05em;" oninput="this.value = this.value.toUpperCase()">
+        <input class="mono" id="keyInput" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()">
+        <div class="err-msg" id="keyErr">Invalid key. Check your welcome email or contact support.</div>
       </div>
-      <div class="modal-error" id="keyError">Invalid license key. Check your welcome email.</div>
-      <button class="modal-btn" onclick="handleKeyLogin()" id="keyBtn">Access Dashboard →</button>
-      <div class="modal-footer">
-        Need a key? <a href="#" onclick="startTrial()">Request a free pilot</a>
-      </div>
+      <button class="modal-btn" onclick="handleKey()" id="keyBtn">Open Dashboard →</button>
+      <div class="modal-footer">No key yet? <a href="#contact" onclick="closeModal()">Request a free pilot</a></div>
+    </div>
+    <div class="tab-pane" id="tab-email">
+      <h2>Welcome back</h2>
+      <p class="modal-sub">Sign in with your admin account.</p>
+      <div class="field"><label>Email</label><input type="email" id="emailIn" placeholder="admin@yourpractice.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="passIn" placeholder="••••••••"></div>
+      <div class="err-msg" id="emailErr">Invalid credentials. Try using your license key instead.</div>
+      <button class="modal-btn" onclick="handleEmail()" id="emailBtn">Sign In →</button>
+      <div class="modal-footer">No account? <a href="#contact" onclick="closeModal()">Start free pilot</a></div>
     </div>
   </div>
 </div>
 
-<!-- ── NAV ── -->
+<!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">
-    <div class="logo-shield">
-      <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
-    </div>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
     Syphir
   </a>
   <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#features">Features</a>
-    <a href="#pricing">Pricing</a>
-    <a class="nav-cta" onclick="openModal()">Dashboard Login</a>
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
   </div>
+  <button class="nav-btn" onclick="openModal()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    Dashboard Login
+  </button>
 </nav>
 
-<!-- ── HERO ── -->
-<div class="hero">
-  <div class="badge"><span class="badge-dot"></span>Real-time AI data protection</div>
-  <h1>Stop sensitive data from<br>leaking into <em>AI tools</em></h1>
-  <p class="hero-sub">Syphir detects when employees paste patient records, SSNs, credit cards, or API keys into ChatGPT, Claude, Grok, and other AI tools — and alerts them instantly.</p>
-  <div class="hero-actions">
-    <button class="btn-primary" onclick="openModal()">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      Access Dashboard
-    </button>
-    <a href="#demo" class="btn-ghost">See live demo</a>
-  </div>
-  <div class="hero-proof">
-    <span>🔒 SOC 2 ready</span>
-    <div class="proof-divider"></div>
-    <span>⚡ Installs in 2 minutes</span>
-    <div class="proof-divider"></div>
-    <span>🏥 Built for healthcare, legal & CPA</span>
+<!-- HERO -->
+<div style="position:relative; overflow:hidden;">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="page-hero">
+    <div class="badge"><span class="pulse-dot"></span> Real-time AI data protection</div>
+    <h1>Stop sensitive data from<br>leaking into <em>AI tools</em></h1>
+    <p>Syphir detects when employees paste patient records, SSNs, credit cards, or API keys into ChatGPT, Claude, Grok, and more — and alerts them instantly.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="openModal()">Access Dashboard</button>
+      <a href="how-it-works.html" class="btn btn-outline">See how it works</a>
+    </div>
+    <div class="hero-proof">
+      <span>🔒 SOC 2 ready</span>
+      <div class="proof-sep"></div>
+      <span>⚡ Installs in 2 minutes</span>
+      <div class="proof-sep"></div>
+      <span>🏥 Healthcare · Legal · CPA</span>
+    </div>
   </div>
 </div>
 
-<!-- ── TICKER ── -->
+<!-- TICKER -->
 <div class="ticker">
   <div class="ticker-track">
-    <span class="ticker-item">● ChatGPT</span>
-    <span class="ticker-item">● Claude</span>
-    <span class="ticker-item">● Grok</span>
-    <span class="ticker-item">● Gemini</span>
-    <span class="ticker-item">● Copilot</span>
-    <span class="ticker-item">● Perplexity</span>
-    <span class="ticker-item">● ChatGPT</span>
-    <span class="ticker-item">● Claude</span>
-    <span class="ticker-item">● Grok</span>
-    <span class="ticker-item">● Gemini</span>
-    <span class="ticker-item">● Copilot</span>
-    <span class="ticker-item">● Perplexity</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>ChatGPT</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Claude</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Grok</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Gemini</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Copilot</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Perplexity</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>ChatGPT</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Claude</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Grok</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Gemini</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Copilot</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Perplexity</span>
   </div>
 </div>
 
-<!-- ── HOW IT WORKS ── -->
-<section id="how">
-  <div class="section-label">How it works</div>
+<!-- HOW IT WORKS PREVIEW -->
+<div class="section">
+  <div class="section-eyebrow">How it works</div>
   <div class="section-title">Three steps. Zero friction.</div>
-  <p class="section-sub">Deploys in minutes with no IT department required. Employees install once, then Syphir works silently in the background.</p>
-  <div class="steps">
+  <p class="section-sub">Deploys in minutes with no IT department. Employees install once, Syphir runs silently in the background.</p>
+  <div class="steps-row">
     <div class="step">
       <div class="step-num">01</div>
-      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
       <h3>Business gets a license key</h3>
-      <p>Your unique org key (SYP-XXXX) is your identity. It links every employee install back to your dashboard.</p>
-      <div class="step-connector"></div>
+      <p>Your unique key links every employee to your org's dashboard automatically.</p>
+      <div class="step-conn"></div>
     </div>
     <div class="step">
       <div class="step-num">02</div>
       <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
-      <h3>Share one link with employees</h3>
-      <p>Your dashboard generates a pre-linked install URL. Employees click it — your key is already baked in.</p>
-      <div class="step-connector"></div>
+      <h3>Share one install link with staff</h3>
+      <p>Employees click it and install in 60 seconds. Key is pre-baked — no typing required.</p>
+      <div class="step-conn"></div>
     </div>
     <div class="step">
       <div class="step-num">03</div>
       <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg></div>
       <h3>All incidents flow to your dashboard</h3>
-      <p>Every detection from every employee shows up only in your org's dashboard — isolated from all other businesses.</p>
+      <p>Every detection shows up only in your org — completely isolated from other businesses.</p>
     </div>
   </div>
-</section>
-
-<!-- ── EMPLOYEE FLOW ── -->
-<section style="padding-top:0;">
-  <div class="section-label">Employee onboarding</div>
-  <div class="section-title">One link. Auto-linked to your org.</div>
-  <p class="section-sub">No employee ever has to think about keys or configuration. The install link does everything.</p>
-  <div class="flow-card">
-    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Your org's install link looks like:</p>
-    <code style="background: var(--black); border: 1px solid rgba(108,94,246,0.3); border-radius: 8px; padding: 0.75rem 1rem; display: block; font-size: 0.9rem; color: var(--accent2); font-family: monospace; margin-bottom: 1.5rem; word-break: break-all;">https://syphir.vercel.app/install.html?key=SYP-YOUR-ORG-KEY</code>
-    <div class="flow-steps">
-      <div class="flow-step">
-        <div class="flow-num">1</div>
-        <div class="flow-step-content">
-          <h4>Admin copies install link from dashboard</h4>
-          <p>Found in Settings → Team Members → Manual Install Link. The <code>?key=</code> param is pre-filled with your org key.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">2</div>
-        <div class="flow-step-content">
-          <h4>Share via email, Slack, or text</h4>
-          <p>Employee clicks the link. The install page reads the key from the URL and bakes it into the extension config automatically.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">3</div>
-        <div class="flow-step-content">
-          <h4>Employee installs in 60 seconds</h4>
-          <p>No account needed, no key to type. The extension activates and immediately starts protecting that employee's AI sessions.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">4</div>
-        <div class="flow-step-content">
-          <h4>Dashboard shows everything — scoped to your org</h4>
-          <p>Business A only ever sees Business A's incidents. Complete isolation. Your employees' activity never mixes with another org.</p>
-        </div>
-      </div>
-    </div>
+  <div style="text-align:center; margin-top:2rem;">
+    <a href="how-it-works.html" class="btn btn-outline">Full walkthrough →</a>
   </div>
-</section>
+</div>
 
-<!-- ── LIVE DEMO ── -->
-<section id="demo" style="padding-top:0;">
-  <div class="section-label">Live demo</div>
-  <div class="section-title">See the scanner in action</div>
-  <p class="section-sub">Paste any text below. Try including a fake SSN, email, or credit card number to see what gets flagged.</p>
-  <div class="demo-card">
-    <div class="demo-header">
-      <div class="demo-dots">
-        <div class="demo-dot" style="background:#ff5f57;"></div>
-        <div class="demo-dot" style="background:#febc2e;"></div>
-        <div class="demo-dot" style="background:#28c840;"></div>
-      </div>
-      <span style="font-size:0.85rem; color:var(--muted); font-family:monospace;">ChatGPT — New conversation</span>
-    </div>
-    <div class="demo-body">
-      <div>
-        <div class="demo-label">Prompt text (employee input)</div>
-        <textarea class="demo-textarea" id="demoText" placeholder="Try: Patient John Doe, SSN 123-45-6789, DOB 03/15/1980, Visa 4111-1111-1111-1111, contact john@example.com"></textarea>
-        <button class="demo-scan-btn" onclick="runDemo()">Scan for sensitive data →</button>
-      </div>
-      <div>
-        <div class="demo-label">Detection results</div>
-        <div id="demoResults"><div class="demo-result-empty">Results will appear here after scanning</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── FEATURES ── -->
-<section id="features">
-  <div class="section-label">Features</div>
-  <div class="section-title">Enterprise protection.<br>Startup simplicity.</div>
-  <div class="features">
-    <div class="feature">
-      <div class="feature-icon" style="background:rgba(108,94,246,0.15);">
-        <svg width="22" height="22" fill="none" stroke="#6c5ef6" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <h3>40+ PII entity types</h3>
-      <p>SSNs, credit cards, medical records, API keys, DOBs, EINs, IBAN, and more — all detected with pattern-based precision.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon" style="background:rgba(0,229,160,0.1);">
-        <svg width="22" height="22" fill="none" stroke="#00e5a0" stroke-width="1.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      </div>
-      <h3>Real-time interception</h3>
-      <p>Scans happen before the prompt is sent. No data leaves the browser until your employee confirms the risk.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon" style="background:rgba(255,77,109,0.1);">
-        <svg width="22" height="22" fill="none" stroke="#ff4d6d" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-      </div>
-      <h3>Per-org incident dashboard</h3>
-      <p>Each business sees only their own incidents. Complete data isolation — Dental Office A never sees Law Firm B's data.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon" style="background:rgba(255,209,102,0.1);">
-        <svg width="22" height="22" fill="none" stroke="#ffd166" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      </div>
-      <h3>Zero sensitive data stored</h3>
-      <p>Syphir only logs metadata — entity type, risk score, timestamp. The actual sensitive text never touches our servers.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon" style="background:rgba(108,94,246,0.15);">
-        <svg width="22" height="22" fill="none" stroke="#6c5ef6" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3"/></svg>
-      </div>
-      <h3>Works on all AI tools</h3>
-      <p>ChatGPT, Claude, Grok, Gemini, Copilot, Perplexity — and any new tool added with one config change.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon" style="background:rgba(0,229,160,0.1);">
-        <svg width="22" height="22" fill="none" stroke="#00e5a0" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-      </div>
-      <h3>Multi-org management</h3>
-      <p>Manage multiple practice locations or clients from one admin account with full per-org isolation.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ── INDUSTRIES ── -->
-<section style="padding-top:0;">
-  <div class="section-label">Built for your industry</div>
+<!-- INDUSTRIES -->
+<div class="section" style="padding-top:0;">
+  <div class="section-eyebrow">Built for your industry</div>
   <div class="section-title">High-stakes fields need<br>high-stakes protection</div>
-  <p class="section-sub">One data leak can trigger regulatory action, lawsuits, and lost client trust. Syphir gives your team a safety net.</p>
+  <p class="section-sub">One data leak can trigger regulatory action, lawsuits, and lost client trust.</p>
   <div class="industries">
-    <div class="industry">🦷 Dental & Medical Practices</div>
-    <div class="industry">⚖️ Law Firms</div>
-    <div class="industry">📊 CPA & Accounting</div>
-    <div class="industry">🏥 Healthcare Networks</div>
-    <div class="industry">🏛️ Financial Advisors</div>
-    <div class="industry">🏢 HR Departments</div>
+    <span class="ind-tag">🦷 Dental & Medical</span>
+    <span class="ind-tag">⚖️ Law Firms</span>
+    <span class="ind-tag">📊 CPA & Accounting</span>
+    <span class="ind-tag">🏥 Healthcare Networks</span>
+    <span class="ind-tag">🏛️ Financial Advisors</span>
+    <span class="ind-tag">🏢 HR Departments</span>
   </div>
-  <div style="margin-top:3rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start;">
-    <div class="notif">
+  <div style="margin-top:2.5rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start;">
+    <div class="notif-card">
       <div class="notif-badge">!</div>
-      <div class="notif-icon">
-        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
-      <div class="notif-content">
+      <div class="notif-icon-wrap"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div>
         <div class="notif-title">Sensitive data detected</div>
         <div class="notif-body">SSN and patient DOB found in your ChatGPT prompt. Remove before sending.</div>
         <div class="notif-time">Just now · High risk</div>
       </div>
     </div>
-    <div style="flex:1; min-width:260px; color:var(--muted); font-size:0.95rem; line-height:1.8; font-weight:300; padding-top:0.5rem;">
-      Employees see this notification before their prompt is submitted. They can remove the sensitive content, or acknowledge the risk and proceed — every action is logged to your dashboard.
+    <div style="flex:1; min-width:240px; color:var(--muted); font-size:0.9rem; line-height:1.75; padding-top:0.25rem;">
+      Employees see this before their prompt is submitted. They can remove the content or acknowledge and proceed — every action is logged to your dashboard.
     </div>
   </div>
-</section>
+</div>
 
-<!-- ── PRICING ── -->
-<section id="pricing">
-  <div class="section-label">Pricing</div>
-  <div class="section-title">Simple, transparent pricing</div>
-  <p class="section-sub">Flat monthly rate for your whole team. No per-seat fees, no surprise bills. Cancel anytime.</p>
-  <div class="pricing-grid">
-    <div class="plan">
-      <div class="plan-name">Starter</div>
-      <div class="plan-price">$99<span>/mo</span></div>
-      <div class="plan-desc">Perfect for small practices up to 10 employees.</div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> Up to 10 employees</li>
-        <li><span class="check">✓</span> 40+ PII entity types</li>
-        <li><span class="check">✓</span> Incident dashboard</li>
-        <li><span class="check">✓</span> Email alerts</li>
-        <li><span class="check">✓</span> 30-day incident history</li>
-      </ul>
-      <button class="plan-cta" onclick="openModal()">Get started →</button>
-    </div>
-    <div class="plan featured">
-      <div class="plan-badge">MOST POPULAR</div>
-      <div class="plan-name">Professional</div>
-      <div class="plan-price">$249<span>/mo</span></div>
-      <div class="plan-desc">For growing teams and multi-location practices.</div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> Up to 50 employees</li>
-        <li><span class="check">✓</span> Everything in Starter</li>
-        <li><span class="check">✓</span> Custom PII rules</li>
-        <li><span class="check">✓</span> Slack / Teams alerts</li>
-        <li><span class="check">✓</span> 1-year incident history</li>
-        <li><span class="check">✓</span> Priority support</li>
-      </ul>
-      <button class="plan-cta" onclick="openModal()">Get started →</button>
-    </div>
-    <div class="plan">
-      <div class="plan-name">Institution</div>
-      <div class="plan-price">$599<span>/mo</span></div>
-      <div class="plan-desc">For large organizations and MSP partners.</div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> Unlimited employees</li>
-        <li><span class="check">✓</span> Everything in Pro</li>
-        <li><span class="check">✓</span> Multi-org dashboard</li>
-        <li><span class="check">✓</span> HIPAA BAA available</li>
-        <li><span class="check">✓</span> Unlimited history</li>
-        <li><span class="check">✓</span> Dedicated onboarding</li>
-      </ul>
-      <button class="plan-cta" onclick="openModal()">Contact sales →</button>
-    </div>
-  </div>
-</section>
-
-<!-- ── FINAL CTA ── -->
-<div class="cta-section" id="contact">
+<!-- CTA -->
+<div class="cta-box" id="contact">
   <h2>Start protecting your practice today</h2>
-  <p>Free 30-day pilot. No credit card required. Works in under 5 minutes.</p>
-  <div class="cta-form">
+  <p>Free 30-day pilot. No credit card required. Live in 5 minutes.</p>
+  <div class="cta-row">
     <input type="email" class="cta-input" placeholder="your@practice.com" id="ctaEmail">
-    <button class="cta-btn" onclick="handleCTA()">Start free pilot →</button>
+    <button class="cta-submit" onclick="handleCTA()">Request pilot →</button>
   </div>
-  <p style="margin-top:1rem; font-size:0.8rem; color:var(--muted);">Join dental offices, law firms, and CPA practices already protected by Syphir.</p>
+  <p style="margin-top:0.85rem; font-size:0.78rem; color:var(--muted2);">Dental offices, law firms, and CPA practices protected by Syphir.</p>
 </div>
 
 <footer>
-  <p style="margin-bottom:0.5rem;">
-    <a href="#">Privacy Policy</a> · <a href="#">Terms of Service</a> ·
-    <a href="https://medholotech.com">MedHolo Tech</a> ·
+  <div class="footer-links">
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="https://medholotech.com">MedHolo Tech</a>
     <a href="mailto:hello@medholotech.com">hello@medholotech.com</a>
-  </p>
-  <p>© 2025 MedHolo Tech. All rights reserved. · Corona, CA</p>
+  </div>
+  <p>© 2025 MedHolo Tech · Corona, CA · All rights reserved.</p>
 </footer>
 
+<script src="auth.js"></script>
 <script>
-// ── MODAL ──────────────────────────────────────────────────────────────────
-function openModal() {
-  document.getElementById('loginModal').classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal() {
-  document.getElementById('loginModal').classList.remove('active');
-  document.body.style.overflow = '';
-  document.getElementById('loginError').style.display = 'none';
-  document.getElementById('keyError').style.display = 'none';
-}
-document.getElementById('loginModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeModal();
-});
-
-function switchTab(tab) {
-  document.querySelectorAll('.modal-tab').forEach((t,i) => {
-    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'key'));
-  });
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-key').classList.toggle('active', tab === 'key');
-}
-
-// ── LOGIN HANDLERS ─────────────────────────────────────────────────────────
-// Valid keys → redirect to dashboard (scoped by key)
-const VALID_KEYS = [
-  'SYP-DEMO-2026-SYPHIR',
-  'SYP-PILOT-DENTA1',
-  'SYP-PILOT-LAW01',
-  'SYP-PILOT-CPA01',
-  'SYP-PRO-MEDHOLO01',
-];
-
-function handleLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPassword').value;
-  const err = document.getElementById('loginError');
-  if (!email || !pass) { err.style.display = 'block'; return; }
-  // Demo: any email + password → redirect to dashboard
-  if (email && pass.length >= 4) {
-    err.style.display = 'none';
-    document.getElementById('loginBtn').textContent = 'Opening dashboard…';
-    setTimeout(() => { window.location.href = 'https://syphir.vercel.app/app.html'; }, 800);
-  } else {
-    err.style.display = 'block';
-  }
-}
-
-function handleKeyLogin() {
-  const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
-  const err = document.getElementById('keyError');
-  if (!key) { err.style.display = 'block'; err.textContent = 'Please enter your license key.'; return; }
-  if (VALID_KEYS.includes(key) || key.startsWith('SYP-')) {
-    err.style.display = 'none';
-    document.getElementById('keyBtn').textContent = 'Opening your dashboard…';
-    setTimeout(() => {
-      // Pass key to dashboard so it can scope to this org
-      window.location.href = 'https://syphir.vercel.app/app.html?key=' + encodeURIComponent(key);
-    }, 800);
-  } else {
-    err.style.display = 'block';
-    err.textContent = 'Invalid license key. Keys start with SYP-. Check your welcome email.';
-  }
-}
-
-function startTrial() {
-  closeModal();
-  document.getElementById('ctaEmail').focus();
-  document.querySelector('.cta-section').scrollIntoView({ behavior: 'smooth' });
-}
-
-// ── LIVE DEMO ──────────────────────────────────────────────────────────────
-function runDemo() {
-  const text = document.getElementById('demoText').value.trim();
-  if (!text) { alert('Please enter some text to scan.'); return; }
-  const patterns = [
-    { type: 'SSN', regex: /\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b/g, level: 'critical' },
-    { type: 'CREDIT_CARD', regex: /\b\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}\b|\b(?:4\d{12}(?:\d{3})?|5[1-5]\d{14})\b/g, level: 'critical' },
-    { type: 'EMAIL', regex: /\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b/g, level: 'medium' },
-    { type: 'PHONE', regex: /\b(?:\+1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, level: 'medium' },
-    { type: 'DATE_OF_BIRTH', regex: /\b(?:dob|date\s+of\s+birth)\s*[:\/]?\s*\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/gi, level: 'high' },
-    { type: 'API_KEY', regex: /\bsk-[A-Za-z0-9]{20,}\b|\bBearer\s+[A-Za-z0-9\-_.~+\/]+=*\b/g, level: 'critical' },
-    { type: 'MEDICAL_RECORD', regex: /\b(?:MRN|medical\s+record)[\s:#]*\d{4,10}\b/gi, level: 'high' },
-  ];
-  let findings = [];
-  for (const p of patterns) {
-    const matches = [...text.matchAll(p.regex)];
-    for (const m of matches) {
-      const raw = m[0];
-      const masked = raw.length > 6 ? raw.slice(0,2) + '****' + raw.slice(-2) : '****';
-      findings.push({ type: p.type, masked, level: p.level });
-    }
-  }
-  const container = document.getElementById('demoResults');
-  if (findings.length === 0) {
-    container.innerHTML = '<div class="risk-badge safe">✓ No sensitive data detected</div><p style="color:var(--muted);font-size:0.85rem;margin-top:0.75rem;">This text appears safe to send.</p>';
-    return;
-  }
-  const levelOrder = { critical:0, high:1, medium:2 };
-  findings.sort((a,b) => levelOrder[a.level] - levelOrder[b.level]);
-  const topLevel = findings[0].level;
-  let html = '';
-  for (const f of findings) {
-    html += `<div class="finding ${f.level}"><div class="finding-type">${f.type.replace(/_/g,' ')}</div><span class="finding-snippet">${f.masked}</span></div>`;
-  }
-  html += `<div class="risk-badge ${topLevel}">⚠ ${topLevel.toUpperCase()} RISK — ${findings.length} issue${findings.length > 1 ? 's' : ''} found</div>`;
-  container.innerHTML = html;
-}
-
-// ── CTA ────────────────────────────────────────────────────────────────────
 function handleCTA() {
-  const email = document.getElementById('ctaEmail').value;
-  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
-  alert('Thanks! We\'ll reach out to ' + email + ' within 24 hours to set up your free pilot.');
+  const e = document.getElementById('ctaEmail').value;
+  if (!e || !e.includes('@')) { alert('Please enter a valid email.'); return; }
+  alert('Thanks! We\'ll reach out to ' + e + ' within 24 hours.');
 }
 </script>
 </body>
