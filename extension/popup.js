@@ -25,8 +25,10 @@ async function showActiveView(orgName, key, keyType) {
   const pill = document.getElementById("keyTypePill");
   if (keyType === "employee") {
     pill.innerHTML = '<span style="font-size:9px;font-weight:700;background:rgba(0,214,143,0.1);color:#00d68f;border:1px solid rgba(0,214,143,0.2);padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;">Employee</span>';
+    document.getElementById("dashboardBtn").style.display = "none";
   } else {
     pill.innerHTML = '<span style="font-size:9px;font-weight:700;background:rgba(91,79,232,0.12);color:#7b6df7;border:1px solid rgba(91,79,232,0.25);padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;">Business</span>';
+    document.getElementById("dashboardBtn").style.display = "block";
   }
 
   try {
