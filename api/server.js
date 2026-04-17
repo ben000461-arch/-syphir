@@ -87,6 +87,35 @@ app.post("/scan", async (c) => {
   }
 });
 
+
+// ── LOG INCIDENT DIRECTLY ──────────────────────────────────────────────────
+app.post("/log-incident", async (c) => {
+  const body = await c.req.json();
+  const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = body;
+  let org;
+  try {
+    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ success: false, message: "Invalid key" }, 401);
+    org = rows[0].organizations;
+  } catch (err) { return c.json({ success: false, message: "Auth failed" }, 500); }
+  try {
+    const incident = {
+      id: id || `inc_${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
+      org_id: org.id, org_name: org.name,
+      user_email: user_email || "unknown",
+      ai_tool: ai_tool || "AI Tool", url: url || "",
+      detections: detections || [], risk_level: risk_level || "low",
+      message: message || "PII detected", resolved: false,
+      timestamp: timestamp || new Date().toISOString(),
+    };
+    await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+    console.log(`INCIDENT: ${user_email} -> ${ai_tool} [${risk_level}] org:${org.name}`);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ success: false, message: err.message }, 500);
+  }
+});
+
 app.get("/incidents/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
