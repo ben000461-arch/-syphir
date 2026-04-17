@@ -31,7 +31,9 @@
     "https://chat.deepseek.com/*",
     "https://groq.com/*",
     "https://playground.ai/*",
-    "http://localhost:3000/*"
+   "http://localhost:3000/*",
+    "https://syphir-api.onrender.com/*",
+    "https://syphir-scanner.onrender.com/*"
   ],
   "content_scripts": [
     {
