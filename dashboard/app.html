@@ -20,8 +20,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-
-/* SIDEBAR */
 .sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:200;}
 .sidebar-logo{height:var(--top);display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid var(--border);}
 .logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--blue),var(--blue-d));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 14px rgba(33,150,211,0.35);}
@@ -43,11 +41,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .status-txt{font-size:11px;color:var(--text2);}
-
-/* MAIN */
 .main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;}
-
-/* TOPBAR */
 .topbar{height:var(--top);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:100;}
 .topbar-left{display:flex;align-items:center;gap:14px;}
 .page-title{font-size:15px;font-weight:700;}
@@ -61,14 +55,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .btn-ghost:hover{border-color:var(--blue);color:var(--blue-l);}
 .btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(33,150,211,0.3);}
 .btn-primary:hover{background:var(--blue-d);}
-
-/* CONTENT */
 .content{padding:20px;flex:1;}
 .page{display:none;animation:fadeUp 0.2s ease;}
 .page.active{display:block;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-
-/* STAT CARDS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;}
 .stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
@@ -89,23 +79,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .sb-red{background:linear-gradient(90deg,var(--red),var(--pink));}
 .sb-orange{background:linear-gradient(90deg,var(--orange),var(--yellow));}
 .sb-green{background:linear-gradient(90deg,var(--green),var(--cyan));}
-
-/* LAYOUTS */
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .mb-16{margin-bottom:16px;}
 .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .section-title{font-size:14px;font-weight:700;}
 .section-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-
-/* CARD */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
 .card-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);}
 .card-title{font-size:13px;font-weight:700;}
 .card-sub{font-size:11px;color:var(--text3);margin-top:1px;}
 .card-body{padding:16px 18px;}
-
-/* DONUT */
 .donut-wrap{display:flex;align-items:center;gap:18px;padding:16px 18px;}
 .donut-chart-wrap{position:relative;flex-shrink:0;}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
@@ -117,8 +101,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .leg-lbl{font-size:11.5px;color:var(--text2);flex:1;}
 .leg-val{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;}
 .leg-pct{font-size:10.5px;color:var(--text3);margin-left:3px;}
-
-/* BAR CHART */
 .bar-wrap{padding:8px 18px 16px;}
 .bars{display:flex;align-items:flex-end;gap:8px;height:90px;}
 .bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
@@ -126,8 +108,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .bar:hover{opacity:0.75;}
 .bar-v{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
 .bar-d{font-size:10px;color:var(--text3);}
-
-/* TABLE */
 .tbl-hdr{display:grid;grid-template-columns:2.5fr 1.5fr 1fr 1fr 1fr 0.8fr;padding:9px 18px;background:var(--bg3);border-bottom:1px solid var(--border);}
 .th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;}
 .tbl-row{display:grid;grid-template-columns:2.5fr 1.5fr 1fr 1fr 1fr 0.8fr;padding:12px 18px;border-bottom:1px solid var(--border);align-items:center;transition:background 0.1s;}
@@ -138,20 +118,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .empty{padding:44px;text-align:center;}
 .empty-icon{font-size:30px;margin-bottom:8px;}
 .empty-msg{font-size:12px;color:var(--text3);}
-
-/* BADGES */
 .badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;}
 .b-high{background:rgba(244,67,54,0.12);color:#f87171;border:1px solid rgba(244,67,54,0.2);}
 .b-medium{background:rgba(255,109,46,0.12);color:#fb923c;border:1px solid rgba(255,109,46,0.2);}
 .b-low{background:rgba(255,193,7,0.12);color:var(--yellow);border:1px solid rgba(255,193,7,0.2);}
 .b-tool{background:var(--blue-g);color:var(--blue-l);border:1px solid rgba(33,150,211,0.2);}
-
-/* RESOLVE */
 .res-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;}
 .res-btn:hover{border-color:var(--green);color:var(--green);}
 .res-btn.done{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.07);}
-
-/* FEED */
 .feed-item{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);animation:fadeUp 0.3s ease;}
 .feed-item:last-child{border-bottom:none;}
 .feed-dot{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
@@ -164,8 +138,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .feed-time{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
 .live-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--red);background:rgba(244,67,54,0.1);padding:3px 8px;border-radius:4px;border:1px solid rgba(244,67,54,0.2);}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;}
-
-/* TOGGLE */
 .tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);}
 .tog-row:last-child{border-bottom:none;}
 .tog-lbl{font-size:12.5px;font-weight:500;}
@@ -174,20 +146,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .toggle.on{background:var(--blue);border-color:var(--blue);}
 .toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
 .toggle.on::after{left:18px;}
-
-/* INPUT */
 .inp-lbl{font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px;display:block;}
 .inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:12.5px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none;transition:border-color 0.15s;}
 .inp:focus{border-color:var(--blue);}
 .inp-group{margin-bottom:12px;}
-
-/* CODE */
 .code{background:#090c14;border:1px solid var(--border);border-radius:7px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#a3e635;line-height:1.8;overflow-x:auto;margin-top:10px;}
 .code .c{color:var(--text3);}
 .code .k{color:#60a5fa;}
 .code .s{color:#fbbf24;}
-
-/* AI GRID */
 .ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .ai-tile{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all 0.15s;}
 .ai-tile:hover{border-color:var(--blue);box-shadow:0 0 12px var(--blue-g);}
@@ -223,8 +189,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
   </div>
   <div class="sidebar-bottom">
     <div class="org-card">
-      <div class="org-name">Demo Dental Practice</div>
-      <div class="org-plan">Business · $249/mo</div>
+      <div class="org-name" id="org-name">Loading…</div>
+      <div class="org-plan" id="org-plan">Business</div>
       <div class="org-status"><div class="status-dot"></div><div class="status-txt">Shield Active</div></div>
     </div>
   </div>
@@ -256,7 +222,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div class="stat-card sc-orange"><div class="stat-top"><div class="stat-lbl">Medium Risk</div><div class="stat-icon-box ib-orange">◎</div></div><div class="stat-num" id="s-medium">0</div><div class="stat-desc">Names · Emails · Phones</div><div class="stat-bar sb-orange"></div></div>
         <div class="stat-card sc-green"><div class="stat-top"><div class="stat-lbl">Resolved</div><div class="stat-icon-box ib-green">✓</div></div><div class="stat-num" id="s-resolved">0</div><div class="stat-desc">Acknowledged</div><div class="stat-bar sb-green"></div></div>
       </div>
-
       <div class="charts-row">
         <div class="card">
           <div class="card-hdr"><div><div class="card-title">Risk Breakdown</div><div class="card-sub">Distribution by severity</div></div></div>
@@ -273,15 +238,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
             </div>
           </div>
         </div>
-
         <div class="card">
           <div class="card-hdr"><div><div class="card-title">Daily Incidents</div><div class="card-sub">Last 7 days</div></div></div>
-          <div class="bar-wrap">
-            <div class="bars" id="bar-chart"></div>
-          </div>
+          <div class="bar-wrap"><div class="bars" id="bar-chart"></div></div>
         </div>
       </div>
-
       <div class="section-hdr">
         <div><div class="section-title">Recent Incidents</div><div class="section-sub">Latest detections across your team</div></div>
         <button class="btn btn-ghost" onclick="nav('incidents',document.querySelectorAll('.nav-item')[1])">View All →</button>
@@ -319,14 +280,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       <div class="card mb-16">
         <div class="card-hdr"><div><div class="card-title">Your Syphir Gateway Endpoint</div><div class="card-sub">Route AI calls through Syphir — we scan then forward</div></div></div>
         <div class="card-body">
-          <div class="inp-group"><label class="inp-lbl">Gateway URL</label><input class="inp" id="gateway-url" value="https://api.syphir.io/v1/gateway/org_demo" readonly></div>
-          <div class="code"><span class="c"># Before — direct to OpenAI:</span>
+          <div class="inp-group"><label class="inp-lbl">Gateway URL</label><input class="inp" id="gateway-url" readonly></div>
+          <div class="code">
+<span class="c"># Before — direct to OpenAI:</span>
 <span class="k">curl</span> https://api.openai.com/v1/chat/completions \
   -H <span class="s">"Authorization: Bearer $OPENAI_KEY"</span>
 
 <span class="c"># After — scanned by Syphir first:</span>
-<span class="k">curl</span> https://api.syphir.io/v1/gateway/org_demo \
-  -H <span class="s">"Authorization: Bearer SYP-DEMO-2026-SYPHIR"</span> \
+<span class="k">curl</span> https://api.syphir.io/v1/gateway/<span id="gateway-org-id">org_demo</span> \
+  -H <span class="s">"Authorization: Bearer <span id="gateway-key-display">SYP-XXXX</span>"</span> \
   -H <span class="s">"X-AI-Provider: openai"</span> \
   -H <span class="s">"X-AI-Key: $OPENAI_KEY"</span></div>
           <button class="btn btn-primary" style="margin-top:14px;" onclick="copyGateway()">Copy Endpoint</button>
@@ -386,53 +348,264 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">🏢 Organization</div></div>
           <div class="card-body">
-            <div class="inp-group"><label class="inp-lbl">Organization Name</label><input class="inp" value="Demo Dental Practice"></div>
-            <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" value="admin@dentalpractice.com"></div>
-            <div class="inp-group"><label class="inp-lbl">License Key</label><input class="inp" value="SYP-DEMO-2026-SYPHIR" readonly style="opacity:0.5;cursor:not-allowed;"></div>
+            <div class="inp-group"><label class="inp-lbl">Organization Name</label><input class="inp" id="settings-org-name" value="Loading…"></div>
+            <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" id="settings-admin-email" value=""></div>
+            <div class="inp-group"><label class="inp-lbl">License Key</label><input class="inp" id="settings-license-key" readonly style="opacity:0.5;cursor:not-allowed;"></div>
           </div>
         </div>
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">💳 Billing</div></div>
           <div class="card-body">
-            <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub">Renews May 10, 2026</div></div><div class="plan-pill">Business · $249/mo</div></div>
+            <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub">Renews May 10, 2026</div></div><div class="plan-pill" id="settings-plan">Business · $249/mo</div></div>
             <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub">Visa •••• 4242</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Update</button></div>
             <button class="btn btn-ghost" style="width:100%;margin-top:14px;justify-content:center;">Manage via Stripe →</button>
           </div>
         </div>
-       <div class="card mb-16">
-  <div class="card-hdr"><div class="card-title">👥 Team Members</div></div>
-  <div class="card-body">
-    <div class="inp-group">
-      <label class="inp-lbl">Invite by Email</label>
-      <div style="display:flex;gap:8px;">
-        <input class="inp" id="invite-email" placeholder="employee@company.com" style="flex:1;">
-        <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
+        <div class="card mb-16">
+          <div class="card-hdr"><div class="card-title">👥 Team Members</div></div>
+          <div class="card-body">
+            <div class="inp-group">
+              <label class="inp-lbl">Invite by Email</label>
+              <div style="display:flex;gap:8px;">
+                <input class="inp" id="invite-email" placeholder="employee@company.com" style="flex:1;">
+                <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
+              </div>
+              <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
+            </div>
+            <div style="margin-top:14px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+              <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Manual Install Link</div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share this link with employees if the invite email doesn't work:</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input class="inp" id="install-link" readonly style="flex:1;font-size:11px;opacity:0.8;">
+                <button class="btn btn-ghost" onclick="copyInstallLink()" style="white-space:nowrap;flex-shrink:0;">Copy Link</button>
+              </div>
+              <div id="copy-link-msg" style="font-size:11px;margin-top:6px;"></div>
+            </div>
+            <div id="team-members-list" style="margin-top:8px;"></div>
+          </div>
+        </div>
       </div>
-      <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
-      <div style="margin-top:14px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
-  <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Manual Install Link</div>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share this link with employees if the invite email doesn't work:</div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <input class="inp" id="install-link" value="https://syphir.vercel.app/install.html?key=SYP-DEMO-2026-SYPHIR" readonly style="flex:1;font-size:11px;opacity:0.8;">
-    <button class="btn btn-ghost" onclick="copyInstallLink()" style="white-space:nowrap;flex-shrink:0;">Copy Link</button>
-  </div>
-  <div id="copy-link-msg" style="font-size:11px;margin-top:6px;"></div>
-</div>
     </div>
-    <div id="team-members-list">
-      <div class="tog-row" style="padding:10px 0 0;">
-        <div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div>
-        <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
-      </div>
-    </div>
-  </div>
-</div>
 
   </div>
 </main>
 
 <script>
-const API='http://localhost:3000',ORG_ID='org_demo';
+// ── ORG CONTEXT FROM URL ───────────────────────────────────────────────────
+const API = 'https://syphir-api.onrender.com';
+const params = new URLSearchParams(window.location.search);
+const ORG_KEY = params.get('key') || 'SYP-DEMO-2026-SYPHIR';
+const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || 'Demo Dental Practice');
+let ORG_ID = 'org_demo';
+let ORG_NAME = ORG_NAME_PARAM;
+let ORG_PLAN = 'Business';
+let incidents = [];
+
+// Resolve real org_id from key
+(async () => {
+  try {
+    const res = await fetch(`${API}/org/${ORG_KEY}`);
+    const org = await res.json();
+    if (org && org.id) {
+      ORG_ID = org.id;
+      ORG_NAME = org.name || ORG_NAME_PARAM;
+      ORG_PLAN = org.plan || 'Business';
+      // Update sidebar
+      const nameEl = document.getElementById('org-name');
+      const planEl = document.getElementById('org-plan');
+      if (nameEl) nameEl.textContent = ORG_NAME;
+      if (planEl) planEl.textContent = ORG_PLAN;
+      // Update settings fields
+      const sn = document.getElementById('settings-org-name');
+      const sk = document.getElementById('settings-license-key');
+      const sp = document.getElementById('settings-plan');
+      if (sn) sn.value = ORG_NAME;
+      if (sk) sk.value = ORG_KEY;
+      if (sp) sp.textContent = ORG_PLAN + ' · $249/mo';
+      // Update install link
+      const il = document.getElementById('install-link');
+      if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_KEY}`;
+      // Update gateway
+      const gu = document.getElementById('gateway-url');
+      const goi = document.getElementById('gateway-org-id');
+      const gkd = document.getElementById('gateway-key-display');
+      if (gu) gu.value = `https://api.syphir.io/v1/gateway/${ORG_ID}`;
+      if (goi) goi.textContent = ORG_ID;
+      if (gkd) gkd.textContent = ORG_KEY;
+    }
+  } catch(e) {
+    // API offline - use URL params as fallback
+    document.getElementById('org-name').textContent = ORG_NAME;
+    document.getElementById('settings-license-key').value = ORG_KEY;
+    document.getElementById('install-link').value = `https://syphir.vercel.app/install.html?key=${ORG_KEY}`;
+  }
+  loadData();
+  loadTeamMembers();
+})();
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
+
+function nav(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = TITLES[page] || page;
+  const f = document.getElementById('topbar-filters');
+  f.style.display = ['overview','incidents'].includes(page) ? 'flex' : 'none';
+  if (['overview','incidents','live'].includes(page)) loadData();
+  if (page === 'settings') loadTeamMembers();
+}
+
+function setFilter(f, el) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  loadData();
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function timeAgo(iso) {
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+function rBadge(r) {
+  const m = {high:'🔴', medium:'🟠', low:'🟡'};
+  return `<span class="badge b-${r}">${m[r]||''} ${r}</span>`;
+}
+
+function renderRows(list) {
+  if (!list.length) return `<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div>`;
+  return list.map(i => `
+    <div class="tbl-row">
+      <div class="td"><div>${(i.detections||[]).map(d=>d.label||d.entity_type||'PII').join(', ')||'PII Detected'}</div><div class="td-sub">${i.org_name||ORG_NAME}</div></div>
+      <div class="td">${i.user_email||'—'}</div>
+      <div class="td"><span class="badge b-tool">${i.ai_tool||'AI Tool'}</span></div>
+      <div class="td">${rBadge(i.risk_level||'low')}</div>
+      <div class="td td-sub">${timeAgo(i.timestamp)}</div>
+      <div class="td"><button class="res-btn ${i.resolved?'done':''}" id="r-${i.id}" onclick="resolve('${i.id}')">${i.resolved?'✓ Done':'Resolve'}</button></div>
+    </div>`).join('');
+}
+
+// ── CHARTS ─────────────────────────────────────────────────────────────────
+function drawDonut(high, med, low, res) {
+  const canvas = document.getElementById('donutChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx=60, cy=60, r=46, lw=14;
+  const total = high+med+low+res;
+  ctx.clearRect(0,0,120,120);
+  if (!total) {
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle='#242d3e'; ctx.lineWidth=lw; ctx.stroke(); return;
+  }
+  const segs=[{v:high,c:'#f87171'},{v:med,c:'#fb923c'},{v:low,c:'#fbbf24'},{v:res,c:'#34d399'}].filter(s=>s.v>0);
+  let a = -Math.PI/2;
+  segs.forEach(s => {
+    const sw = (s.v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.arc(cx,cy,r,a,a+sw);
+    ctx.strokeStyle=s.c; ctx.lineWidth=lw; ctx.lineCap='butt'; ctx.stroke();
+    a += sw;
+  });
+}
+
+function drawBars(inc) {
+  const c = document.getElementById('bar-chart');
+  if (!c) return;
+  const days = [];
+  for (let i=6; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().split('T')[0];
+    const lbl = ['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
+    const count = inc.filter(x => x.timestamp && x.timestamp.startsWith(key)).length;
+    days.push({lbl, count});
+  }
+  const max = Math.max(...days.map(d=>d.count), 1);
+  c.innerHTML = days.map(d => {
+    const h = Math.max((d.count/max)*80, d.count>0?4:0);
+    const col = d.count>2?'#f87171':d.count>0?'#4db8f0':'#242d3e';
+    return `<div class="bar-col"><div class="bar-v">${d.count||''}</div><div class="bar" style="height:${h}px;background:${col};"></div><div class="bar-d">${d.lbl}</div></div>`;
+  }).join('');
+}
+
+// ── DATA ───────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const [iR, sR] = await Promise.all([
+      fetch(`${API}/incidents/${ORG_ID}`),
+      fetch(`${API}/stats/${ORG_ID}`)
+    ]);
+    const iD = await iR.json(), sD = await sR.json();
+    incidents = iD.incidents || [];
+    const h=sD.high_risk||0, m=sD.medium_risk||0, l=sD.low_risk||0, res=sD.resolved||0, tot=sD.total_incidents||0;
+    document.getElementById('s-total').textContent = tot;
+    document.getElementById('s-high').textContent = h;
+    document.getElementById('s-medium').textContent = m;
+    document.getElementById('s-resolved').textContent = res;
+    document.getElementById('donut-total').textContent = tot;
+    const pct = v => tot>0 ? '('+Math.round(v/tot*100)+'%)' : '(0%)';
+    document.getElementById('leg-high').textContent = h; document.getElementById('leg-high-pct').textContent = pct(h);
+    document.getElementById('leg-med').textContent = m;  document.getElementById('leg-med-pct').textContent = pct(m);
+    document.getElementById('leg-low').textContent = l;  document.getElementById('leg-low-pct').textContent = pct(l);
+    document.getElementById('leg-res').textContent = res; document.getElementById('leg-res-pct').textContent = pct(res);
+    drawDonut(h,m,l,res);
+    drawBars(incidents);
+    const un = sD.unresolved || 0;
+    const badge = document.getElementById('nav-badge');
+    badge.style.display = un>0 ? 'block' : 'none';
+    badge.textContent = un;
+    const rows = renderRows(incidents);
+    document.getElementById('tbl-overview').innerHTML = rows;
+    document.getElementById('tbl-incidents').innerHTML = rows;
+    if (incidents.length) {
+      document.getElementById('feed-list').innerHTML = incidents.slice(0,20).map(i=>`
+        <div class="feed-item">
+          <div class="feed-dot fd-${i.risk_level}">${i.risk_level==='high'?'🔴':i.risk_level==='medium'?'🟠':'🟡'}</div>
+          <div class="feed-body"><div class="feed-title">${(i.detections||[]).map(d=>d.label||d.entity_type||'PII').join(', ')||'PII'} detected</div><div class="feed-detail">${i.user_email||'—'} → ${i.ai_tool||'AI'}</div></div>
+          <div class="feed-time">${timeAgo(i.timestamp)}</div>
+        </div>`).join('');
+    }
+    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById('last-updated').textContent = 'API offline';
+  }
+}
+
+// ── TEAM ───────────────────────────────────────────────────────────────────
+async function loadTeamMembers() {
+  try {
+    const res = await fetch(`${API}/team/${ORG_ID}`);
+    const data = await res.json();
+    const list = document.getElementById('team-members-list');
+    if (!list) return;
+    const members = data.users || [];
+    const adminRow = `<div class="tog-row" style="padding:10px 0 0;">
+      <div><div class="tog-lbl" id="settings-admin-email-display">${ORG_NAME} Admin</div><div class="tog-sub">Admin · Active</div></div>
+      <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
+    </div>`;
+    if (!members.length) { list.innerHTML = adminRow; return; }
+    const rows = members.map(u => `
+      <div class="tog-row" style="padding:10px 0 0;">
+        <div><div class="tog-lbl">${u.email}</div><div class="tog-sub">${u.role} · ${u.status}</div></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:${u.status==='invited'?'var(--yellow)':'var(--green)'};font-weight:600;">${u.status==='invited'?'● Invited':'● Active'}</span>
+          <button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;">Remove</button>
+        </div>
+      </div>`).join('');
+    list.innerHTML = adminRow + rows;
+  } catch(e) {
+    console.log('Could not load team members:', e.message);
+  }
+}
+
+async function removeUser(id) {
+  if (!confirm('Remove this team member?')) return;
+  try { await fetch(`${API}/team/${id}/remove`, {method:'PATCH'}); loadTeamMembers(); } catch(e){}
+}
 
 async function inviteUser() {
   const email = document.getElementById('invite-email').value.trim();
@@ -442,218 +615,37 @@ async function inviteUser() {
   try {
     const res = await fetch(`${API}/invite-user`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        org_key: 'SYP-DEMO-2026-SYPHIR',
-        employee_email: email,
-        org_name: 'Demo Dental Practice'
-      })
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ org_key: ORG_KEY, employee_email: email, org_name: ORG_NAME })
     });
     const data = await res.json();
     if (data.success) {
-      msg.style.color = 'var(--green)';
-      msg.textContent = '✓ Invite sent!';
-      document.getElementById('invite-email').value = '';
+      msg.style.color='var(--green)'; msg.textContent='✓ Invite sent!';
+      document.getElementById('invite-email').value='';
+      loadTeamMembers();
     } else {
-      msg.style.color = 'var(--red)';
-      msg.textContent = data.message || 'Failed to send';
+      msg.style.color='var(--red)'; msg.textContent=data.message||'Failed to send';
     }
-  } catch(e) {
-    msg.style.color = 'var(--red)';
-    msg.textContent = 'API offline';
-  }
+  } catch(e) { msg.style.color='var(--red)'; msg.textContent='API offline'; }
 }
 
-let incidents=[];
-
-const TITLES={overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
-
-function nav(page,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  if(el)el.classList.add('active');
-  document.getElementById('page-title').textContent=TITLES[page]||page;
-  const f=document.getElementById('topbar-filters');
-  f.style.display=['overview','incidents'].includes(page)?'flex':'none';
-  if(['overview','incidents','live'].includes(page))loadData();
-}
-
-function setFilter(f,el){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  loadData();
-}
-
-function timeAgo(iso){
-  const s=(Date.now()-new Date(iso))/1000;
-  if(s<60)return 'just now';
-  if(s<3600)return Math.floor(s/60)+'m ago';
-  if(s<86400)return Math.floor(s/3600)+'h ago';
-  return new Date(iso).toLocaleDateString();
-}
-
-function rBadge(r){
-  const m={high:'🔴',medium:'🟠',low:'🟡'};
-  return `<span class="badge b-${r}">${m[r]||''} ${r}</span>`;
-}
-
-function renderRows(list){
-  if(!list.length)return`<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div>`;
-  return list.map(i=>`
-    <div class="tbl-row">
-      <div class="td"><div>${i.detections.map(d=>d.label).join(', ')}</div><div class="td-sub">${i.org_name||''}</div></div>
-      <div class="td">${i.user_email}</div>
-      <div class="td"><span class="badge b-tool">${i.ai_tool}</span></div>
-      <div class="td">${rBadge(i.risk_level)}</div>
-      <div class="td td-sub">${timeAgo(i.timestamp)}</div>
-      <div class="td"><button class="res-btn ${i.resolved?'done':''}" id="r-${i.id}" onclick="resolve('${i.id}')">${i.resolved?'✓ Done':'Resolve'}</button></div>
-    </div>`).join('');
-}
-
-function drawDonut(high,med,low,res){
-  const canvas=document.getElementById('donutChart');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const cx=60,cy=60,r=46,lw=14;
-  const total=high+med+low+res;
-  ctx.clearRect(0,0,120,120);
-  if(!total){
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.strokeStyle='#242d3e';ctx.lineWidth=lw;ctx.stroke();
-    return;
-  }
-  const segs=[
-    {v:high,c:'#f87171'},{v:med,c:'#fb923c'},
-    {v:low,c:'#fbbf24'},{v:res,c:'#34d399'}
-  ].filter(s=>s.v>0);
-  let a=-Math.PI/2;
-  segs.forEach(s=>{
-    const sw=(s.v/total)*Math.PI*2;
-    ctx.beginPath();ctx.arc(cx,cy,r,a,a+sw);
-    ctx.strokeStyle=s.c;ctx.lineWidth=lw;ctx.lineCap='butt';ctx.stroke();
-    a+=sw;
-  });
-}
-
-function drawBars(inc){
-  const c=document.getElementById('bar-chart');
-  if(!c)return;
-  const days=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const key=d.toISOString().split('T')[0];
-    const lbl=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
-    const count=inc.filter(x=>x.timestamp.startsWith(key)).length;
-    days.push({lbl,count});
-  }
-  const max=Math.max(...days.map(d=>d.count),1);
-  c.innerHTML=days.map(d=>{
-    const h=Math.max((d.count/max)*80,d.count>0?4:0);
-    const col=d.count>2?'#f87171':d.count>0?'#4db8f0':'#242d3e';
-    return`<div class="bar-col"><div class="bar-v">${d.count||''}</div><div class="bar" style="height:${h}px;background:${col};"></div><div class="bar-d">${d.lbl}</div></div>`;
-  }).join('');
-}
-
-async function loadData(){
-  try{
-    const[iR,sR]=await Promise.all([fetch(`${API}/incidents/${ORG_ID}`),fetch(`${API}/stats/${ORG_ID}`)]);
-    const iD=await iR.json(),sD=await sR.json();
-    incidents=iD.incidents||[];
-    const h=sD.high_risk||0,m=sD.medium_risk||0,l=sD.low_risk||0,res=sD.resolved||0,tot=sD.total_incidents||0;
-    document.getElementById('s-total').textContent=tot;
-    document.getElementById('s-high').textContent=h;
-    document.getElementById('s-medium').textContent=m;
-    document.getElementById('s-resolved').textContent=res;
-    document.getElementById('donut-total').textContent=tot;
-    const pct=v=>tot>0?'('+Math.round(v/tot*100)+'%)':'(0%)';
-    ['high','med','low','res'].forEach((k,i)=>{
-      const vals=[h,m,l,res];
-      const ids=['leg-high','leg-med','leg-low','leg-res'];
-      const pids=['leg-high-pct','leg-med-pct','leg-low-pct','leg-res-pct'];
-      document.getElementById(ids[i]).textContent=vals[i];
-      document.getElementById(pids[i]).textContent=pct(vals[i]);
-    });
-    drawDonut(h,m,l,res);
-    drawBars(incidents);
-    const un=sD.unresolved||0;
-    const badge=document.getElementById('nav-badge');
-    badge.style.display=un>0?'block':'none';
-    badge.textContent=un;
-    const rows=renderRows(incidents);
-    document.getElementById('tbl-overview').innerHTML=rows;
-    document.getElementById('tbl-incidents').innerHTML=rows;
-    if(incidents.length){
-      document.getElementById('feed-list').innerHTML=incidents.slice(0,20).map(i=>`
-        <div class="feed-item">
-          <div class="feed-dot fd-${i.risk_level}">${i.risk_level==='high'?'🔴':i.risk_level==='medium'?'🟠':'🟡'}</div>
-          <div class="feed-body"><div class="feed-title">${i.detections.map(d=>d.label).join(', ')} detected</div><div class="feed-detail">${i.user_email} → ${i.ai_tool}</div></div>
-          <div class="feed-time">${timeAgo(i.timestamp)}</div>
-        </div>`).join('');
-    }
-    document.getElementById('last-updated').textContent=new Date().toLocaleTimeString();
-  }catch(e){document.getElementById('last-updated').textContent='API offline';}
-}
-
-async function loadTeamMembers() {
+async function resolve(id) {
   try {
-    const res = await fetch(`${API}/team/org_demo`);
-    const data = await res.json();
-    const list = document.getElementById('team-members-list');
-    if (!list) return;
-    const members = data.users || [];
-    if (!members.length) return;
-    const rows = members.map(u => `
-      <div class="tog-row" style="padding:10px 0 0;">
-        <div>
-          <div class="tog-lbl">${u.email}</div>
-          <div class="tog-sub">${u.role} · ${u.status}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:11px;color:${u.status==='invited'?'var(--yellow)':'var(--green)'};font-weight:600;">
-            ${u.status==='invited'?'● Invited':'● Active'}
-          </span>
-          <button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;">Remove</button>
-        </div>
-      </div>
-    `).join('');
-    list.innerHTML = `
-      <div class="tog-row" style="padding:10px 0 0;">
-        <div><div class="tog-lbl">admin@dentalpractice.com</div><div class="tog-sub">Admin · Active</div></div>
-        <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
-      </div>
-      ${rows}
-    `;
-  } catch(e) {
-    console.log('Could not load team members:', e.message);
-  }
-}
-
-async function removeUser(id) {
-  if (!confirm('Remove this team member?')) return;
-  try {
-    await fetch(`${API}/team/${id}/remove`, { method: 'PATCH' });
-    loadTeamMembers();
-  } catch(e) {}
-}
-
-async function resolve(id){
-  try{
-    await fetch(`${API}/incidents/${id}/resolve`,{method:'PATCH'});
-    const b=document.getElementById('r-'+id);
-    if(b){b.textContent='✓ Done';b.classList.add('done');}
+    await fetch(`${API}/incidents/${id}/resolve`, {method:'PATCH'});
+    const b = document.getElementById('r-'+id);
+    if (b) { b.textContent='✓ Done'; b.classList.add('done'); }
     loadData();
-  }catch(e){}
+  } catch(e){}
 }
 
-function exportCSV(){
-  if(!incidents.length)return alert('No incidents to export');
-  const h=['ID','User','AI Tool','Risk','Detections','Time','Resolved'];
-  const r=incidents.map(i=>[i.id,i.user_email,i.ai_tool,i.risk_level,i.detections.map(d=>d.label).join('|'),i.timestamp,i.resolved]);
-  const csv=[h,...r].map(x=>x.join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download=`syphir-${new Date().toISOString().split('T')[0]}.csv`;
+function exportCSV() {
+  if (!incidents.length) return alert('No incidents to export');
+  const h = ['ID','User','AI Tool','Risk','Detections','Time','Resolved'];
+  const r = incidents.map(i => [i.id, i.user_email, i.ai_tool, i.risk_level, (i.detections||[]).map(d=>d.label||d.entity_type).join('|'), i.timestamp, i.resolved]);
+  const csv = [h,...r].map(x=>x.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `syphir-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
 }
 
@@ -661,19 +653,16 @@ function copyInstallLink() {
   const link = document.getElementById('install-link').value;
   navigator.clipboard.writeText(link).then(() => {
     const msg = document.getElementById('copy-link-msg');
-    msg.style.color = 'var(--green)';
-    msg.textContent = '✓ Link copied — paste into any email or message';
-    setTimeout(() => msg.textContent = '', 3000);
+    msg.style.color='var(--green)'; msg.textContent='✓ Link copied!';
+    setTimeout(() => msg.textContent='', 3000);
   });
 }
 
-function clearFeed(){document.getElementById('feed-list').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Feed cleared</div></div>';}
-function copyGateway(){navigator.clipboard.writeText(document.getElementById('gateway-url').value);alert('Copied!');}
-function connectAI(tile,name){const k=prompt(`Enter your ${name} API key:`);if(k){tile.classList.add('connected');tile.querySelector('.ai-status').textContent='✓ Connected';}}
+function clearFeed() { document.getElementById('feed-list').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Feed cleared</div></div>'; }
+function copyGateway() { navigator.clipboard.writeText(document.getElementById('gateway-url').value); alert('Copied!'); }
+function connectAI(tile,name) { const k=prompt(`Enter your ${name} API key:`); if(k){tile.classList.add('connected');tile.querySelector('.ai-status').textContent='✓ Connected';} }
 
 setInterval(loadData, 5000);
-loadData();
-loadTeamMembers();
 </script>
 </body>
 </html>
