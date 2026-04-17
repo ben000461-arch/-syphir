@@ -143,8 +143,19 @@ async function scan(text) {
   // Show banner immediately
   showBanner(message, risk_level);
 
-  // Update badge
+  // Update badge (guard against invalidated context)
+try {
   chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level });
+} catch(e) {}
+
+// Re-read key to ensure we have the latest from storage
+  await new Promise(resolve => {
+    chrome.storage.local.get(["syphir_key","syphir_email"], (data) => {
+      if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
+      if (data.syphir_email) USER_EMAIL = data.syphir_email;
+      resolve();
+    });
+  });
 
   // Log incident directly to API (bypass scanner — detection already done locally)
   const incident = {
