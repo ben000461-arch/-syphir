@@ -89,6 +89,17 @@ app.post("/scan", async (c) => {
 
 
 // ── LOG INCIDENT DIRECTLY ──────────────────────────────────────────────────
+app.get("/emp-key/:org_id", async (c) => {
+  const { org_id } = c.req.param();
+  try {
+    const rows = await db(`license_keys?org_id=eq.${org_id}&key_type=eq.employee&status=eq.active&select=key`);
+    if (!rows || rows.length === 0) return c.json({ emp_key: null });
+    return c.json({ emp_key: rows[0].key });
+  } catch (err) {
+    return c.json({ emp_key: null });
+  }
+});
+
 app.post("/log-incident", async (c) => {
   const body = await c.req.json();
   const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = body;

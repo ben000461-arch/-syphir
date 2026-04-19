@@ -350,7 +350,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           <div class="card-body">
             <div class="inp-group"><label class="inp-lbl">Organization Name</label><input class="inp" id="settings-org-name" value="Loading…"></div>
             <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" id="settings-admin-email" value=""></div>
-            <div class="inp-group"><label class="inp-lbl">License Key</label><input class="inp" id="settings-license-key" readonly style="opacity:0.5;cursor:not-allowed;"></div>
+            <div class="inp-group"><label class="inp-lbl">Dashboard Key (your login)</label><input class="inp" id="settings-license-key" readonly style="opacity:0.5;cursor:not-allowed;"></div>
+            <div class="inp-group"><label class="inp-lbl">Employee Key (share with staff)</label><input class="inp" id="settings-emp-key" readonly style="opacity:0.5;cursor:not-allowed;font-family:monospace;color:#00e676;"></div>
           </div>
         </div>
         <div class="card mb-16">
@@ -421,6 +422,13 @@ let incidents = [];
       const sp = document.getElementById('settings-plan');
       if (sn) sn.value = ORG_NAME;
       if (sk) sk.value = ORG_KEY;
+      // Fetch employee key for this org
+      try {
+        const empRows = await fetch(`https://syphir-api.onrender.com/emp-key/${ORG_ID}`).then(r=>r.json());
+        const empKeyEl = document.getElementById('settings-emp-key');
+        if (empKeyEl && empRows && empRows.emp_key) empKeyEl.value = empRows.emp_key;
+      } catch(e2) {}
+
       if (sp) sp.textContent = ORG_PLAN + ' · $249/mo';
       // Update install link
       const il = document.getElementById('install-link');
