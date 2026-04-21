@@ -343,13 +343,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
-      <div class="section-hdr"><div><div class="section-title">Settings</div><div class="section-sub">Manage your organization and billing</div></div><button class="btn btn-primary" onclick="alert('Saved!')">Save Changes</button></div>
+      <div class="section-hdr"><div><div class="section-title">Settings</div><div class="section-sub">Manage your organization and billing</div></div><button class="btn btn-primary" onclick="saveSettings()">Save Changes</button></div>
       <div class="grid-2">
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">🏢 Organization</div></div>
           <div class="card-body">
             <div class="inp-group"><label class="inp-lbl">Organization Name</label><input class="inp" id="settings-org-name" value="Loading…"></div>
-            <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" id="settings-admin-email" value=""></div>
+            <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" id="settings-admin-email" value="" placeholder="Loading…"></div>
             <div class="inp-group"><label class="inp-lbl">Dashboard Key (your login)</label><input class="inp" id="settings-license-key" readonly style="opacity:0.5;cursor:not-allowed;"></div>
             <div class="inp-group"><label class="inp-lbl">Employee Key (share with staff)</label><input class="inp" id="settings-emp-key" readonly style="opacity:0.5;cursor:not-allowed;font-family:monospace;color:#00e676;"></div>
           </div>
@@ -357,7 +357,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">💳 Billing</div></div>
           <div class="card-body">
-            <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub">Renews May 10, 2026</div></div><div class="plan-pill" id="settings-plan">Business · $249/mo</div></div>
+            <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub" id="settings-plan-renew">Renews May 10, 2026</div></div><div class="plan-pill" id="settings-plan">Business · $249/mo</div></div>
             <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub">Visa •••• 4242</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Update</button></div>
             <button class="btn btn-ghost" style="width:100%;margin-top:14px;justify-content:center;">Manage via Stripe →</button>
           </div>
@@ -396,65 +396,89 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 const API = 'https://syphir-api.onrender.com';
 const params = new URLSearchParams(window.location.search);
 const ORG_KEY = params.get('key') || 'SYP-DEMO-2026-SYPHIR';
-const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || 'Demo Dental Practice');
-let ORG_ID = 'org_demo';
+const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || 'Demo');
+
+// These are placeholders — real values set after org resolves
+let ORG_ID = null;       // FIX: null until resolved, prevents premature fetches
 let ORG_NAME = ORG_NAME_PARAM;
 let ORG_PLAN = 'Business';
+let ORG_ADMIN_EMAIL = '';
+let ORG_EMP_KEY = '';
 let incidents = [];
+let dataInterval = null;  // FIX: track interval so we can start it only after org resolves
 
-// Resolve real org_id from key
+// ── BOOT: Resolve org then start everything ────────────────────────────────
 (async () => {
   try {
     const res = await fetch(`${API}/org/${ORG_KEY}`);
+    if (!res.ok) throw new Error('org fetch failed');
     const org = await res.json();
+
     if (org && org.id) {
-      ORG_ID = org.id;
-      ORG_NAME = org.name || ORG_NAME_PARAM;
-      ORG_PLAN = org.plan || 'Business';
-      // Update sidebar
+      ORG_ID          = org.id;
+      ORG_NAME        = org.name || ORG_NAME_PARAM;
+      ORG_PLAN        = org.plan || 'Business';
+      ORG_ADMIN_EMAIL = org.admin_email || '';
+
+      // Sidebar
       const nameEl = document.getElementById('org-name');
       const planEl = document.getElementById('org-plan');
       if (nameEl) nameEl.textContent = ORG_NAME;
       if (planEl) planEl.textContent = ORG_PLAN;
-      // Update settings fields
-      const sn = document.getElementById('settings-org-name');
-      const sk = document.getElementById('settings-license-key');
-      const sp = document.getElementById('settings-plan');
-      if (sn) sn.value = ORG_NAME;
-      if (sk) sk.value = ORG_KEY;
-      // Fetch employee key for this org
-      try {
-        const empRows = await fetch(`https://syphir-api.onrender.com/emp-key/${ORG_ID}`).then(r=>r.json());
-        const empKeyEl = document.getElementById('settings-emp-key');
-        if (empKeyEl && empRows && empRows.emp_key) empKeyEl.value = empRows.emp_key;
-      } catch(e2) {}
 
-      if (sp) sp.textContent = ORG_PLAN + ' · $249/mo';
-      // Update install link
+      // Settings — org name, email, dashboard key, plan
+      const sn  = document.getElementById('settings-org-name');
+      const sae = document.getElementById('settings-admin-email');
+      const sk  = document.getElementById('settings-license-key');
+      const sp  = document.getElementById('settings-plan');
+      if (sn)  sn.value  = ORG_NAME;
+      if (sae) sae.value = ORG_ADMIN_EMAIL;
+      if (sk)  sk.value  = ORG_KEY;
+      if (sp)  sp.textContent = ORG_PLAN + ' · $249/mo';
+
+      // Employee key
+      try {
+        const empData = await fetch(`${API}/emp-key/${ORG_ID}`).then(r => r.json());
+        if (empData && empData.emp_key) {
+          ORG_EMP_KEY = empData.emp_key;
+          const empKeyEl = document.getElementById('settings-emp-key');
+          if (empKeyEl) empKeyEl.value = ORG_EMP_KEY;
+        }
+      } catch(e2) { console.warn('emp-key fetch failed', e2); }
+
+      // Install link
       const il = document.getElementById('install-link');
-      if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_KEY}`;
-      // Update gateway
-      const gu = document.getElementById('gateway-url');
+      if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_EMP_KEY || ORG_KEY}`;
+
+      // Gateway
+      const gu  = document.getElementById('gateway-url');
       const goi = document.getElementById('gateway-org-id');
       const gkd = document.getElementById('gateway-key-display');
-      if (gu) gu.value = `https://api.syphir.io/v1/gateway/${ORG_ID}`;
+      if (gu)  gu.value       = `https://api.syphir.io/v1/gateway/${ORG_ID}`;
       if (goi) goi.textContent = ORG_ID;
       if (gkd) gkd.textContent = ORG_KEY;
     }
   } catch(e) {
-    // API offline - use URL params as fallback
+    // API offline — fill what we can from URL params
+    console.warn('org resolve failed, using URL params', e);
+    ORG_ID = 'org_demo';  // fallback so data calls still run
     document.getElementById('org-name').textContent = ORG_NAME;
-    document.getElementById('settings-license-key').value = ORG_KEY;
-    document.getElementById('install-link').value = `https://syphir.vercel.app/install.html?key=${ORG_KEY}`;
+    const sk = document.getElementById('settings-license-key');
+    if (sk) sk.value = ORG_KEY;
+    const il = document.getElementById('install-link');
+    if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_KEY}`;
   }
-  loadData();
+
+  // FIX: Only start polling AFTER ORG_ID is resolved
+  await loadData();
   loadTeamMembers();
+  dataInterval = setInterval(loadData, 5000);
 })();
 
-// EXPIRY CHECK
+// ── EXPIRY CHECK ───────────────────────────────────────────────────────────
 async function checkExpiry() {
   try {
-    const res = await fetch('https://syphir-api.onrender.com/validate-key', {
+    const res = await fetch(`${API}/validate-key`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' })
@@ -576,6 +600,9 @@ function drawBars(inc) {
 
 // ── DATA ───────────────────────────────────────────────────────────────────
 async function loadData() {
+  // FIX: Guard — don't fetch until ORG_ID is resolved
+  if (!ORG_ID) return;
+
   try {
     const [iR, sR] = await Promise.all([
       fetch(`${API}/incidents/${ORG_ID}`),
@@ -617,16 +644,46 @@ async function loadData() {
   }
 }
 
+// ── SETTINGS SAVE ──────────────────────────────────────────────────────────
+async function saveSettings() {
+  // FIX: Actually save org name + email to API instead of just alert()
+  const newName  = document.getElementById('settings-org-name').value.trim();
+  const newEmail = document.getElementById('settings-admin-email').value.trim();
+  if (!newName) { alert('Organization name cannot be empty'); return; }
+  try {
+    const res = await fetch(`${API}/org/${ORG_ID}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName, admin_email: newEmail })
+    });
+    if (res.ok) {
+      ORG_NAME = newName;
+      ORG_ADMIN_EMAIL = newEmail;
+      document.getElementById('org-name').textContent = ORG_NAME;
+      alert('✓ Settings saved!');
+    } else {
+      alert('Failed to save — API returned an error');
+    }
+  } catch(e) {
+    // API may not support PATCH yet — still update locally
+    ORG_NAME = newName;
+    document.getElementById('org-name').textContent = ORG_NAME;
+    alert('✓ Saved locally (API offline)');
+  }
+}
+
 // ── TEAM ───────────────────────────────────────────────────────────────────
 async function loadTeamMembers() {
+  if (!ORG_ID) return;  // FIX: guard
   try {
     const res = await fetch(`${API}/team/${ORG_ID}`);
     const data = await res.json();
     const list = document.getElementById('team-members-list');
     if (!list) return;
     const members = data.users || [];
+    const adminEmail = ORG_ADMIN_EMAIL || ORG_NAME + ' Admin';
     const adminRow = `<div class="tog-row" style="padding:10px 0 0;">
-      <div><div class="tog-lbl" id="settings-admin-email-display">${ORG_NAME} Admin</div><div class="tog-sub">Admin · Active</div></div>
+      <div><div class="tog-lbl">${adminEmail}</div><div class="tog-sub">Admin · Active</div></div>
       <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
     </div>`;
     if (!members.length) { list.innerHTML = adminRow; return; }
@@ -693,6 +750,7 @@ function exportCSV() {
 
 function copyInstallLink() {
   const link = document.getElementById('install-link').value;
+  if (!link) return;
   navigator.clipboard.writeText(link).then(() => {
     const msg = document.getElementById('copy-link-msg');
     msg.style.color='var(--green)'; msg.textContent='✓ Link copied!';
@@ -701,10 +759,8 @@ function copyInstallLink() {
 }
 
 function clearFeed() { document.getElementById('feed-list').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Feed cleared</div></div>'; }
-function copyGateway() { navigator.clipboard.writeText(document.getElementById('gateway-url').value); alert('Copied!'); }
+function copyGateway() { navigator.clipboard.writeText(document.getElementById('gateway-url').value || ''); alert('Copied!'); }
 function connectAI(tile,name) { const k=prompt(`Enter your ${name} API key:`); if(k){tile.classList.add('connected');tile.querySelector('.ai-status').textContent='✓ Connected';} }
-
-setInterval(loadData, 5000);
 </script>
 </body>
 </html>
