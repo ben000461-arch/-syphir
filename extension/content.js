@@ -106,14 +106,28 @@ function buildMessage(findings) {
 function getAITool() {
   const h = window.location.hostname;
   if (h.includes("chatgpt") || h.includes("openai")) return "ChatGPT";
-  if (h.includes("claude"))      return "Claude";
-  if (h.includes("gemini"))      return "Gemini";
-  if (h.includes("copilot"))     return "Copilot";
+  if (h.includes("claude") || h.includes("anthropic")) return "Claude";
+  if (h.includes("gemini") || h.includes("aistudio")) return "Gemini";
+  if (h.includes("copilot") || h.includes("bing")) return "Copilot";
   if (h.includes("grok"))        return "Grok";
   if (h.includes("perplexity"))  return "Perplexity";
   if (h.includes("mistral"))     return "Mistral";
   if (h.includes("deepseek"))    return "DeepSeek";
   if (h.includes("groq"))        return "Groq";
+  if (h.includes("cohere") || h.includes("coral")) return "Cohere";
+  if (h.includes("poe"))         return "Poe";
+  if (h.includes("huggingface")) return "HuggingFace";
+  if (h.includes("meta.ai") || h.includes("llama")) return "Meta AI";
+  if (h.includes("pi.ai"))       return "Pi";
+  if (h.includes("venice"))      return "Venice AI";
+  if (h.includes("openrouter"))  return "OpenRouter";
+  if (h.includes("notion"))      return "Notion AI";
+  if (h.includes("jasper"))      return "Jasper";
+  if (h.includes("writesonic"))  return "Writesonic";
+  if (h.includes("character"))   return "Character.AI";
+  if (h.includes("you.com"))     return "You.com";
+  if (h.includes("phind"))       return "Phind";
+  if (h.includes("lmsys") || h.includes("arena")) return "LMSYS Arena";
   return "AI Tool";
 }
 
