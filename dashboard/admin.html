@@ -248,7 +248,7 @@ async function addBusiness() {
   try {
     const res = await fetch('https://syphir-api.onrender.com/admin/create-org', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': 'bridgeline2025' },
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': 'SYP-ADM-2026-MEDHOLO' },
       body: JSON.stringify({ name, email, plan, status, key, emp_key }),
     });
     const data = await res.json();
