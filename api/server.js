@@ -4,10 +4,20 @@ import { Resend } from "resend";
 
 const app = new Hono();
 const SCANNER_URL = "https://syphir-scanner.onrender.com";
-const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcm9qb2Jocm1mbm94YXZscm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTU5MDcsImV4cCI6MjA5MTQ5MTkwN30.0FFbJq_gwsFtZSQY7isojouZAT3xWAUBGFXx-j9nbzo";
-const resend = new Resend("re_efn93Zvb_47cNT8pdRWnhnvHFnfhQ7yqR");
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const resend = new Resend(process.env.RESEND_KEY);
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "DISABLED";
+
+// ── RATE LIMITING ─────────────────────────────────────────────────────────
+const rateLimits = new Map();
+function rateLimit(key, max, windowMs) {
+  const now = Date.now();
+  const hits = (rateLimits.get(key) || []).filter(t => now - t < windowMs);
+  if (hits.length >= max) return false;
+  rateLimits.set(key, [...hits, now]);
+  return true;
+}
 
 async function db(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -36,6 +46,10 @@ app.get("/health", (c) => {
 
 app.post("/validate-key", async (c) => {
   const { key, context } = await c.req.json();
+  const ip = c.req.header("x-forwarded-for") || "unknown";
+if (!rateLimit(`validate:${ip}`, 20, 60000)) {
+  return c.json({ valid: false, message: "Too many attempts" }, 429);
+}
   try {
     const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) {
@@ -102,6 +116,10 @@ app.get("/emp-key/:org_id", async (c) => {
 
 app.post("/log-incident", async (c) => {
   const body = await c.req.json();
+  const ip2 = c.req.header("x-forwarded-for") || "unknown";
+if (!rateLimit(`log:${ip2}`, 60, 60000)) {
+  return c.json({ success: false, message: "Rate limit exceeded" }, 429);
+}
   const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = body;
   let org;
   try {
@@ -219,6 +237,10 @@ app.post("/invite-user", async (c) => {
 });
 
 app.post("/admin/create-org", async (c) => {
+    const ip3 = c.req.header("x-forwarded-for") || "unknown";
+if (!rateLimit(`admin:${ip3}`, 5, 60000)) {
+  return c.json({ error: "Too many requests" }, 429);
+}
   const { name, email, plan, status, key, emp_key } = await c.req.json();
   const adminSecret = c.req.header("X-Admin-Secret");
   if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
