@@ -7,7 +7,7 @@ const SCANNER_URL = "https://syphir-scanner.onrender.com";
 const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcm9qb2Jocm1mbm94YXZscm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTU5MDcsImV4cCI6MjA5MTQ5MTkwN30.0FFbJq_gwsFtZSQY7isojouZAT3xWAUBGFXx-j9nbzo";
 const resend = new Resend("re_efn93Zvb_47cNT8pdRWnhnvHFnfhQ7yqR");
-const ADMIN_SECRET = "bridgeline2025";
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "bridgeline2025";
 
 async function db(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
