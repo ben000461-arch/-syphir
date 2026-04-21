@@ -4,20 +4,10 @@ import { Resend } from "resend";
 
 const app = new Hono();
 const SCANNER_URL = "https://syphir-scanner.onrender.com";
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
-const resend = new Resend(process.env.RESEND_KEY);
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "DISABLED";
-
-// ── RATE LIMITING ─────────────────────────────────────────────────────────
-const rateLimits = new Map();
-function rateLimit(key, max, windowMs) {
-  const now = Date.now();
-  const hits = (rateLimits.get(key) || []).filter(t => now - t < windowMs);
-  if (hits.length >= max) return false;
-  rateLimits.set(key, [...hits, now]);
-  return true;
-}
+const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcm9qb2Jocm1mbm94YXZscm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTU5MDcsImV4cCI6MjA5MTQ5MTkwN30.0FFbJq_gwsFtZSQY7isojouZAT3xWAUBGFXx-j9nbzo";
+const resend = new Resend("re_efn93Zvb_47cNT8pdRWnhnvHFnfhQ7yqR");
+const ADMIN_SECRET = "bridgeline2025";
 
 async function db(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -46,10 +36,6 @@ app.get("/health", (c) => {
 
 app.post("/validate-key", async (c) => {
   const { key, context } = await c.req.json();
-  const ip = c.req.header("x-forwarded-for") || "unknown";
-if (!rateLimit(`validate:${ip}`, 20, 60000)) {
-  return c.json({ valid: false, message: "Too many attempts" }, 429);
-}
   try {
     const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) {
@@ -58,10 +44,23 @@ if (!rateLimit(`validate:${ip}`, 20, 60000)) {
     const row = rows[0];
     const org = row.organizations;
     const keyType = row.key_type || "business";
+    // Check expiry
+    let daysLeft = null;
+    let expired = false;
+    if (row.expires_at) {
+      const expires = new Date(row.expires_at);
+      const now = new Date();
+      const msLeft = expires - now;
+      daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+      if (msLeft < 0) {
+        expired = true;
+        return c.json({ valid: false, expired: true, message: "Your trial has expired. Upgrade to continue." }, 403);
+      }
+    }
     if (context === "dashboard" && keyType === "employee") {
       return c.json({ valid: false, key_type: "employee", message: "This is an employee key. Contact your admin for dashboard access." }, 403);
     }
-    return c.json({ valid: true, key_type: keyType, org_id: org.id, org_name: org.name, plan: org.plan });
+    return c.json({ valid: true, key_type: keyType, org_id: org.id, org_name: org.name, plan: org.plan, expires_at: row.expires_at, days_left: daysLeft });
   } catch (err) {
     return c.json({ valid: false, message: "Validation failed" }, 500);
   }
@@ -116,10 +115,6 @@ app.get("/emp-key/:org_id", async (c) => {
 
 app.post("/log-incident", async (c) => {
   const body = await c.req.json();
-  const ip2 = c.req.header("x-forwarded-for") || "unknown";
-if (!rateLimit(`log:${ip2}`, 60, 60000)) {
-  return c.json({ success: false, message: "Rate limit exceeded" }, 429);
-}
   const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = body;
   let org;
   try {
@@ -237,10 +232,6 @@ app.post("/invite-user", async (c) => {
 });
 
 app.post("/admin/create-org", async (c) => {
-    const ip3 = c.req.header("x-forwarded-for") || "unknown";
-if (!rateLimit(`admin:${ip3}`, 5, 60000)) {
-  return c.json({ error: "Too many requests" }, 429);
-}
   const { name, email, plan, status, key, emp_key } = await c.req.json();
   const adminSecret = c.req.header("X-Admin-Secret");
   if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
@@ -251,9 +242,12 @@ if (!rateLimit(`admin:${ip3}`, 5, 60000)) {
     });
     if (!orgRows || orgRows.length === 0) return c.json({ error: "Failed to create organization" }, 500);
     const org = orgRows[0];
-    await db("license_keys", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ key, org_id: org.id, key_type: "business", status: "active", expires_at: null }) });
+    // Set expiry: demo/pilot = 7 days, paying = never
+    const isPaying = ["starter","professional","institution","pro"].includes((plan||"").toLowerCase());
+    const expiresAt = isPaying ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    await db("license_keys", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ key, org_id: org.id, key_type: "business", status: "active", expires_at: expiresAt }) });
     if (emp_key) {
-      await db("license_keys", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ key: emp_key, org_id: org.id, key_type: "employee", status: "active", expires_at: null }) });
+      await db("license_keys", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ key: emp_key, org_id: org.id, key_type: "employee", status: "active", expires_at: expiresAt }) });
     }
     console.log(`New org: ${name} | biz: ${key} | emp: ${emp_key || "none"}`);
     return c.json({ success: true, org_id: org.id, org_name: org.name, key, emp_key });

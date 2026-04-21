@@ -451,6 +451,40 @@ let incidents = [];
   loadTeamMembers();
 })();
 
+// EXPIRY CHECK
+async function checkExpiry() {
+  try {
+    const res = await fetch('https://syphir-api.onrender.com/validate-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' })
+    });
+    const data = await res.json();
+    if (data.expired) {
+      window.location.href = 'https://syphir.vercel.app/pricing.html?expired=1';
+      return;
+    }
+    if (data.days_left !== null && data.days_left !== undefined) {
+      showTrialBanner(data.days_left, data.plan);
+    }
+  } catch(e) {}
+}
+
+function showTrialBanner(daysLeft, plan) {
+  const isPaying = ['Starter','Professional','Institution','Pro'].includes(plan);
+  if (isPaying) return;
+  if (document.getElementById('trial-banner')) return;
+  const color = daysLeft <= 2 ? '#f44336' : daysLeft <= 4 ? '#ff8c42' : '#2196d3';
+  const banner = document.createElement('div');
+  banner.id = 'trial-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:220px;right:0;z-index:999;background:' + color + ';color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Inter,sans-serif;font-size:13px;font-weight:500;';
+  const daysText = daysLeft === 1 ? '1 day' : daysLeft + ' days';
+  banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong> — upgrade to keep your data protected.</span><a href="https://syphir.vercel.app/pricing.html" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;text-decoration:none;margin-left:16px;flex-shrink:0;">Upgrade Now</a>';
+  document.body.appendChild(banner);
+}
+
+checkExpiry();
+
 // ── NAV ────────────────────────────────────────────────────────────────────
 const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
 

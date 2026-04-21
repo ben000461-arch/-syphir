@@ -202,7 +202,10 @@ function renderAdmin() {
           style="font-size:0.78rem; color:var(--accent-light); text-decoration:none; display:block; margin-bottom:4px;">📎 Employee install link</a>
         <span style="font-size:0.72rem; color:var(--muted2); font-family:'JetBrains Mono',monospace; word-break:break-all;">…?key=${b.emp_key || b.key}</span>
       </div>
-      <div><span class="status-pill ${b.status}">${b.status}</span></div>
+      <div>
+          <span class="status-pill ${b.status}">${b.status}</span>
+          ${b.expires_at ? '<div style="font-size:0.7rem;color:var(--muted2);margin-top:3px;">⏱ ' + getDaysLeft(b.expires_at) + '</div>' : '<div style="font-size:0.7rem;color:#00e676;margin-top:3px;">∞ No expiry</div>'}
+        </div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;">
         <button class="remove-btn" onclick="removeBiz('${b.id}')" title="Remove">🗑</button>
         <button class="remove-btn" onclick="toggleStatus('${b.id}')" title="Toggle status" style="color:var(--muted);">↔</button>
@@ -213,6 +216,13 @@ function renderAdmin() {
 
 function mrr(list) {
   const prices = { Starter:99, Professional:249, Institution:599, Demo:0 };
+  function getDaysLeft(expiresAt) {
+    if (!expiresAt) return 'No expiry';
+    const days = Math.ceil((new Date(expiresAt) - new Date()) / (1000*60*60*24));
+    if (days < 0) return 'EXPIRED';
+    if (days === 0) return 'Expires today';
+    return 'Expires in ' + days + 'd';
+  }
   return list.filter(b=>b.status==='active').reduce((s,b) => s+(prices[b.plan]||0), 0).toLocaleString();
 }
 
@@ -240,7 +250,9 @@ async function addBusiness() {
 
   // Save to localStorage immediately
   const bizList = getBusinesses();
-  const newBiz = { id: 'biz_' + Date.now(), name, email, key, emp_key, plan, status, created: new Date().toISOString().split('T')[0] };
+  const isPaying = ['Starter','Professional','Institution','Pro'].includes(plan);
+  const expiresAt = isPaying ? null : new Date(Date.now() + 7*24*60*60*1000).toISOString();
+  const newBiz = { id: 'biz_' + Date.now(), name, email, key, emp_key, plan, status, created: new Date().toISOString().split('T')[0], expires_at: expiresAt };
   bizList.push(newBiz);
   saveBusinesses(bizList);
 
@@ -248,7 +260,7 @@ async function addBusiness() {
   try {
     const res = await fetch('https://syphir-api.onrender.com/admin/create-org', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': 'SYP-ADM-2026-MEDHOLO' },
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': 'bridgeline2025' },
       body: JSON.stringify({ name, email, plan, status, key, emp_key }),
     });
     const data = await res.json();

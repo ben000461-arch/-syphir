@@ -23,6 +23,16 @@
 </style>
 </head>
 <body>
+<script>
+if (new URLSearchParams(window.location.search).get("expired") === "1") {
+  document.addEventListener("DOMContentLoaded", function() {
+    const banner = document.createElement("div");
+    banner.style.cssText = "background:#f44336;color:#fff;text-align:center;padding:14px 20px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;";
+    banner.innerHTML = "⚠ Your Syphir trial has expired — choose a plan below to keep your team protected.";
+    document.body.insertBefore(banner, document.body.firstChild);
+  });
+}
+</script>
 <nav>
   <a href="index.html" class="nav-logo">
     <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
