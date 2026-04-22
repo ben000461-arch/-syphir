@@ -6,36 +6,10 @@
 <title>Syphir Admin — Business Management</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
-<style>
-  .biz-table-head, .biz-row {
-    display: grid;
-    grid-template-columns: 1.5fr 1.6fr 1.4fr 1fr 80px;
-    gap: 1rem;
-    padding: 0.85rem 1.25rem;
-    align-items: center;
-  }
-  .biz-table-head { background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-  .biz-row { border-bottom: 1px solid var(--border); transition: background 0.15s; }
-  .biz-row:last-child { border-bottom: none; }
-  .biz-row:hover { background: rgba(255,255,255,0.02); }
-  .key-stack { display: flex; flex-direction: column; gap: 5px; }
-  .key-chip { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; padding: 3px 8px; border-radius: 5px; cursor: pointer; transition: background 0.15s; display: inline-block; width: fit-content; }
-  .key-chip.biz { color: var(--accent-light); background: rgba(91,79,232,0.1); }
-  .key-chip.biz:hover { background: rgba(91,79,232,0.2); }
-  .key-chip.emp { color: var(--accent2); background: rgba(0,214,143,0.08); }
-  .key-chip.emp:hover { background: rgba(0,214,143,0.15); }
-  .key-label { font-size: 0.65rem; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1px; }
-  .err-box { font-size: 0.82rem; margin-top: 0.5rem; display: none; padding: 8px 12px; border-radius: 6px; }
-  .err-box.error { background: rgba(244,67,54,0.08); color: #f44336; border: 1px solid rgba(244,67,54,0.2); }
-  .err-box.info  { background: rgba(33,150,211,0.08); color: #4db8f0; border: 1px solid rgba(33,150,211,0.2); }
-  .err-box.ok    { background: rgba(0,230,118,0.08); color: #00e676; border: 1px solid rgba(0,230,118,0.2); }
-  .loading-row { padding: 2rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
-</style>
 </head>
 <body>
 
-<!-- ADMIN GATE -->
-<div id="adminGate" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:1rem; background:var(--black);">
+<div id="adminGate" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:1rem;">
   <div style="background:var(--surface); border:1px solid rgba(91,79,232,0.3); border-radius:18px; padding:2.5rem; width:100%; max-width:380px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:2rem; font-weight:700; font-size:1.1rem;">
       <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
@@ -43,15 +17,12 @@
     </div>
     <h2 style="font-size:1.3rem; font-weight:700; margin-bottom:0.4rem; letter-spacing:-0.01em;">Admin Access</h2>
     <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1.5rem;">Enter your admin key to manage businesses.</p>
-    <div style="margin-bottom:1rem;">
-      <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Admin Key</label>
-      <input id="adminKeyIn" placeholder="SYP-ADMIN-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()"
-        style="width:100%; background:var(--black); border:1px solid var(--border); border-radius:8px; padding:0.75rem 1rem; color:var(--text); font-size:0.9rem; font-family:'JetBrains Mono',monospace; outline:none; transition:border-color 0.15s; letter-spacing:0.04em;">
+    <div class="field">
+      <label>Admin Key</label>
+      <input class="mono" id="adminKeyIn" placeholder="SYP-ADMIN-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" style="width:100%; background:var(--black); border:1px solid var(--border); border-radius:8px; padding:0.75rem 1rem; color:var(--text); font-size:0.9rem; font-family:'JetBrains Mono',monospace; outline:none; transition:border-color 0.15s; letter-spacing:0.04em;">
       <div id="adminGateErr" style="color:var(--danger); font-size:0.8rem; margin-top:0.4rem; display:none;"></div>
     </div>
-    <button onclick="checkAdminKey()"
-      style="width:100%; background:var(--accent); color:white; border:none; padding:0.85rem; border-radius:8px; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; margin-top:0.25rem; transition:background 0.15s;"
-      onmouseover="this.style.background='#7b6df7'" onmouseout="this.style.background='var(--accent)'">
+    <button onclick="checkAdminKey()" style="width:100%; background:var(--accent); color:white; border:none; padding:0.85rem; border-radius:8px; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; margin-top:0.25rem; transition:background 0.15s;" onmouseover="this.style.background='#7b6df7'" onmouseout="this.style.background='var(--accent)'">
       Enter Admin Panel →
     </button>
     <div style="text-align:center; margin-top:1rem;">
@@ -60,7 +31,6 @@
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
 <div id="adminPanel" style="display:none;">
 <nav>
   <a href="index.html" class="nav-logo">
@@ -84,12 +54,7 @@
   </div>
 
   <!-- Stats -->
-  <div class="admin-stats">
-    <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value" id="stat-total">—</div></div>
-    <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" id="stat-active" style="color:var(--accent2)">—</div></div>
-    <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" id="stat-demo" style="color:var(--warning)">—</div></div>
-    <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value" id="stat-mrr">—</div></div>
-  </div>
+  <div class="admin-stats" id="adminStats"></div>
 
   <!-- Add Business Form -->
   <div class="add-biz-form">
@@ -106,10 +71,10 @@
       <div>
         <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Plan</label>
         <select class="form-select" id="newBizPlan">
-          <option value="Demo" selected>Free Demo / Pilot</option>
           <option value="Starter">Starter — $99/mo</option>
-          <option value="Professional">Professional — $249/mo</option>
+          <option value="Professional" selected>Professional — $249/mo</option>
           <option value="Institution">Institution — $599/mo</option>
+          <option value="Demo">Free Demo / Pilot</option>
         </select>
       </div>
     </div>
@@ -119,34 +84,30 @@
         <select class="form-select" id="newBizStatus">
           <option value="demo">Demo / Pilot</option>
           <option value="active">Active (Paying)</option>
+          <option value="inactive">Inactive</option>
         </select>
       </div>
       <div>
-        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Custom Dashboard Key (optional)</label>
-        <input class="form-input" id="newBizKey" placeholder="Auto-generated SYP-XXXX…" style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Custom Key (optional)</label>
+        <input class="form-input" id="newBizKey" placeholder="Leave blank to auto-generate" style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
       </div>
       <div style="display:flex; align-items:flex-end;">
-        <button class="add-btn" onclick="addBusiness()" style="width:100%;" id="addBtn">+ Add Business</button>
+        <button class="add-btn" onclick="addBusiness()" style="width:100%;">+ Add Business</button>
       </div>
     </div>
-    <p style="font-size:0.8rem; color:var(--muted); margin-top:0.75rem; line-height:1.5;">
-      Two keys are auto-generated per business:
-      <span style="color:var(--accent-light); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">SYP-XXXX</span> (dashboard login) and
-      <span style="color:var(--accent2); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">EMP-XXXX</span> (employees enter in the extension).
-    </p>
-    <div id="addErr" class="err-box"></div>
+    <div id="addErr" style="color:var(--danger); font-size:0.82rem; margin-top:0.5rem; display:none;"></div>
   </div>
 
   <!-- Business Table -->
-  <div class="biz-table">
+  <div class="biz-table" id="bizTable">
     <div class="biz-table-head">
       <div>Business</div>
-      <div>Dashboard Key <span style="color:var(--accent-light);">SYP</span> / Employee Key <span style="color:var(--accent2);">EMP</span></div>
-      <div>Install Link</div>
+      <div>Admin Email</div>
+      <div>License Key</div>
       <div>Status</div>
       <div>Actions</div>
     </div>
-    <div id="bizRows"><div class="loading-row">Loading from Supabase…</div></div>
+    <div id="bizRows"></div>
   </div>
 
 </div>
@@ -156,36 +117,16 @@
 
 <script src="auth.js"></script>
 <script>
-const API           = 'https://syphir-api.onrender.com';
 const ADMIN_SECRET  = 'bridgeline2025';
 const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
 
-// ── KEY GENERATION ─────────────────────────────────────────────────────────
-function rand4() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let s = '';
-  for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
-}
-function generateKey()    { return `SYP-${rand4()}-${rand4()}-${rand4()}`; }
-function generateEmpKey() { return `EMP-${rand4()}-${rand4()}-${rand4()}`; }
-
-function getDaysLeft(expiresAt) {
-  if (!expiresAt) return null;
-  const days = Math.ceil((new Date(expiresAt) - new Date()) / (1000 * 60 * 60 * 24));
-  if (days < 0) return 'EXPIRED';
-  if (days === 0) return 'Expires today';
-  return `Expires in ${days}d`;
-}
-
-// ── ADMIN GATE ─────────────────────────────────────────────────────────────
 function checkAdminKey() {
   const val = document.getElementById('adminKeyIn').value.trim().toUpperCase();
   const err = document.getElementById('adminGateErr');
   if (val === ADMIN_KEY_VAL) {
     document.getElementById('adminGate').style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
-    loadOrgs();
+    renderAdmin();
   } else {
     err.textContent = 'Invalid admin key.';
     err.style.display = 'block';
@@ -193,166 +134,104 @@ function checkAdminKey() {
 }
 document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('adminKeyIn');
-  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAdminKey(); });
+  if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') checkAdminKey(); });
 });
 
-// ── LOAD ORGS — always from Supabase, never localStorage ──────────────────
-async function loadOrgs() {
-  document.getElementById('bizRows').innerHTML = '<div class="loading-row">Loading from Supabase…</div>';
-  try {
-    const res  = await fetch(`${API}/admin/orgs`, {
-      headers: { 'X-Admin-Secret': ADMIN_SECRET }
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to load orgs');
-    renderOrgs(data.orgs || []);
-  } catch(e) {
-    document.getElementById('bizRows').innerHTML =
-      `<div class="loading-row" style="color:#f44336;">Failed to load: ${e.message}</div>`;
-  }
-}
-
-function renderOrgs(orgs) {
-  const prices   = { Starter: 99, Professional: 249, Institution: 599, Demo: 0 };
-  const isPaying = o => ['Starter','Professional','Institution','Pro'].includes(o.plan);
-  const status   = o => isPaying(o) ? 'active' : 'demo';
-
-  // Update stats
-  const active = orgs.filter(isPaying).length;
-  const demos  = orgs.length - active;
-  const mrr    = orgs.filter(o => o.active).reduce((s, o) => s + (prices[o.plan] || 0), 0);
-  document.getElementById('stat-total').textContent  = orgs.length;
-  document.getElementById('stat-active').textContent = active;
-  document.getElementById('stat-demo').textContent   = demos;
-  document.getElementById('stat-mrr').textContent    = '$' + mrr.toLocaleString();
-
-  if (!orgs.length) {
-    document.getElementById('bizRows').innerHTML = '<div class="loading-row">No businesses yet. Add one above.</div>';
+function renderAdmin() {
+  const bizList = getBusinesses();
+  // Stats
+  const active = bizList.filter(b=>b.status==='active').length;
+  const demos  = bizList.filter(b=>b.status==='demo').length;
+  document.getElementById('adminStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value">${bizList.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" style="color:var(--accent2)">${active}</div></div>
+    <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" style="color:var(--warning)">${demos}</div></div>
+    <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value">$${mrr(bizList)}</div></div>
+  `;
+  // Rows
+  const container = document.getElementById('bizRows');
+  if (bizList.length === 0) {
+    container.innerHTML = '<div class="empty-state">No businesses yet. Add one above.</div>';
     return;
   }
-
-  document.getElementById('bizRows').innerHTML = orgs.map(o => `
+  container.innerHTML = bizList.map(b => `
     <div class="biz-row">
       <div>
-        <div class="biz-name">${o.name}</div>
-        <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">
-          ${o.admin_email || '—'} · ${o.plan} · ${o.created_at ? o.created_at.split('T')[0] : '—'}
+        <div class="biz-name">${b.name}</div>
+        <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.plan} · Added ${b.created}</div>
+      </div>
+      <div class="biz-email">${b.email}</div>
+      <div>
+        <span class="biz-key" onclick="copyKey('${b.key}')" title="Click to copy">${b.key}</span>
+        <div style="margin-top:4px;">
+          <a href="install.html?key=${b.key}" target="_blank" style="font-size:0.72rem; color:var(--muted); text-decoration:none;">📎 Install link</a>
         </div>
       </div>
-      <div class="key-stack">
-        ${o.key
-          ? `<div><div class="key-label">Dashboard</div>
-             <span class="key-chip biz" onclick="copyKey('${o.key}')">${o.key}</span></div>`
-          : `<div style="font-size:0.75rem;color:#f44336;">⚠ No dashboard key</div>`}
-        ${o.emp_key
-          ? `<div><div class="key-label">Employee</div>
-             <span class="key-chip emp" onclick="copyKey('${o.emp_key}')">${o.emp_key}</span></div>`
-          : `<div style="font-size:0.75rem;color:var(--muted2);">No employee key</div>`}
-      </div>
-      <div>
-        ${o.emp_key
-          ? `<a href="install.html?key=${o.emp_key}" target="_blank"
-               style="font-size:0.78rem; color:var(--accent-light); text-decoration:none; display:block; margin-bottom:4px;">
-               📎 Employee install link</a>
-             <span style="font-size:0.72rem; color:var(--muted2); font-family:'JetBrains Mono',monospace;">…?key=${o.emp_key}</span>`
-          : '—'}
-      </div>
-      <div>
-        <span class="status-pill ${status(o)}">${status(o)}</span>
-        ${o.expires_at
-          ? `<div style="font-size:0.7rem;color:var(--muted2);margin-top:3px;">⏱ ${getDaysLeft(o.expires_at)}</div>`
-          : `<div style="font-size:0.7rem;color:#00e676;margin-top:3px;">∞ No expiry</div>`}
-      </div>
+      <div><span class="status-pill ${b.status}">${b.status}</span></div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;">
-        ${o.key ? `<button class="remove-btn" onclick="openDashboard('${o.key}','${o.name}')" title="Open dashboard" style="color:var(--accent-light);">↗</button>` : ''}
-        <button class="remove-btn" onclick="removeBiz('${o.key || ''}','${o.name}')" title="Remove">🗑</button>
+        <button class="remove-btn" onclick="removeBiz('${b.id}')" title="Remove">🗑</button>
+        <button class="remove-btn" onclick="toggleStatus('${b.id}')" title="Toggle status" style="color:var(--muted);">↔</button>
       </div>
     </div>
   `).join('');
 }
 
-// ── ADD BUSINESS ───────────────────────────────────────────────────────────
-async function addBusiness() {
-  const name      = document.getElementById('newBizName').value.trim();
-  const email     = document.getElementById('newBizEmail').value.trim();
-  const plan      = document.getElementById('newBizPlan').value;
-  const status    = document.getElementById('newBizStatus').value;
+function mrr(list) {
+  const prices = { Starter:99, Professional:249, Institution:599, Demo:0 };
+  return list.filter(b=>b.status==='active').reduce((s,b) => s+(prices[b.plan]||0), 0).toLocaleString();
+}
+
+function addBusiness() {
+  const name   = document.getElementById('newBizName').value.trim();
+  const email  = document.getElementById('newBizEmail').value.trim();
+  const plan   = document.getElementById('newBizPlan').value;
+  const status = document.getElementById('newBizStatus').value;
   const customKey = document.getElementById('newBizKey').value.trim().toUpperCase();
-  const errEl     = document.getElementById('addErr');
-  const btn       = document.getElementById('addBtn');
+  const err = document.getElementById('addErr');
 
-  const showErr  = msg => { errEl.textContent = msg; errEl.className = 'err-box error'; errEl.style.display = 'block'; };
-  const showInfo = msg => { errEl.textContent = msg; errEl.className = 'err-box info';  errEl.style.display = 'block'; };
-  const showOk   = msg => { errEl.textContent = msg; errEl.className = 'err-box ok';    errEl.style.display = 'block'; };
+  if (!name || !email) { err.textContent='Business name and email are required.'; err.style.display='block'; return; }
+  if (!email.includes('@')) { err.textContent='Enter a valid email address.'; err.style.display='block'; return; }
 
-  if (!name)  { showErr('Business name is required.'); return; }
-  if (!email) { showErr('Admin email is required.'); return; }
-  if (!email.includes('@')) { showErr('Enter a valid email.'); return; }
+  const key = customKey || generateKey(name);
+  const existing = findBusinessByKey(key);
+  if (existing) { err.textContent='That key already exists. Choose a different one.'; err.style.display='block'; return; }
 
-  const key     = customKey || generateKey();
-  const emp_key = generateEmpKey();
+  err.style.display = 'none';
+  const bizList = getBusinesses();
+  const newBiz = {
+    id: 'biz_' + Date.now(),
+    name, email, key, plan, status,
+    created: new Date().toISOString().split('T')[0]
+  };
+  bizList.push(newBiz);
+  saveBusinesses(bizList);
 
-  btn.textContent = 'Creating…';
-  btn.disabled    = true;
+  // Clear form
+  document.getElementById('newBizName').value = '';
+  document.getElementById('newBizEmail').value = '';
+  document.getElementById('newBizKey').value = '';
 
-  try {
-    // Step 1: Create in Supabase via API
-    showInfo('Step 1/2 — Creating org in Supabase…');
-    const res  = await fetch(`${API}/admin/create-org`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
-      body: JSON.stringify({ name, email, plan, status, key, emp_key }),
-    });
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      showErr('API error: ' + (data.error || data.message || 'Unknown — check Render logs'));
-      btn.textContent = '+ Add Business'; btn.disabled = false;
-      return;
-    }
-
-    // Step 2: Verify key is actually in DB
-    showInfo('Step 2/2 — Verifying in DB…');
-    const vRes = await fetch(`${API}/org/${key}`);
-    if (!vRes.ok) {
-      showErr(`API said success but key ${key} not found in DB. Try again or check Render logs.`);
-      btn.textContent = '+ Add Business'; btn.disabled = false;
-      return;
-    }
-
-    // All good
-    showOk(`✓ ${name} created and verified in Supabase · Dashboard: ${key}`);
-    document.getElementById('newBizName').value  = '';
-    document.getElementById('newBizEmail').value = '';
-    document.getElementById('newBizKey').value   = '';
-    btn.textContent = '+ Add Business'; btn.disabled = false;
-    showToast(`✓ ${name} added · Dashboard: ${key} · Employee: ${emp_key}`);
-    loadOrgs(); // Reload live from Supabase
-
-  } catch(e) {
-    showErr('Network error — is Render awake? ' + e.message);
-    btn.textContent = '+ Add Business'; btn.disabled = false;
-  }
+  renderAdmin();
+  showToast('✓ ' + name + ' added · Key: ' + key);
 }
 
-// ── REMOVE ─────────────────────────────────────────────────────────────────
-async function removeBiz(key, name) {
-  if (!key) { alert('Cannot remove — no dashboard key found.'); return; }
-  if (!confirm(`Remove "${name}"? Their keys will stop working immediately.`)) return;
-  try {
-    await fetch(`${API}/admin/remove-org/${key}`, {
-      method: 'DELETE',
-      headers: { 'X-Admin-Secret': ADMIN_SECRET },
-    });
-    showToast(`${name} removed.`);
-    loadOrgs();
-  } catch(e) {
-    showToast('Remove failed: ' + e.message);
-  }
+function removeBiz(id) {
+  if (!confirm('Remove this business? Their license key will stop working.')) return;
+  const updated = getBusinesses().filter(b => b.id !== id);
+  saveBusinesses(updated);
+  renderAdmin();
+  showToast('Business removed.');
 }
 
-function openDashboard(key, name) {
-  window.open(`https://syphir.vercel.app/app.html?key=${key}&org=${encodeURIComponent(name)}`, '_blank');
+function toggleStatus(id) {
+  const list = getBusinesses();
+  const biz = list.find(b=>b.id===id);
+  if (!biz) return;
+  const cycle = { demo:'active', active:'inactive', inactive:'demo' };
+  biz.status = cycle[biz.status] || 'demo';
+  saveBusinesses(list);
+  renderAdmin();
+  showToast(biz.name + ' → ' + biz.status);
 }
 
 function copyKey(key) {
@@ -363,7 +242,7 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show', 'success');
-  setTimeout(() => t.classList.remove('show'), 4000);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
 </body>
