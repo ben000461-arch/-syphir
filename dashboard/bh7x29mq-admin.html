@@ -6,31 +6,10 @@
 <title>Syphir Admin — Business Management</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
-<style>
-  .biz-table-head, .biz-row {
-    display: grid;
-    grid-template-columns: 1.5fr 1.6fr 1.4fr 1fr 80px;
-    gap: 1rem;
-    padding: 0.85rem 1.25rem;
-    align-items: center;
-  }
-  .biz-table-head { background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-  .biz-row { border-bottom: 1px solid var(--border); transition: background 0.15s; }
-  .biz-row:last-child { border-bottom: none; }
-  .biz-row:hover { background: rgba(255,255,255,0.02); }
-  .key-stack { display: flex; flex-direction: column; gap: 5px; }
-  .key-chip { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; padding: 3px 8px; border-radius: 5px; cursor: pointer; transition: background 0.15s; display: inline-block; width: fit-content; }
-  .key-chip.biz { color: var(--accent-light); background: rgba(91,79,232,0.1); }
-  .key-chip.biz:hover { background: rgba(91,79,232,0.2); }
-  .key-chip.emp { color: var(--accent2); background: rgba(0,214,143,0.08); }
-  .key-chip.emp:hover { background: rgba(0,214,143,0.15); }
-  .key-label { font-size: 0.65rem; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1px; }
-</style>
 </head>
 <body>
 
-<!-- ADMIN GATE -->
-<div id="adminGate" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:1rem; background:var(--black);">
+<div id="adminGate" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:1rem;">
   <div style="background:var(--surface); border:1px solid rgba(91,79,232,0.3); border-radius:18px; padding:2.5rem; width:100%; max-width:380px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:2rem; font-weight:700; font-size:1.1rem;">
       <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
@@ -38,15 +17,12 @@
     </div>
     <h2 style="font-size:1.3rem; font-weight:700; margin-bottom:0.4rem; letter-spacing:-0.01em;">Admin Access</h2>
     <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1.5rem;">Enter your admin key to manage businesses.</p>
-    <div style="margin-bottom:1rem;">
-      <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Admin Key</label>
-      <input id="adminKeyIn" placeholder="SYP-ADMIN-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()"
-        style="width:100%; background:var(--black); border:1px solid var(--border); border-radius:8px; padding:0.75rem 1rem; color:var(--text); font-size:0.9rem; font-family:'JetBrains Mono',monospace; outline:none; transition:border-color 0.15s; letter-spacing:0.04em;">
+    <div class="field">
+      <label>Admin Key</label>
+      <input class="mono" id="adminKeyIn" placeholder="SYP-ADMIN-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" style="width:100%; background:var(--black); border:1px solid var(--border); border-radius:8px; padding:0.75rem 1rem; color:var(--text); font-size:0.9rem; font-family:'JetBrains Mono',monospace; outline:none; transition:border-color 0.15s; letter-spacing:0.04em;">
       <div id="adminGateErr" style="color:var(--danger); font-size:0.8rem; margin-top:0.4rem; display:none;"></div>
     </div>
-    <button onclick="checkAdminKey()"
-      style="width:100%; background:var(--accent); color:white; border:none; padding:0.85rem; border-radius:8px; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; margin-top:0.25rem; transition:background 0.15s;"
-      onmouseover="this.style.background='#7b6df7'" onmouseout="this.style.background='var(--accent)'">
+    <button onclick="checkAdminKey()" style="width:100%; background:var(--accent); color:white; border:none; padding:0.85rem; border-radius:8px; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; margin-top:0.25rem; transition:background 0.15s;" onmouseover="this.style.background='#7b6df7'" onmouseout="this.style.background='var(--accent)'">
       Enter Admin Panel →
     </button>
     <div style="text-align:center; margin-top:1rem;">
@@ -55,7 +31,6 @@
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
 <div id="adminPanel" style="display:none;">
 <nav>
   <a href="index.html" class="nav-logo">
@@ -113,18 +88,13 @@
         </select>
       </div>
       <div>
-        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Custom Dashboard Key (optional)</label>
-        <input class="form-input" id="newBizKey" placeholder="Auto-generated SYP-XXXX…" style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Custom Key (optional)</label>
+        <input class="form-input" id="newBizKey" placeholder="Leave blank to auto-generate" style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
       </div>
       <div style="display:flex; align-items:flex-end;">
-        <button class="add-btn" onclick="addBusiness()" style="width:100%;" id="addBtn">+ Add Business</button>
+        <button class="add-btn" onclick="addBusiness()" style="width:100%;">+ Add Business</button>
       </div>
     </div>
-    <p style="font-size:0.8rem; color:var(--muted); margin-top:0.75rem; line-height:1.5;">
-      Two keys are auto-generated per business:
-      <span style="color:var(--accent-light); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">SYP-XXXX</span> (dashboard login) and
-      <span style="color:var(--accent2); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">EMP-XXXX</span> (employees enter in the extension).
-    </p>
     <div id="addErr" style="color:var(--danger); font-size:0.82rem; margin-top:0.5rem; display:none;"></div>
   </div>
 
@@ -132,8 +102,8 @@
   <div class="biz-table" id="bizTable">
     <div class="biz-table-head">
       <div>Business</div>
-      <div>Dashboard Key <span style="color:var(--accent-light);">SYP</span> / Employee Key <span style="color:var(--accent2);">EMP</span></div>
-      <div>Install Link</div>
+      <div>Admin Email</div>
+      <div>License Key</div>
       <div>Status</div>
       <div>Actions</div>
     </div>
@@ -147,6 +117,7 @@
 
 <script src="auth.js"></script>
 <script>
+const ADMIN_SECRET  = 'bridgeline2025';
 const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
 
 function checkAdminKey() {
@@ -168,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function renderAdmin() {
   const bizList = getBusinesses();
+  // Stats
   const active = bizList.filter(b=>b.status==='active').length;
   const demos  = bizList.filter(b=>b.status==='demo').length;
   document.getElementById('adminStats').innerHTML = `
@@ -176,6 +148,7 @@ function renderAdmin() {
     <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" style="color:var(--warning)">${demos}</div></div>
     <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value">$${mrr(bizList)}</div></div>
   `;
+  // Rows
   const container = document.getElementById('bizRows');
   if (bizList.length === 0) {
     container.innerHTML = '<div class="empty-state">No businesses yet. Add one above.</div>';
@@ -185,22 +158,14 @@ function renderAdmin() {
     <div class="biz-row">
       <div>
         <div class="biz-name">${b.name}</div>
-        <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.email} · ${b.plan} · ${b.created}</div>
+        <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.plan} · Added ${b.created}</div>
       </div>
-      <div class="key-stack">
-        <div>
-          <div class="key-label">Dashboard</div>
-          <span class="key-chip biz" onclick="copyKey('${b.key}')" title="Click to copy">${b.key}</span>
-        </div>
-        <div>
-          <div class="key-label">Employee</div>
-          <span class="key-chip emp" onclick="copyKey('${b.emp_key || 'none'}')" title="Click to copy">${b.emp_key || '—'}</span>
-        </div>
-      </div>
+      <div class="biz-email">${b.email}</div>
       <div>
-        <a href="install.html?key=${b.emp_key || b.key}" target="_blank"
-          style="font-size:0.78rem; color:var(--accent-light); text-decoration:none; display:block; margin-bottom:4px;">📎 Employee install link</a>
-        <span style="font-size:0.72rem; color:var(--muted2); font-family:'JetBrains Mono',monospace; word-break:break-all;">…?key=${b.emp_key || b.key}</span>
+        <span class="biz-key" onclick="copyKey('${b.key}')" title="Click to copy">${b.key}</span>
+        <div style="margin-top:4px;">
+          <a href="install.html?key=${b.key}" target="_blank" style="font-size:0.72rem; color:var(--muted); text-decoration:none;">📎 Install link</a>
+        </div>
       </div>
       <div><span class="status-pill ${b.status}">${b.status}</span></div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;">
@@ -216,71 +181,44 @@ function mrr(list) {
   return list.filter(b=>b.status==='active').reduce((s,b) => s+(prices[b.plan]||0), 0).toLocaleString();
 }
 
-async function addBusiness() {
-  const name      = document.getElementById('newBizName').value.trim();
-  const email     = document.getElementById('newBizEmail').value.trim();
-  const plan      = document.getElementById('newBizPlan').value;
-  const status    = document.getElementById('newBizStatus').value;
+function addBusiness() {
+  const name   = document.getElementById('newBizName').value.trim();
+  const email  = document.getElementById('newBizEmail').value.trim();
+  const plan   = document.getElementById('newBizPlan').value;
+  const status = document.getElementById('newBizStatus').value;
   const customKey = document.getElementById('newBizKey').value.trim().toUpperCase();
-  const err       = document.getElementById('addErr');
-  const btn       = document.getElementById('addBtn');
+  const err = document.getElementById('addErr');
 
   if (!name || !email) { err.textContent='Business name and email are required.'; err.style.display='block'; return; }
   if (!email.includes('@')) { err.textContent='Enter a valid email address.'; err.style.display='block'; return; }
 
-  const key     = customKey || generateKey();
-  const emp_key = generateEmpKey();
-
+  const key = customKey || generateKey(name);
   const existing = findBusinessByKey(key);
-  if (existing) { err.textContent='That key already exists.'; err.style.display='block'; return; }
+  if (existing) { err.textContent='That key already exists. Choose a different one.'; err.style.display='block'; return; }
 
   err.style.display = 'none';
-  btn.textContent = 'Adding…';
-  btn.disabled = true;
-
-  // Save to localStorage immediately
   const bizList = getBusinesses();
-  const newBiz = { id: 'biz_' + Date.now(), name, email, key, emp_key, plan, status, created: new Date().toISOString().split('T')[0] };
+  const newBiz = {
+    id: 'biz_' + Date.now(),
+    name, email, key, plan, status,
+    created: new Date().toISOString().split('T')[0]
+  };
   bizList.push(newBiz);
   saveBusinesses(bizList);
 
-  // Sync to Supabase
-  try {
-    const res = await fetch('https://syphir-api.onrender.com/admin/create-org', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': 'SYP-ADM-2026-MEDHOLO' },
-      body: JSON.stringify({ name, email, plan, status, key, emp_key }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast(`✓ ${name} added · Dashboard: ${key} · Employee: ${emp_key}`);
-    } else {
-      showToast('⚠ Saved locally — API: ' + (data.error || 'check Render logs'));
-    }
-  } catch (e) {
-    showToast('⚠ Saved locally — API offline.');
-  }
-
+  // Clear form
   document.getElementById('newBizName').value = '';
   document.getElementById('newBizEmail').value = '';
   document.getElementById('newBizKey').value = '';
-  btn.textContent = '+ Add Business';
-  btn.disabled = false;
+
   renderAdmin();
+  showToast('✓ ' + name + ' added · Key: ' + key);
 }
 
-async function removeBiz(id) {
-  if (!confirm('Remove this business? Both their keys will stop working.')) return;
-  const list = getBusinesses();
-  const biz  = list.find(b => b.id === id);
-  saveBusinesses(list.filter(b => b.id !== id));
-  if (biz) {
-    try {
-      await fetch(`https://syphir-api.onrender.com/admin/remove-org/${biz.key}`, {
-        method: 'DELETE', headers: { 'X-Admin-Secret': 'bridgeline2025' },
-      });
-    } catch(e) {}
-  }
+function removeBiz(id) {
+  if (!confirm('Remove this business? Their license key will stop working.')) return;
+  const updated = getBusinesses().filter(b => b.id !== id);
+  saveBusinesses(updated);
   renderAdmin();
   showToast('Business removed.');
 }
@@ -304,7 +242,7 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show', 'success');
-  setTimeout(() => t.classList.remove('show'), 4000);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
 </body>
