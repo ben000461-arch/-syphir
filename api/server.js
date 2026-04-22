@@ -9,6 +9,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const resend = new Resend("re_efn93Zvb_47cNT8pdRWnhnvHFnfhQ7yqR");
 const ADMIN_SECRET = "bridgeline2025";
 
+// ── SUPABASE HELPER ────────────────────────────────────────────────────────
 async function db(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
@@ -28,34 +29,34 @@ async function db(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-app.use("/*", cors({ allowHeaders: ["Content-Type", "X-Admin-Secret"], exposeHeaders: ["Content-Type"], allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], origin: "*", credentials: false }));
+// ── CORS — allow all headers the browser needs ─────────────────────────────
+app.use("/*", cors({
+  origin: "*",
+  allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "X-Admin-Secret", "Authorization"],
+  exposeHeaders: ["Content-Type"],
+  credentials: false,
+}));
 
+// ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "1.2.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.0.0", db: "supabase" });
 });
 
+// ── VALIDATE KEY ───────────────────────────────────────────────────────────
 app.post("/validate-key", async (c) => {
   const { key, context } = await c.req.json();
   try {
     const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
-    if (!rows || rows.length === 0) {
-      return c.json({ valid: false, message: "Invalid or expired key" }, 401);
-    }
+    if (!rows || rows.length === 0) return c.json({ valid: false, message: "Invalid or expired key" }, 401);
     const row = rows[0];
     const org = row.organizations;
     const keyType = row.key_type || "business";
-    // Check expiry
     let daysLeft = null;
-    let expired = false;
     if (row.expires_at) {
-      const expires = new Date(row.expires_at);
-      const now = new Date();
-      const msLeft = expires - now;
+      const msLeft = new Date(row.expires_at) - new Date();
       daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-      if (msLeft < 0) {
-        expired = true;
-        return c.json({ valid: false, expired: true, message: "Your trial has expired. Upgrade to continue." }, 403);
-      }
+      if (msLeft < 0) return c.json({ valid: false, expired: true, message: "Your trial has expired. Upgrade to continue." }, 403);
     }
     if (context === "dashboard" && keyType === "employee") {
       return c.json({ valid: false, key_type: "employee", message: "This is an employee key. Contact your admin for dashboard access." }, 403);
@@ -66,9 +67,9 @@ app.post("/validate-key", async (c) => {
   }
 });
 
+// ── SCAN ───────────────────────────────────────────────────────────────────
 app.post("/scan", async (c) => {
-  const body = await c.req.json();
-  const { text, key, user_email, ai_tool, url } = body;
+  const { text, key, user_email, ai_tool, url } = await c.req.json();
   let org;
   try {
     const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
@@ -92,7 +93,6 @@ app.post("/scan", async (c) => {
         message: result.message, resolved: false, timestamp: new Date().toISOString(),
       };
       await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
-      console.log(`INCIDENT: ${user_email} -> ${ai_tool} [${result.risk_level}]`);
     }
     return c.json({ flagged: result.flagged, risk_level: result.risk_level, message: result.message, detections: result.detections });
   } catch (err) {
@@ -100,8 +100,33 @@ app.post("/scan", async (c) => {
   }
 });
 
-
 // ── LOG INCIDENT DIRECTLY ──────────────────────────────────────────────────
+app.post("/log-incident", async (c) => {
+  const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = await c.req.json();
+  let org;
+  try {
+    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ success: false, message: "Invalid key" }, 401);
+    org = rows[0].organizations;
+  } catch (err) { return c.json({ success: false, message: "Auth failed" }, 500); }
+  try {
+    const incident = {
+      id: id || `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      org_id: org.id, org_name: org.name,
+      user_email: user_email || "unknown",
+      ai_tool: ai_tool || "AI Tool", url: url || "",
+      detections: detections || [], risk_level: risk_level || "low",
+      message: message || "PII detected", resolved: false,
+      timestamp: timestamp || new Date().toISOString(),
+    };
+    await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ success: false, message: err.message }, 500);
+  }
+});
+
+// ── EMP KEY ────────────────────────────────────────────────────────────────
 app.get("/emp-key/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
@@ -113,33 +138,64 @@ app.get("/emp-key/:org_id", async (c) => {
   }
 });
 
-app.post("/log-incident", async (c) => {
-  const body = await c.req.json();
-  const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = body;
-  let org;
+// ── GET ORG BY KEY — returns full org including admin_email ────────────────
+app.get("/org/:key", async (c) => {
+  const { key } = c.req.param();
   try {
     const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
-    if (!rows || rows.length === 0) return c.json({ success: false, message: "Invalid key" }, 401);
-    org = rows[0].organizations;
-  } catch (err) { return c.json({ success: false, message: "Auth failed" }, 500); }
+    if (!rows || rows.length === 0) return c.json({ error: "Not found" }, 404);
+    const org = rows[0].organizations;
+    const keyType = rows[0].key_type;
+    return c.json({ ...org, key_type: keyType });
+  } catch (err) {
+    return c.json({ error: "Failed" }, 500);
+  }
+});
+
+// ── PATCH ORG (save settings) ──────────────────────────────────────────────
+app.patch("/org/:org_id", async (c) => {
+  const { org_id } = c.req.param();
+  const body = await c.req.json();
+  const allowed = {};
+  if (body.name)        allowed.name        = body.name;
+  if (body.admin_email) allowed.admin_email = body.admin_email;
   try {
-    const incident = {
-      id: id || `inc_${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
-      org_id: org.id, org_name: org.name,
-      user_email: user_email || "unknown",
-      ai_tool: ai_tool || "AI Tool", url: url || "",
-      detections: detections || [], risk_level: risk_level || "low",
-      message: message || "PII detected", resolved: false,
-      timestamp: timestamp || new Date().toISOString(),
-    };
-    await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
-    console.log(`INCIDENT: ${user_email} -> ${ai_tool} [${risk_level}] org:${org.name}`);
+    await db(`organizations?id=eq.${org_id}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify(allowed),
+    });
     return c.json({ success: true });
   } catch (err) {
     return c.json({ success: false, message: err.message }, 500);
   }
 });
 
+// ── LIST ALL ORGS (admin only) ─────────────────────────────────────────────
+app.get("/admin/orgs", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  try {
+    // Get all orgs with their license keys
+    const orgs = await db("organizations?select=*&order=created_at.desc");
+    const keys = await db("license_keys?status=eq.active&select=*");
+    const result = (orgs || []).map(org => {
+      const bizKey = (keys || []).find(k => k.org_id === org.id && k.key_type === "business");
+      const empKey = (keys || []).find(k => k.org_id === org.id && k.key_type === "employee");
+      return {
+        ...org,
+        key: bizKey?.key || null,
+        emp_key: empKey?.key || null,
+        expires_at: bizKey?.expires_at || null,
+        key_status: bizKey?.status || null,
+      };
+    });
+    return c.json({ orgs: result });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+// ── INCIDENTS ──────────────────────────────────────────────────────────────
 app.get("/incidents/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
@@ -155,9 +211,9 @@ app.get("/stats/:org_id", async (c) => {
   try {
     const incidents = await db(`incidents?org_id=eq.${org_id}&select=risk_level,resolved`);
     const list = incidents || [];
-    const high = list.filter(i => i.risk_level === "high").length;
-    const medium = list.filter(i => i.risk_level === "medium").length;
-    const low = list.filter(i => i.risk_level === "low").length;
+    const high     = list.filter(i => i.risk_level === "high").length;
+    const medium   = list.filter(i => i.risk_level === "medium").length;
+    const low      = list.filter(i => i.risk_level === "low").length;
     const resolved = list.filter(i => i.resolved).length;
     return c.json({ total_incidents: list.length, high_risk: high, medium_risk: medium, low_risk: low, resolved, unresolved: list.length - resolved });
   } catch (err) {
@@ -175,17 +231,7 @@ app.patch("/incidents/:id/resolve", async (c) => {
   }
 });
 
-app.get("/org/:key", async (c) => {
-  const { key } = c.req.param();
-  try {
-    const rows = await db(`license_keys?key=eq.${key}&select=*,organizations(*)`);
-    if (!rows || rows.length === 0) return c.json({ error: "Not found" }, 404);
-    return c.json(rows[0].organizations);
-  } catch (err) {
-    return c.json({ error: "Failed" }, 500);
-  }
-});
-
+// ── TEAM ───────────────────────────────────────────────────────────────────
 app.get("/team/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
@@ -231,39 +277,71 @@ app.post("/invite-user", async (c) => {
   }
 });
 
+// ── ADMIN: CREATE ORG ──────────────────────────────────────────────────────
 app.post("/admin/create-org", async (c) => {
-  const { name, email, plan, status, key, emp_key } = await c.req.json();
   const adminSecret = c.req.header("X-Admin-Secret");
   if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  const { name, email, plan, status, key, emp_key } = await c.req.json();
+  if (!name || !key) return c.json({ error: "name and key are required" }, 400);
+
   try {
+    // 1. Create org
     const orgRows = await db("organizations", {
       method: "POST", prefer: "return=representation",
-      body: JSON.stringify({ id: "org_" + Date.now(), name, plan, admin_email: email, active: true }),
+      body: JSON.stringify({
+        id: "org_" + Date.now(),
+        name,
+        plan: plan || "Demo",
+        admin_email: email || "",
+        active: true,
+      }),
     });
     if (!orgRows || orgRows.length === 0) return c.json({ error: "Failed to create organization" }, 500);
     const org = orgRows[0];
-    // Set expiry: demo/pilot = 7 days, paying = never
-    const isPaying = ["starter","professional","institution","pro"].includes((plan||"").toLowerCase());
+
+    // 2. Set expiry: demo/pilot = 7 days, paying = never
+    const isPaying = ["starter", "professional", "institution", "pro"].includes((plan || "").toLowerCase());
     const expiresAt = isPaying ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    await db("license_keys", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ key, org_id: org.id, key_type: "business", status: "active", expires_at: expiresAt }) });
+
+    // 3. Create business key
+    await db("license_keys", {
+      method: "POST", prefer: "return=minimal",
+      body: JSON.stringify({ key, org_id: org.id, key_type: "business", status: "active", expires_at: expiresAt }),
+    });
+
+    // 4. Create employee key
     if (emp_key) {
-      await db("license_keys", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ key: emp_key, org_id: org.id, key_type: "employee", status: "active", expires_at: expiresAt }) });
+      await db("license_keys", {
+        method: "POST", prefer: "return=minimal",
+        body: JSON.stringify({ key: emp_key, org_id: org.id, key_type: "employee", status: "active", expires_at: expiresAt }),
+      });
     }
-    console.log(`New org: ${name} | biz: ${key} | emp: ${emp_key || "none"}`);
+
+    // 5. Verify it landed — re-fetch the key to confirm
+    const verify = await db(`license_keys?key=eq.${key}&status=eq.active&select=key,org_id`);
+    if (!verify || verify.length === 0) {
+      return c.json({ error: "Org created but key verification failed — check Supabase" }, 500);
+    }
+
+    console.log(`✓ New org: ${name} | id: ${org.id} | biz: ${key} | emp: ${emp_key || "none"}`);
     return c.json({ success: true, org_id: org.id, org_name: org.name, key, emp_key });
   } catch (err) {
     return c.json({ error: "Failed to create org: " + err.message }, 500);
   }
 });
 
+// ── ADMIN: REMOVE ORG ──────────────────────────────────────────────────────
 app.delete("/admin/remove-org/:key", async (c) => {
-  const { key } = c.req.param();
   const adminSecret = c.req.header("X-Admin-Secret");
   if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  const { key } = c.req.param();
   try {
     const rows = await db(`license_keys?key=eq.${key}&select=org_id`);
     if (rows && rows.length > 0) {
-      await db(`license_keys?org_id=eq.${rows[0].org_id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "inactive" }) });
+      await db(`license_keys?org_id=eq.${rows[0].org_id}`, {
+        method: "PATCH", prefer: "return=minimal",
+        body: JSON.stringify({ status: "inactive" }),
+      });
     }
     return c.json({ success: true });
   } catch (err) {
@@ -271,5 +349,5 @@ app.delete("/admin/remove-org/:key", async (c) => {
   }
 });
 
-console.log("Syphir API v1.2.0 running");
+console.log("Syphir API v2.0.0 running");
 export default { port: 3000, fetch: app.fetch };

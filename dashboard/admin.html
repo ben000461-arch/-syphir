@@ -25,10 +25,11 @@
   .key-chip.emp { color: var(--accent2); background: rgba(0,214,143,0.08); }
   .key-chip.emp:hover { background: rgba(0,214,143,0.15); }
   .key-label { font-size: 0.65rem; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1px; }
-  .verify-badge { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin-top: 3px; }
-  .verify-badge.ok { background: rgba(0,230,118,0.1); color: #00e676; border: 1px solid rgba(0,230,118,0.2); }
-  .verify-badge.fail { background: rgba(244,67,54,0.1); color: #f44336; border: 1px solid rgba(244,67,54,0.2); }
-  .verify-badge.pending { background: rgba(255,193,7,0.1); color: #ffc107; border: 1px solid rgba(255,193,7,0.2); }
+  .err-box { font-size: 0.82rem; margin-top: 0.5rem; display: none; padding: 8px 12px; border-radius: 6px; }
+  .err-box.error { background: rgba(244,67,54,0.08); color: #f44336; border: 1px solid rgba(244,67,54,0.2); }
+  .err-box.info  { background: rgba(33,150,211,0.08); color: #4db8f0; border: 1px solid rgba(33,150,211,0.2); }
+  .err-box.ok    { background: rgba(0,230,118,0.08); color: #00e676; border: 1px solid rgba(0,230,118,0.2); }
+  .loading-row { padding: 2rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -83,7 +84,12 @@
   </div>
 
   <!-- Stats -->
-  <div class="admin-stats" id="adminStats"></div>
+  <div class="admin-stats">
+    <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value" id="stat-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" id="stat-active" style="color:var(--accent2)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" id="stat-demo" style="color:var(--warning)">—</div></div>
+    <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value" id="stat-mrr">—</div></div>
+  </div>
 
   <!-- Add Business Form -->
   <div class="add-biz-form">
@@ -100,10 +106,10 @@
       <div>
         <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Plan</label>
         <select class="form-select" id="newBizPlan">
+          <option value="Demo" selected>Free Demo / Pilot</option>
           <option value="Starter">Starter — $99/mo</option>
-          <option value="Professional" selected>Professional — $249/mo</option>
+          <option value="Professional">Professional — $249/mo</option>
           <option value="Institution">Institution — $599/mo</option>
-          <option value="Demo">Free Demo / Pilot</option>
         </select>
       </div>
     </div>
@@ -113,7 +119,6 @@
         <select class="form-select" id="newBizStatus">
           <option value="demo">Demo / Pilot</option>
           <option value="active">Active (Paying)</option>
-          <option value="inactive">Inactive</option>
         </select>
       </div>
       <div>
@@ -129,11 +134,11 @@
       <span style="color:var(--accent-light); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">SYP-XXXX</span> (dashboard login) and
       <span style="color:var(--accent2); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">EMP-XXXX</span> (employees enter in the extension).
     </p>
-    <div id="addErr" style="font-size:0.82rem; margin-top:0.5rem; display:none; padding: 8px 12px; border-radius: 6px;"></div>
+    <div id="addErr" class="err-box"></div>
   </div>
 
   <!-- Business Table -->
-  <div class="biz-table" id="bizTable">
+  <div class="biz-table">
     <div class="biz-table-head">
       <div>Business</div>
       <div>Dashboard Key <span style="color:var(--accent-light);">SYP</span> / Employee Key <span style="color:var(--accent2);">EMP</span></div>
@@ -141,7 +146,7 @@
       <div>Status</div>
       <div>Actions</div>
     </div>
-    <div id="bizRows"></div>
+    <div id="bizRows"><div class="loading-row">Loading from Supabase…</div></div>
   </div>
 
 </div>
@@ -151,9 +156,27 @@
 
 <script src="auth.js"></script>
 <script>
-const API = 'https://syphir-api.onrender.com';
-const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
+const API           = 'https://syphir-api.onrender.com';
 const ADMIN_SECRET  = 'bridgeline2025';
+const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
+
+// ── KEY GENERATION ─────────────────────────────────────────────────────────
+function rand4() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+function generateKey()    { return `SYP-${rand4()}-${rand4()}-${rand4()}`; }
+function generateEmpKey() { return `EMP-${rand4()}-${rand4()}-${rand4()}`; }
+
+function getDaysLeft(expiresAt) {
+  if (!expiresAt) return null;
+  const days = Math.ceil((new Date(expiresAt) - new Date()) / (1000 * 60 * 60 * 24));
+  if (days < 0) return 'EXPIRED';
+  if (days === 0) return 'Expires today';
+  return `Expires in ${days}d`;
+}
 
 // ── ADMIN GATE ─────────────────────────────────────────────────────────────
 function checkAdminKey() {
@@ -162,7 +185,7 @@ function checkAdminKey() {
   if (val === ADMIN_KEY_VAL) {
     document.getElementById('adminGate').style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
-    renderAdmin();
+    loadOrgs();
   } else {
     err.textContent = 'Invalid admin key.';
     err.style.display = 'block';
@@ -173,107 +196,79 @@ document.addEventListener('DOMContentLoaded', () => {
   if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAdminKey(); });
 });
 
-// ── KEY GENERATION ─────────────────────────────────────────────────────────
-function rand4() {
-  return Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g,'').substr(0,4).padEnd(4,'X');
-}
-function generateKey()    { return `SYP-${rand4()}-${rand4()}-${rand4()}`; }
-function generateEmpKey() { return `EMP-${rand4()}-${rand4()}-${rand4()}`; }
-
-// ── LOCAL STORAGE ──────────────────────────────────────────────────────────
-function getBusinesses()      { try { return JSON.parse(localStorage.getItem('syphir_businesses') || '[]'); } catch(e) { return []; } }
-function saveBusinesses(list) { localStorage.setItem('syphir_businesses', JSON.stringify(list)); }
-function findBusinessByKey(k) { return getBusinesses().find(b => b.key === k || b.emp_key === k); }
-
-function getDaysLeft(expiresAt) {
-  if (!expiresAt) return 'No expiry';
-  const days = Math.ceil((new Date(expiresAt) - new Date()) / (1000*60*60*24));
-  if (days < 0) return 'EXPIRED';
-  if (days === 0) return 'Expires today';
-  return 'Expires in ' + days + 'd';
-}
-
-// ── VERIFY KEY EXISTS IN SUPABASE ──────────────────────────────────────────
-// This is the key fix: after creating, we re-fetch the key to confirm it landed in the DB.
-async function verifyKeyInDB(key) {
+// ── LOAD ORGS — always from Supabase, never localStorage ──────────────────
+async function loadOrgs() {
+  document.getElementById('bizRows').innerHTML = '<div class="loading-row">Loading from Supabase…</div>';
   try {
-    const res = await fetch(`${API}/org/${key}`);
-    if (!res.ok) return false;
+    const res  = await fetch(`${API}/admin/orgs`, {
+      headers: { 'X-Admin-Secret': ADMIN_SECRET }
+    });
     const data = await res.json();
-    return !!(data && data.id);
+    if (!res.ok) throw new Error(data.error || 'Failed to load orgs');
+    renderOrgs(data.orgs || []);
   } catch(e) {
-    return false;
+    document.getElementById('bizRows').innerHTML =
+      `<div class="loading-row" style="color:#f44336;">Failed to load: ${e.message}</div>`;
   }
 }
 
-// ── RENDER ─────────────────────────────────────────────────────────────────
-function renderAdmin() {
-  const bizList = getBusinesses();
-  const active = bizList.filter(b => b.status === 'active').length;
-  const demos  = bizList.filter(b => b.status === 'demo').length;
-  document.getElementById('adminStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value">${bizList.length}</div></div>
-    <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" style="color:var(--accent2)">${active}</div></div>
-    <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" style="color:var(--warning)">${demos}</div></div>
-    <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value">$${mrr(bizList)}</div></div>
-  `;
-  const container = document.getElementById('bizRows');
-  if (bizList.length === 0) {
-    container.innerHTML = '<div class="empty-state">No businesses yet. Add one above.</div>';
+function renderOrgs(orgs) {
+  const prices   = { Starter: 99, Professional: 249, Institution: 599, Demo: 0 };
+  const isPaying = o => ['Starter','Professional','Institution','Pro'].includes(o.plan);
+  const status   = o => isPaying(o) ? 'active' : 'demo';
+
+  // Update stats
+  const active = orgs.filter(isPaying).length;
+  const demos  = orgs.length - active;
+  const mrr    = orgs.filter(o => o.active).reduce((s, o) => s + (prices[o.plan] || 0), 0);
+  document.getElementById('stat-total').textContent  = orgs.length;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-demo').textContent   = demos;
+  document.getElementById('stat-mrr').textContent    = '$' + mrr.toLocaleString();
+
+  if (!orgs.length) {
+    document.getElementById('bizRows').innerHTML = '<div class="loading-row">No businesses yet. Add one above.</div>';
     return;
   }
-  container.innerHTML = bizList.map(b => `
+
+  document.getElementById('bizRows').innerHTML = orgs.map(o => `
     <div class="biz-row">
       <div>
-        <div class="biz-name">${b.name}</div>
-        <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.email} · ${b.plan} · ${b.created}</div>
-        ${b.db_verified === false ? '<span class="verify-badge fail">⚠ Not in DB — re-add</span>' : ''}
-        ${b.db_verified === true  ? '<span class="verify-badge ok">✓ DB verified</span>' : ''}
-        ${b.db_verified === undefined ? '<span class="verify-badge pending" style="cursor:pointer" onclick="recheckBiz(\''+b.id+'\')">? Verify DB</span>' : ''}
+        <div class="biz-name">${o.name}</div>
+        <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">
+          ${o.admin_email || '—'} · ${o.plan} · ${o.created_at ? o.created_at.split('T')[0] : '—'}
+        </div>
       </div>
       <div class="key-stack">
-        <div>
-          <div class="key-label">Dashboard</div>
-          <span class="key-chip biz" onclick="copyKey('${b.key}')" title="Click to copy">${b.key}</span>
-        </div>
-        <div>
-          <div class="key-label">Employee</div>
-          <span class="key-chip emp" onclick="copyKey('${b.emp_key || 'none'}')" title="Click to copy">${b.emp_key || '—'}</span>
-        </div>
+        ${o.key
+          ? `<div><div class="key-label">Dashboard</div>
+             <span class="key-chip biz" onclick="copyKey('${o.key}')">${o.key}</span></div>`
+          : `<div style="font-size:0.75rem;color:#f44336;">⚠ No dashboard key</div>`}
+        ${o.emp_key
+          ? `<div><div class="key-label">Employee</div>
+             <span class="key-chip emp" onclick="copyKey('${o.emp_key}')">${o.emp_key}</span></div>`
+          : `<div style="font-size:0.75rem;color:var(--muted2);">No employee key</div>`}
       </div>
       <div>
-        <a href="install.html?key=${b.emp_key || b.key}" target="_blank"
-          style="font-size:0.78rem; color:var(--accent-light); text-decoration:none; display:block; margin-bottom:4px;">📎 Employee install link</a>
-        <span style="font-size:0.72rem; color:var(--muted2); font-family:'JetBrains Mono',monospace; word-break:break-all;">…?key=${b.emp_key || b.key}</span>
+        ${o.emp_key
+          ? `<a href="install.html?key=${o.emp_key}" target="_blank"
+               style="font-size:0.78rem; color:var(--accent-light); text-decoration:none; display:block; margin-bottom:4px;">
+               📎 Employee install link</a>
+             <span style="font-size:0.72rem; color:var(--muted2); font-family:'JetBrains Mono',monospace;">…?key=${o.emp_key}</span>`
+          : '—'}
       </div>
       <div>
-        <span class="status-pill ${b.status}">${b.status}</span>
-        ${b.expires_at ? '<div style="font-size:0.7rem;color:var(--muted2);margin-top:3px;">⏱ ' + getDaysLeft(b.expires_at) + '</div>' : '<div style="font-size:0.7rem;color:#00e676;margin-top:3px;">∞ No expiry</div>'}
+        <span class="status-pill ${status(o)}">${status(o)}</span>
+        ${o.expires_at
+          ? `<div style="font-size:0.7rem;color:var(--muted2);margin-top:3px;">⏱ ${getDaysLeft(o.expires_at)}</div>`
+          : `<div style="font-size:0.7rem;color:#00e676;margin-top:3px;">∞ No expiry</div>`}
       </div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;">
-        <button class="remove-btn" onclick="removeBiz('${b.id}')" title="Remove">🗑</button>
-        <button class="remove-btn" onclick="toggleStatus('${b.id}')" title="Toggle status" style="color:var(--muted);">↔</button>
+        ${o.key ? `<button class="remove-btn" onclick="openDashboard('${o.key}','${o.name}')" title="Open dashboard" style="color:var(--accent-light);">↗</button>` : ''}
+        <button class="remove-btn" onclick="removeBiz('${o.key || ''}','${o.name}')" title="Remove">🗑</button>
       </div>
     </div>
   `).join('');
-}
-
-function mrr(list) {
-  const prices = { Starter:99, Professional:249, Institution:599, Demo:0 };
-  return list.filter(b => b.status === 'active').reduce((s, b) => s + (prices[b.plan] || 0), 0).toLocaleString();
-}
-
-// ── RECHECK existing business against DB ───────────────────────────────────
-async function recheckBiz(id) {
-  const list = getBusinesses();
-  const biz  = list.find(b => b.id === id);
-  if (!biz) return;
-  showToast('Verifying ' + biz.key + ' in DB…');
-  const ok = await verifyKeyInDB(biz.key);
-  biz.db_verified = ok;
-  saveBusinesses(list);
-  renderAdmin();
-  showToast(ok ? '✓ ' + biz.name + ' confirmed in DB' : '⚠ ' + biz.key + ' NOT found in DB — re-add this business');
 }
 
 // ── ADD BUSINESS ───────────────────────────────────────────────────────────
@@ -286,123 +281,78 @@ async function addBusiness() {
   const errEl     = document.getElementById('addErr');
   const btn       = document.getElementById('addBtn');
 
-  const showErr = (msg) => {
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-    errEl.style.background = 'rgba(244,67,54,0.08)';
-    errEl.style.color = 'var(--danger)';
-    errEl.style.border = '1px solid rgba(244,67,54,0.2)';
-  };
-  const showInfo = (msg) => {
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-    errEl.style.background = 'rgba(33,150,211,0.08)';
-    errEl.style.color = '#4db8f0';
-    errEl.style.border = '1px solid rgba(33,150,211,0.2)';
-  };
+  const showErr  = msg => { errEl.textContent = msg; errEl.className = 'err-box error'; errEl.style.display = 'block'; };
+  const showInfo = msg => { errEl.textContent = msg; errEl.className = 'err-box info';  errEl.style.display = 'block'; };
+  const showOk   = msg => { errEl.textContent = msg; errEl.className = 'err-box ok';    errEl.style.display = 'block'; };
 
   if (!name)  { showErr('Business name is required.'); return; }
   if (!email) { showErr('Admin email is required.'); return; }
-  if (!email.includes('@')) { showErr('Enter a valid email address.'); return; }
+  if (!email.includes('@')) { showErr('Enter a valid email.'); return; }
 
   const key     = customKey || generateKey();
   const emp_key = generateEmpKey();
 
-  if (findBusinessByKey(key)) { showErr('That dashboard key already exists — clear the field to auto-generate.'); return; }
+  btn.textContent = 'Creating…';
+  btn.disabled    = true;
 
-  errEl.style.display = 'none';
-  btn.textContent = 'Creating in Supabase…';
-  btn.disabled = true;
-
-  // ── STEP 1: Save to API first (source of truth) ──────────────────────────
-  let apiSuccess = false;
-  let apiOrgId   = null;
   try {
-    const res = await fetch(`${API}/admin/create-org`, {
+    // Step 1: Create in Supabase via API
+    showInfo('Step 1/2 — Creating org in Supabase…');
+    const res  = await fetch(`${API}/admin/create-org`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
       body: JSON.stringify({ name, email, plan, status, key, emp_key }),
     });
     const data = await res.json();
-    if (res.ok && data.success) {
-      apiSuccess = true;
-      apiOrgId   = data.org_id;
-    } else {
-      showErr('API error: ' + (data.error || data.message || 'Unknown error — check Render logs'));
-      btn.textContent = '+ Add Business';
-      btn.disabled = false;
-      return; // STOP — don't save locally if API failed
+
+    if (!res.ok || !data.success) {
+      showErr('API error: ' + (data.error || data.message || 'Unknown — check Render logs'));
+      btn.textContent = '+ Add Business'; btn.disabled = false;
+      return;
     }
+
+    // Step 2: Verify key is actually in DB
+    showInfo('Step 2/2 — Verifying in DB…');
+    const vRes = await fetch(`${API}/org/${key}`);
+    if (!vRes.ok) {
+      showErr(`API said success but key ${key} not found in DB. Try again or check Render logs.`);
+      btn.textContent = '+ Add Business'; btn.disabled = false;
+      return;
+    }
+
+    // All good
+    showOk(`✓ ${name} created and verified in Supabase · Dashboard: ${key}`);
+    document.getElementById('newBizName').value  = '';
+    document.getElementById('newBizEmail').value = '';
+    document.getElementById('newBizKey').value   = '';
+    btn.textContent = '+ Add Business'; btn.disabled = false;
+    showToast(`✓ ${name} added · Dashboard: ${key} · Employee: ${emp_key}`);
+    loadOrgs(); // Reload live from Supabase
+
   } catch(e) {
-    showErr('Could not reach API — is Render running? Error: ' + e.message);
-    btn.textContent = '+ Add Business';
-    btn.disabled = false;
-    return; // STOP — don't save locally if API unreachable
+    showErr('Network error — is Render awake? ' + e.message);
+    btn.textContent = '+ Add Business'; btn.disabled = false;
   }
-
-  // ── STEP 2: Verify key actually landed in DB ─────────────────────────────
-  btn.textContent = 'Verifying in DB…';
-  const verified = await verifyKeyInDB(key);
-  if (!verified) {
-    showErr(`⚠ API said success but key ${key} not found in DB. Check Supabase license_keys table — org may be partially created.`);
-    btn.textContent = '+ Add Business';
-    btn.disabled = false;
-    return; // STOP — don't show as success if verify failed
-  }
-
-  // ── STEP 3: Only now save to localStorage ───────────────────────────────
-  const isPaying  = ['Starter','Professional','Institution','Pro'].includes(plan);
-  const expiresAt = isPaying ? null : new Date(Date.now() + 7*24*60*60*1000).toISOString();
-  const newBiz = {
-    id: 'biz_' + Date.now(),
-    name, email, key, emp_key, plan, status,
-    org_id: apiOrgId,
-    db_verified: true,
-    created: new Date().toISOString().split('T')[0],
-    expires_at: expiresAt,
-  };
-  const bizList = getBusinesses();
-  bizList.push(newBiz);
-  saveBusinesses(bizList);
-
-  // Clear form
-  document.getElementById('newBizName').value  = '';
-  document.getElementById('newBizEmail').value = '';
-  document.getElementById('newBizKey').value   = '';
-  btn.textContent = '+ Add Business';
-  btn.disabled = false;
-
-  showToast(`✓ ${name} created & verified in DB · Dashboard: ${key} · Employee: ${emp_key}`);
-  renderAdmin();
 }
 
 // ── REMOVE ─────────────────────────────────────────────────────────────────
-async function removeBiz(id) {
-  if (!confirm('Remove this business? Both their keys will stop working.')) return;
-  const list = getBusinesses();
-  const biz  = list.find(b => b.id === id);
-  saveBusinesses(list.filter(b => b.id !== id));
-  if (biz) {
-    try {
-      await fetch(`${API}/admin/remove-org/${biz.key}`, {
-        method: 'DELETE',
-        headers: { 'X-Admin-Secret': ADMIN_SECRET },
-      });
-    } catch(e) {}
+async function removeBiz(key, name) {
+  if (!key) { alert('Cannot remove — no dashboard key found.'); return; }
+  if (!confirm(`Remove "${name}"? Their keys will stop working immediately.`)) return;
+  try {
+    await fetch(`${API}/admin/remove-org/${key}`, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Secret': ADMIN_SECRET },
+    });
+    showToast(`${name} removed.`);
+    loadOrgs();
+  } catch(e) {
+    showToast('Remove failed: ' + e.message);
   }
-  renderAdmin();
-  showToast('Business removed.');
 }
 
-function toggleStatus(id) {
-  const list = getBusinesses();
-  const biz  = list.find(b => b.id === id);
-  if (!biz) return;
-  const cycle = { demo:'active', active:'inactive', inactive:'demo' };
-  biz.status = cycle[biz.status] || 'demo';
-  saveBusinesses(list);
-  renderAdmin();
-  showToast(biz.name + ' → ' + biz.status);
+function openDashboard(key, name) {
+  window.open(`https://syphir.vercel.app/app.html?key=${key}&org=${encodeURIComponent(name)}`, '_blank');
 }
 
 function copyKey(key) {
