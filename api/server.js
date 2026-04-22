@@ -350,4 +350,6 @@ app.delete("/admin/remove-org/:key", async (c) => {
 });
 
 console.log("Syphir API v2.0.0 running");
+// Keep Render awake
+setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(()=>{}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
