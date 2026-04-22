@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Syphir Admin — Business Management</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
@@ -50,7 +53,10 @@
       <h1>Business Management</h1>
       <p style="color:var(--muted); font-size:0.88rem; margin-top:0.25rem;">Add, manage, and provision license keys for all organizations.</p>
     </div>
-    <span class="admin-badge">🔐 Admin · Benny Gomez</span>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button onclick="cleanDuplicates()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.45rem 0.85rem; border-radius:7px; font-size:0.8rem; cursor:pointer; font-family:inherit;">🧹 Clean Dupes</button>
+      <span class="admin-badge">🔐 Admin · Benny Gomez</span>
+    </div>
   </div>
 
   <!-- Stats -->
@@ -115,10 +121,13 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="auth.js"></script>
+<script src="auth.js?v=2.2.0"></script>
 <script>
 const ADMIN_SECRET  = 'bridgeline2025';
 const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
+
+// All API calls bypass browser cache
+const apiFetch = (url, opts = {}) => fetch(url, { cache: 'no-store', ...opts });
 
 function checkAdminKey() {
   const val = document.getElementById('adminKeyIn').value.trim().toUpperCase();
@@ -137,104 +146,144 @@ document.addEventListener('DOMContentLoaded', () => {
   if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') checkAdminKey(); });
 });
 
-function renderAdmin() {
-  const bizList = getBusinesses();
-  // Stats
-  const active = bizList.filter(b=>b.status==='active').length;
-  const demos  = bizList.filter(b=>b.status==='demo').length;
-  document.getElementById('adminStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value">${bizList.length}</div></div>
-    <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" style="color:var(--accent2)">${active}</div></div>
-    <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" style="color:var(--warning)">${demos}</div></div>
-    <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value">$${mrr(bizList)}</div></div>
-  `;
-  // Rows
+async function renderAdmin() {
   const container = document.getElementById('bizRows');
-  if (bizList.length === 0) {
-    container.innerHTML = '<div class="empty-state">No businesses yet. Add one above.</div>';
-    return;
-  }
-  container.innerHTML = bizList.map(b => `
-    <div class="biz-row">
-      <div>
-        <div class="biz-name">${b.name}</div>
-        <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.plan} · Added ${b.created}</div>
-      </div>
-      <div class="biz-email">${b.email}</div>
-      <div>
-        <span class="biz-key" onclick="copyKey('${b.key}')" title="Click to copy">${b.key}</span>
-        <div style="margin-top:4px;">
-          <a href="install.html?key=${b.key}" target="_blank" style="font-size:0.72rem; color:var(--muted); text-decoration:none;">📎 Install link</a>
+  container.innerHTML = '<div class="empty-state" style="padding:1.5rem; text-align:center; color:var(--muted);">Loading from Supabase…</div>';
+  try {
+    const res = await apiFetch(`${API}/admin/orgs?_t=${Date.now()}`, { headers: { 'X-Admin-Secret': ADMIN_SECRET } });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const bizList = data.orgs || [];
+    const active = bizList.filter(b => !b.expires_at && b.key_status === 'active').length;
+    const demos  = bizList.filter(b =>  b.expires_at && b.key_status === 'active').length;
+    document.getElementById('adminStats').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value">${bizList.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" style="color:var(--accent2)">${active}</div></div>
+      <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" style="color:var(--warning)">${demos}</div></div>
+      <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value">$${mrr(bizList)}</div></div>
+    `;
+    if (bizList.length === 0) {
+      container.innerHTML = '<div class="empty-state">No businesses yet. Add one above.</div>';
+      return;
+    }
+    container.innerHTML = bizList.map(b => {
+      const status = b.key_status === 'inactive' ? 'inactive' : (b.expires_at ? 'demo' : 'active');
+      const added  = b.created_at ? b.created_at.split('T')[0] : '—';
+      return `
+        <div class="biz-row">
+          <div>
+            <div class="biz-name">${b.name}</div>
+            <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.plan||'Demo'} · Added ${added}</div>
+          </div>
+          <div class="biz-email">${b.admin_email||'—'}</div>
+          <div>
+            <span class="biz-key" onclick="copyKey('${b.key||''}')" title="Click to copy">${b.key||'—'}</span>
+            ${b.emp_key ? `<div style="margin-top:2px; font-size:0.7rem; color:var(--muted); font-family:monospace;">emp: ${b.emp_key}</div>` : ''}
+            ${b.key ? `<div style="margin-top:4px;"><a href="install.html?key=${b.key}" target="_blank" style="font-size:0.72rem; color:var(--muted); text-decoration:none;">📎 Install link</a></div>` : ''}
+          </div>
+          <div><span class="status-pill ${status}">${status}</span></div>
+          <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button class="remove-btn" onclick="removeBiz('${b.key||b.id}')" title="Remove">🗑</button>
+          </div>
         </div>
-      </div>
-      <div><span class="status-pill ${b.status}">${b.status}</span></div>
-      <div style="display:flex; gap:4px; flex-wrap:wrap;">
-        <button class="remove-btn" onclick="removeBiz('${b.id}')" title="Remove">🗑</button>
-        <button class="remove-btn" onclick="toggleStatus('${b.id}')" title="Toggle status" style="color:var(--muted);">↔</button>
-      </div>
-    </div>
-  `).join('');
+      `;
+    }).join('');
+  } catch(err) {
+    container.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
+  }
 }
 
 function mrr(list) {
   const prices = { Starter:99, Professional:249, Institution:599, Demo:0 };
-  return list.filter(b=>b.status==='active').reduce((s,b) => s+(prices[b.plan]||0), 0).toLocaleString();
+  return list.filter(b => !b.expires_at && b.key_status === 'active')
+    .reduce((s, b) => s + (prices[b.plan]||0), 0).toLocaleString();
 }
 
-function addBusiness() {
-  const name   = document.getElementById('newBizName').value.trim();
-  const email  = document.getElementById('newBizEmail').value.trim();
-  const plan   = document.getElementById('newBizPlan').value;
-  const status = document.getElementById('newBizStatus').value;
+async function addBusiness() {
+  const name      = document.getElementById('newBizName').value.trim();
+  const email     = document.getElementById('newBizEmail').value.trim();
+  const plan      = document.getElementById('newBizPlan').value;
+  const status    = document.getElementById('newBizStatus').value;
   const customKey = document.getElementById('newBizKey').value.trim().toUpperCase();
-  const err = document.getElementById('addErr');
+  const err       = document.getElementById('addErr');
 
   if (!name || !email) { err.textContent='Business name and email are required.'; err.style.display='block'; return; }
   if (!email.includes('@')) { err.textContent='Enter a valid email address.'; err.style.display='block'; return; }
 
-  const key = customKey || generateKey(name);
-  const existing = findBusinessByKey(key);
-  if (existing) { err.textContent='That key already exists. Choose a different one.'; err.style.display='block'; return; }
-
+  const key    = customKey || generateKey();
+  const empKey = generateEmpKey();
   err.style.display = 'none';
-  const bizList = getBusinesses();
-  const newBiz = {
-    id: 'biz_' + Date.now(),
-    name, email, key, plan, status,
-    created: new Date().toISOString().split('T')[0]
-  };
-  bizList.push(newBiz);
-  saveBusinesses(bizList);
 
-  // Clear form
-  document.getElementById('newBizName').value = '';
-  document.getElementById('newBizEmail').value = '';
-  document.getElementById('newBizKey').value = '';
+  const btn = document.querySelector('.add-btn');
+  btn.textContent = 'Saving to Supabase…';
+  btn.disabled = true;
 
-  renderAdmin();
-  showToast('✓ ' + name + ' added · Key: ' + key);
+  try {
+    const res = await apiFetch(`${API}/admin/create-org`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
+      body: JSON.stringify({ name, email, plan, status, key, emp_key: empKey })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      err.textContent = data.error || 'Failed to create business.';
+      err.style.display = 'block';
+      return;
+    }
+    document.getElementById('newBizName').value  = '';
+    document.getElementById('newBizEmail').value = '';
+    document.getElementById('newBizKey').value   = '';
+    await renderAdmin();
+    showToast('✓ ' + name + ' added · Key: ' + key);
+  } catch(e) {
+    err.textContent = 'API error: ' + e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = '+ Add Business';
+    btn.disabled = false;
+  }
 }
 
-function removeBiz(id) {
+async function removeBiz(keyOrId) {
   if (!confirm('Remove this business? Their license key will stop working.')) return;
-  const updated = getBusinesses().filter(b => b.id !== id);
-  saveBusinesses(updated);
-  renderAdmin();
-  showToast('Business removed.');
+  try {
+    const res = await apiFetch(`${API}/admin/remove-org/${encodeURIComponent(keyOrId)}`, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Secret': ADMIN_SECRET }
+    });
+    const data = await res.json();
+    if (data.success) {
+      await renderAdmin();
+      showToast('Business removed.');
+    } else {
+      showToast('Remove failed: ' + (data.error || 'unknown error'));
+    }
+  } catch(e) {
+    showToast('API error: ' + e.message);
+  }
 }
 
-function toggleStatus(id) {
-  const list = getBusinesses();
-  const biz = list.find(b=>b.id===id);
-  if (!biz) return;
-  const cycle = { demo:'active', active:'inactive', inactive:'demo' };
-  biz.status = cycle[biz.status] || 'demo';
-  saveBusinesses(list);
-  renderAdmin();
-  showToast(biz.name + ' → ' + biz.status);
+async function cleanDuplicates() {
+  if (!confirm('Scan Supabase for duplicate org names and deactivate extras?')) return;
+  try {
+    const res = await apiFetch(`${API}/admin/dedup-orgs`, {
+      method: 'POST',
+      headers: { 'X-Admin-Secret': ADMIN_SECRET }
+    });
+    const data = await res.json();
+    if (data.success) {
+      await renderAdmin();
+      showToast(data.count > 0 ? `✓ Removed ${data.count} duplicate(s)` : '✓ No duplicates found');
+    } else {
+      showToast('Dedup failed: ' + (data.error || 'unknown'));
+    }
+  } catch(e) {
+    showToast('API error: ' + e.message);
+  }
 }
 
 function copyKey(key) {
+  if (!key) return;
   navigator.clipboard.writeText(key).then(() => showToast('Copied: ' + key));
 }
 

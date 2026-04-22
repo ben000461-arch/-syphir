@@ -53,7 +53,7 @@ app.use("/*", cors({
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.1.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.2.0", db: "supabase" });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ app.get("/admin/orgs", async (c) => {
         key_status: bizKey?.status || null,
       };
     });
-    return c.json({ orgs: result });
+    return c.json({ orgs: result.filter(o => o.key !== null) });
   } catch (err) {
     return c.json({ error: err.message }, 500);
   }
@@ -296,48 +296,96 @@ app.post("/admin/create-org", async (c) => {
   const { name, email, plan, status, key, emp_key } = await c.req.json();
   if (!name || !key) return c.json({ error: "name and key are required" }, 400);
 
+  // Pre-check: reject if key already exists (prevents duplicates on retry)
+  try {
+    const existing = await db(`license_keys?key=eq.${key}&select=key`);
+    if (existing && existing.length > 0) return c.json({ error: `Key already exists: ${key}` }, 409);
+  } catch (_) {} // non-fatal
+
+  let orgId = null;
   try {
     // 1. Create org — with retry
     const orgRows = await dbWithRetry("organizations", {
       method: "POST", prefer: "return=representation",
-      body: JSON.stringify({
-        id: "org_" + Date.now(),
-        name, plan: plan || "Demo",
-        admin_email: email || "",
-        active: true,
-      }),
+      body: JSON.stringify({ id: "org_" + Date.now(), name, plan: plan || "Demo", admin_email: email || "", active: true }),
     });
     if (!orgRows || orgRows.length === 0) return c.json({ error: "Failed to create organization" }, 500);
     const org = orgRows[0];
+    orgId = org.id;
 
-    // 2. Expiry
+    // 2. Expiry (paying plans have no expiry)
     const isPaying = ["starter", "professional", "institution", "pro"].includes((plan || "").toLowerCase());
     const expiresAt = isPaying ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    // 3. Business key — with retry
+    // 3. Business key — 5 retries with escalating delay
     await dbWithRetry("license_keys", {
       method: "POST", prefer: "return=minimal",
       body: JSON.stringify({ key, org_id: org.id, key_type: "business", status: "active", expires_at: expiresAt }),
-    });
+    }, 5);
 
-    // 4. Employee key — with retry
+    // 4. Employee key — 5 retries
     if (emp_key) {
       await dbWithRetry("license_keys", {
         method: "POST", prefer: "return=minimal",
         body: JSON.stringify({ key: emp_key, org_id: org.id, key_type: "employee", status: "active", expires_at: expiresAt }),
-      });
+      }, 5);
     }
 
-    // 5. Verify key landed — with retry
-    const verify = await dbWithRetry(`license_keys?key=eq.${key}&status=eq.active&select=key,org_id`);
-    if (!verify || verify.length === 0) {
-      return c.json({ error: "Org created but key verification failed — check Supabase" }, 500);
+    // 5. Poll-verify: confirm biz key is readable before declaring success (up to 10s)
+    let verified = false;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const check = await db(`license_keys?key=eq.${key}&status=eq.active&select=key`);
+      if (check && check.length > 0) { verified = true; break; }
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    if (!verified) {
+      // Rollback: deactivate org so it doesn't appear as a ghost
+      await db(`organizations?id=eq.${orgId}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ active: false }) }).catch(() => {});
+      return c.json({ error: "Key write could not be confirmed — org rolled back. Try again." }, 500);
     }
 
     console.log(`✓ New org: ${name} | id: ${org.id} | biz: ${key} | emp: ${emp_key || "none"}`);
     return c.json({ success: true, org_id: org.id, org_name: org.name, key, emp_key });
   } catch (err) {
+    // Rollback: deactivate org if key writes failed
+    if (orgId) {
+      await db(`organizations?id=eq.${orgId}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ active: false }) }).catch(() => {});
+    }
     return c.json({ error: "Failed to create org: " + err.message }, 500);
+  }
+});
+
+// ── ADMIN: DEDUP ORGS ─────────────────────────────────────────────────────
+app.post("/admin/dedup-orgs", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  try {
+    const orgs = await db("organizations?select=*&order=created_at.asc");
+    const keys = await db("license_keys?status=eq.active&select=*");
+
+    const byName = {};
+    for (const org of (orgs || [])) {
+      const norm = org.name.toLowerCase().trim();
+      if (!byName[norm]) byName[norm] = [];
+      byName[norm].push(org);
+    }
+
+    const deduped = [];
+    for (const group of Object.values(byName)) {
+      if (group.length <= 1) continue;
+      const withKey = group.filter(o => (keys || []).some(k => k.org_id === o.id && k.key_type === "business"));
+      const keep = (withKey.length > 0 ? withKey : group).slice(-1)[0];
+      for (const dup of group.filter(o => o.id !== keep.id)) {
+        await dbWithRetry(`license_keys?org_id=eq.${dup.id}`, {
+          method: "PATCH", prefer: "return=minimal",
+          body: JSON.stringify({ status: "inactive" }),
+        });
+        deduped.push({ removed_id: dup.id, name: dup.name, kept_id: keep.id });
+      }
+    }
+    return c.json({ success: true, count: deduped.length, deduped });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
   }
 });
 
@@ -360,7 +408,7 @@ app.delete("/admin/remove-org/:key", async (c) => {
   }
 });
 
-console.log("Syphir API v2.1.0 running");
+console.log("Syphir API v2.2.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
