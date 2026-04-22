@@ -245,7 +245,7 @@ async function addBusiness() {
 }
 
 async function removeBiz(keyOrId) {
-  if (!confirm('Remove this business? Their license key will stop working.')) return;
+  if (!confirm('Permanently delete this business and all its keys from Supabase? This cannot be undone.')) return;
   try {
     const res = await apiFetch(`${API}/admin/remove-org/${encodeURIComponent(keyOrId)}`, {
       method: 'DELETE',

@@ -397,13 +397,15 @@ app.delete("/admin/remove-org/:key", async (c) => {
   if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
   const { key } = c.req.param();
   try {
+    // Look up org_id (check all key statuses so already-inactive keys still resolve)
     const rows = await db(`license_keys?key=eq.${key}&select=org_id`);
-    if (rows && rows.length > 0) {
-      await db(`license_keys?org_id=eq.${rows[0].org_id}`, {
-        method: "PATCH", prefer: "return=minimal",
-        body: JSON.stringify({ status: "inactive" }),
-      });
-    }
+    if (!rows || rows.length === 0) return c.json({ success: true, note: "Key not found" });
+    const orgId = rows[0].org_id;
+
+    // Hard-delete all license keys for this org, then the org itself
+    await db(`license_keys?org_id=eq.${orgId}`, { method: "DELETE", prefer: "return=minimal" });
+    await db(`organizations?id=eq.${orgId}`, { method: "DELETE", prefer: "return=minimal" });
+
     return c.json({ success: true });
   } catch (err) {
     return c.json({ error: "Failed: " + err.message }, 500);
