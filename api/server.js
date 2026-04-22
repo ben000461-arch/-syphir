@@ -28,7 +28,7 @@ async function db(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-app.use("/*", cors());
+app.use("/*", cors({ allowHeaders: ["Content-Type", "X-Admin-Secret"], origin: "*" }));
 
 app.get("/health", (c) => {
   return c.json({ status: "ok", service: "Syphir API", version: "1.2.0", db: "supabase" });
