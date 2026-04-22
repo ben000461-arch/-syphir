@@ -25,6 +25,10 @@
   .key-chip.emp { color: var(--accent2); background: rgba(0,214,143,0.08); }
   .key-chip.emp:hover { background: rgba(0,214,143,0.15); }
   .key-label { font-size: 0.65rem; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1px; }
+  .verify-badge { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin-top: 3px; }
+  .verify-badge.ok { background: rgba(0,230,118,0.1); color: #00e676; border: 1px solid rgba(0,230,118,0.2); }
+  .verify-badge.fail { background: rgba(244,67,54,0.1); color: #f44336; border: 1px solid rgba(244,67,54,0.2); }
+  .verify-badge.pending { background: rgba(255,193,7,0.1); color: #ffc107; border: 1px solid rgba(255,193,7,0.2); }
 </style>
 </head>
 <body>
@@ -125,7 +129,7 @@
       <span style="color:var(--accent-light); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">SYP-XXXX</span> (dashboard login) and
       <span style="color:var(--accent2); font-family:'JetBrains Mono',monospace; font-size:0.78rem;">EMP-XXXX</span> (employees enter in the extension).
     </p>
-    <div id="addErr" style="color:var(--danger); font-size:0.82rem; margin-top:0.5rem; display:none;"></div>
+    <div id="addErr" style="font-size:0.82rem; margin-top:0.5rem; display:none; padding: 8px 12px; border-radius: 6px;"></div>
   </div>
 
   <!-- Business Table -->
@@ -147,8 +151,11 @@
 
 <script src="auth.js"></script>
 <script>
+const API = 'https://syphir-api.onrender.com';
 const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
+const ADMIN_SECRET  = 'bridgeline2025';
 
+// ── ADMIN GATE ─────────────────────────────────────────────────────────────
 function checkAdminKey() {
   const val = document.getElementById('adminKeyIn').value.trim().toUpperCase();
   const err = document.getElementById('adminGateErr');
@@ -163,13 +170,47 @@ function checkAdminKey() {
 }
 document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('adminKeyIn');
-  if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') checkAdminKey(); });
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAdminKey(); });
 });
 
+// ── KEY GENERATION ─────────────────────────────────────────────────────────
+function rand4() {
+  return Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g,'').substr(0,4).padEnd(4,'X');
+}
+function generateKey()    { return `SYP-${rand4()}-${rand4()}-${rand4()}`; }
+function generateEmpKey() { return `EMP-${rand4()}-${rand4()}-${rand4()}`; }
+
+// ── LOCAL STORAGE ──────────────────────────────────────────────────────────
+function getBusinesses()      { try { return JSON.parse(localStorage.getItem('syphir_businesses') || '[]'); } catch(e) { return []; } }
+function saveBusinesses(list) { localStorage.setItem('syphir_businesses', JSON.stringify(list)); }
+function findBusinessByKey(k) { return getBusinesses().find(b => b.key === k || b.emp_key === k); }
+
+function getDaysLeft(expiresAt) {
+  if (!expiresAt) return 'No expiry';
+  const days = Math.ceil((new Date(expiresAt) - new Date()) / (1000*60*60*24));
+  if (days < 0) return 'EXPIRED';
+  if (days === 0) return 'Expires today';
+  return 'Expires in ' + days + 'd';
+}
+
+// ── VERIFY KEY EXISTS IN SUPABASE ──────────────────────────────────────────
+// This is the key fix: after creating, we re-fetch the key to confirm it landed in the DB.
+async function verifyKeyInDB(key) {
+  try {
+    const res = await fetch(`${API}/org/${key}`);
+    if (!res.ok) return false;
+    const data = await res.json();
+    return !!(data && data.id);
+  } catch(e) {
+    return false;
+  }
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAdmin() {
   const bizList = getBusinesses();
-  const active = bizList.filter(b=>b.status==='active').length;
-  const demos  = bizList.filter(b=>b.status==='demo').length;
+  const active = bizList.filter(b => b.status === 'active').length;
+  const demos  = bizList.filter(b => b.status === 'demo').length;
   document.getElementById('adminStats').innerHTML = `
     <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value">${bizList.length}</div></div>
     <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" style="color:var(--accent2)">${active}</div></div>
@@ -186,6 +227,9 @@ function renderAdmin() {
       <div>
         <div class="biz-name">${b.name}</div>
         <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.email} · ${b.plan} · ${b.created}</div>
+        ${b.db_verified === false ? '<span class="verify-badge fail">⚠ Not in DB — re-add</span>' : ''}
+        ${b.db_verified === true  ? '<span class="verify-badge ok">✓ DB verified</span>' : ''}
+        ${b.db_verified === undefined ? '<span class="verify-badge pending" style="cursor:pointer" onclick="recheckBiz(\''+b.id+'\')">? Verify DB</span>' : ''}
       </div>
       <div class="key-stack">
         <div>
@@ -203,9 +247,9 @@ function renderAdmin() {
         <span style="font-size:0.72rem; color:var(--muted2); font-family:'JetBrains Mono',monospace; word-break:break-all;">…?key=${b.emp_key || b.key}</span>
       </div>
       <div>
-          <span class="status-pill ${b.status}">${b.status}</span>
-          ${b.expires_at ? '<div style="font-size:0.7rem;color:var(--muted2);margin-top:3px;">⏱ ' + getDaysLeft(b.expires_at) + '</div>' : '<div style="font-size:0.7rem;color:#00e676;margin-top:3px;">∞ No expiry</div>'}
-        </div>
+        <span class="status-pill ${b.status}">${b.status}</span>
+        ${b.expires_at ? '<div style="font-size:0.7rem;color:var(--muted2);margin-top:3px;">⏱ ' + getDaysLeft(b.expires_at) + '</div>' : '<div style="font-size:0.7rem;color:#00e676;margin-top:3px;">∞ No expiry</div>'}
+      </div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;">
         <button class="remove-btn" onclick="removeBiz('${b.id}')" title="Remove">🗑</button>
         <button class="remove-btn" onclick="toggleStatus('${b.id}')" title="Toggle status" style="color:var(--muted);">↔</button>
@@ -216,71 +260,123 @@ function renderAdmin() {
 
 function mrr(list) {
   const prices = { Starter:99, Professional:249, Institution:599, Demo:0 };
-  function getDaysLeft(expiresAt) {
-    if (!expiresAt) return 'No expiry';
-    const days = Math.ceil((new Date(expiresAt) - new Date()) / (1000*60*60*24));
-    if (days < 0) return 'EXPIRED';
-    if (days === 0) return 'Expires today';
-    return 'Expires in ' + days + 'd';
-  }
-  return list.filter(b=>b.status==='active').reduce((s,b) => s+(prices[b.plan]||0), 0).toLocaleString();
+  return list.filter(b => b.status === 'active').reduce((s, b) => s + (prices[b.plan] || 0), 0).toLocaleString();
 }
 
+// ── RECHECK existing business against DB ───────────────────────────────────
+async function recheckBiz(id) {
+  const list = getBusinesses();
+  const biz  = list.find(b => b.id === id);
+  if (!biz) return;
+  showToast('Verifying ' + biz.key + ' in DB…');
+  const ok = await verifyKeyInDB(biz.key);
+  biz.db_verified = ok;
+  saveBusinesses(list);
+  renderAdmin();
+  showToast(ok ? '✓ ' + biz.name + ' confirmed in DB' : '⚠ ' + biz.key + ' NOT found in DB — re-add this business');
+}
+
+// ── ADD BUSINESS ───────────────────────────────────────────────────────────
 async function addBusiness() {
   const name      = document.getElementById('newBizName').value.trim();
   const email     = document.getElementById('newBizEmail').value.trim();
   const plan      = document.getElementById('newBizPlan').value;
   const status    = document.getElementById('newBizStatus').value;
   const customKey = document.getElementById('newBizKey').value.trim().toUpperCase();
-  const err       = document.getElementById('addErr');
+  const errEl     = document.getElementById('addErr');
   const btn       = document.getElementById('addBtn');
 
-  if (!name || !email) { err.textContent='Business name and email are required.'; err.style.display='block'; return; }
-  if (!email.includes('@')) { err.textContent='Enter a valid email address.'; err.style.display='block'; return; }
+  const showErr = (msg) => {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    errEl.style.background = 'rgba(244,67,54,0.08)';
+    errEl.style.color = 'var(--danger)';
+    errEl.style.border = '1px solid rgba(244,67,54,0.2)';
+  };
+  const showInfo = (msg) => {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    errEl.style.background = 'rgba(33,150,211,0.08)';
+    errEl.style.color = '#4db8f0';
+    errEl.style.border = '1px solid rgba(33,150,211,0.2)';
+  };
+
+  if (!name)  { showErr('Business name is required.'); return; }
+  if (!email) { showErr('Admin email is required.'); return; }
+  if (!email.includes('@')) { showErr('Enter a valid email address.'); return; }
 
   const key     = customKey || generateKey();
   const emp_key = generateEmpKey();
 
-  const existing = findBusinessByKey(key);
-  if (existing) { err.textContent='That key already exists.'; err.style.display='block'; return; }
+  if (findBusinessByKey(key)) { showErr('That dashboard key already exists — clear the field to auto-generate.'); return; }
 
-  err.style.display = 'none';
-  btn.textContent = 'Adding…';
+  errEl.style.display = 'none';
+  btn.textContent = 'Creating in Supabase…';
   btn.disabled = true;
 
-  // Save to localStorage immediately
-  const bizList = getBusinesses();
-  const isPaying = ['Starter','Professional','Institution','Pro'].includes(plan);
-  const expiresAt = isPaying ? null : new Date(Date.now() + 7*24*60*60*1000).toISOString();
-  const newBiz = { id: 'biz_' + Date.now(), name, email, key, emp_key, plan, status, created: new Date().toISOString().split('T')[0], expires_at: expiresAt };
-  bizList.push(newBiz);
-  saveBusinesses(bizList);
-
-  // Sync to Supabase
+  // ── STEP 1: Save to API first (source of truth) ──────────────────────────
+  let apiSuccess = false;
+  let apiOrgId   = null;
   try {
-    const res = await fetch('https://syphir-api.onrender.com/admin/create-org', {
+    const res = await fetch(`${API}/admin/create-org`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': 'bridgeline2025' },
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
       body: JSON.stringify({ name, email, plan, status, key, emp_key }),
     });
     const data = await res.json();
-    if (data.success) {
-      showToast(`✓ ${name} added · Dashboard: ${key} · Employee: ${emp_key}`);
+    if (res.ok && data.success) {
+      apiSuccess = true;
+      apiOrgId   = data.org_id;
     } else {
-      showToast('⚠ Saved locally — API: ' + (data.error || 'check Render logs'));
+      showErr('API error: ' + (data.error || data.message || 'Unknown error — check Render logs'));
+      btn.textContent = '+ Add Business';
+      btn.disabled = false;
+      return; // STOP — don't save locally if API failed
     }
-  } catch (e) {
-    showToast('⚠ Saved locally — API offline.');
+  } catch(e) {
+    showErr('Could not reach API — is Render running? Error: ' + e.message);
+    btn.textContent = '+ Add Business';
+    btn.disabled = false;
+    return; // STOP — don't save locally if API unreachable
   }
 
-  document.getElementById('newBizName').value = '';
+  // ── STEP 2: Verify key actually landed in DB ─────────────────────────────
+  btn.textContent = 'Verifying in DB…';
+  const verified = await verifyKeyInDB(key);
+  if (!verified) {
+    showErr(`⚠ API said success but key ${key} not found in DB. Check Supabase license_keys table — org may be partially created.`);
+    btn.textContent = '+ Add Business';
+    btn.disabled = false;
+    return; // STOP — don't show as success if verify failed
+  }
+
+  // ── STEP 3: Only now save to localStorage ───────────────────────────────
+  const isPaying  = ['Starter','Professional','Institution','Pro'].includes(plan);
+  const expiresAt = isPaying ? null : new Date(Date.now() + 7*24*60*60*1000).toISOString();
+  const newBiz = {
+    id: 'biz_' + Date.now(),
+    name, email, key, emp_key, plan, status,
+    org_id: apiOrgId,
+    db_verified: true,
+    created: new Date().toISOString().split('T')[0],
+    expires_at: expiresAt,
+  };
+  const bizList = getBusinesses();
+  bizList.push(newBiz);
+  saveBusinesses(bizList);
+
+  // Clear form
+  document.getElementById('newBizName').value  = '';
   document.getElementById('newBizEmail').value = '';
-  document.getElementById('newBizKey').value = '';
+  document.getElementById('newBizKey').value   = '';
   btn.textContent = '+ Add Business';
   btn.disabled = false;
+
+  showToast(`✓ ${name} created & verified in DB · Dashboard: ${key} · Employee: ${emp_key}`);
   renderAdmin();
 }
 
+// ── REMOVE ─────────────────────────────────────────────────────────────────
 async function removeBiz(id) {
   if (!confirm('Remove this business? Both their keys will stop working.')) return;
   const list = getBusinesses();
@@ -288,8 +384,9 @@ async function removeBiz(id) {
   saveBusinesses(list.filter(b => b.id !== id));
   if (biz) {
     try {
-      await fetch(`https://syphir-api.onrender.com/admin/remove-org/${biz.key}`, {
-        method: 'DELETE', headers: { 'X-Admin-Secret': 'bridgeline2025' },
+      await fetch(`${API}/admin/remove-org/${biz.key}`, {
+        method: 'DELETE',
+        headers: { 'X-Admin-Secret': ADMIN_SECRET },
       });
     } catch(e) {}
   }
@@ -299,7 +396,7 @@ async function removeBiz(id) {
 
 function toggleStatus(id) {
   const list = getBusinesses();
-  const biz = list.find(b=>b.id===id);
+  const biz  = list.find(b => b.id === id);
   if (!biz) return;
   const cycle = { demo:'active', active:'inactive', inactive:'demo' };
   biz.status = cycle[biz.status] || 'demo';
