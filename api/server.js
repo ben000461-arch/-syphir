@@ -296,11 +296,11 @@ app.post("/admin/create-org", async (c) => {
   const { name, email, plan, status, key, emp_key } = await c.req.json();
   if (!name || !key) return c.json({ error: "name and key are required" }, 400);
 
-  // Pre-check: reject if key already exists (prevents duplicates on retry)
+  // Guard: reject if biz key already exists — prevents ghost orgs on retry
   try {
     const existing = await db(`license_keys?key=eq.${key}&select=key`);
     if (existing && existing.length > 0) return c.json({ error: `Key already exists: ${key}` }, 409);
-  } catch (_) {} // non-fatal
+  } catch (_) {} // non-fatal pre-check
 
   let orgId = null;
   try {
@@ -339,7 +339,7 @@ app.post("/admin/create-org", async (c) => {
       await new Promise(r => setTimeout(r, 2000));
     }
     if (!verified) {
-      // Rollback: deactivate org so it doesn't appear as a ghost
+      // Rollback: deactivate org so it doesn't appear as a ghost in the admin list
       await db(`organizations?id=eq.${orgId}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ active: false }) }).catch(() => {});
       return c.json({ error: "Key write could not be confirmed — org rolled back. Try again." }, 500);
     }
@@ -380,7 +380,9 @@ app.post("/admin/dedup-orgs", async (c) => {
           method: "PATCH", prefer: "return=minimal",
           body: JSON.stringify({ status: "inactive" }),
         });
-        deduped.push({ removed_id: dup.id, name: dup.name, kept_id: keep.id });
+        deduped.push({ 
+            
+          removed_id: dup.id, name: dup.name, kept_id: keep.id });
       }
     }
     return c.json({ success: true, count: deduped.length, deduped });
