@@ -29,7 +29,20 @@ async function db(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-// ── CORS — allow all headers the browser needs ─────────────────────────────
+// ── RETRY WRAPPER — survives Render free-tier spin-down mid-request ────────
+async function dbWithRetry(path, options = {}, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await db(path, options);
+    } catch (e) {
+      if (i === retries - 1) throw e;
+      console.log(`DB retry ${i + 1}/${retries - 1} for ${path}: ${e.message}`);
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+}
+
+// ── CORS ───────────────────────────────────────────────────────────────────
 app.use("/*", cors({
   origin: "*",
   allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
@@ -40,7 +53,7 @@ app.use("/*", cors({
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.0.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.1.0", db: "supabase" });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
@@ -138,7 +151,7 @@ app.get("/emp-key/:org_id", async (c) => {
   }
 });
 
-// ── GET ORG BY KEY — returns full org including admin_email ────────────────
+// ── GET ORG BY KEY ─────────────────────────────────────────────────────────
 app.get("/org/:key", async (c) => {
   const { key } = c.req.param();
   try {
@@ -175,7 +188,6 @@ app.get("/admin/orgs", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
   if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
   try {
-    // Get all orgs with their license keys
     const orgs = await db("organizations?select=*&order=created_at.desc");
     const keys = await db("license_keys?status=eq.active&select=*");
     const result = (orgs || []).map(org => {
@@ -285,13 +297,12 @@ app.post("/admin/create-org", async (c) => {
   if (!name || !key) return c.json({ error: "name and key are required" }, 400);
 
   try {
-    // 1. Create org
-    const orgRows = await db("organizations", {
+    // 1. Create org — with retry
+    const orgRows = await dbWithRetry("organizations", {
       method: "POST", prefer: "return=representation",
       body: JSON.stringify({
         id: "org_" + Date.now(),
-        name,
-        plan: plan || "Demo",
+        name, plan: plan || "Demo",
         admin_email: email || "",
         active: true,
       }),
@@ -299,26 +310,26 @@ app.post("/admin/create-org", async (c) => {
     if (!orgRows || orgRows.length === 0) return c.json({ error: "Failed to create organization" }, 500);
     const org = orgRows[0];
 
-    // 2. Set expiry: demo/pilot = 7 days, paying = never
+    // 2. Expiry
     const isPaying = ["starter", "professional", "institution", "pro"].includes((plan || "").toLowerCase());
     const expiresAt = isPaying ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    // 3. Create business key
-    await db("license_keys", {
+    // 3. Business key — with retry
+    await dbWithRetry("license_keys", {
       method: "POST", prefer: "return=minimal",
       body: JSON.stringify({ key, org_id: org.id, key_type: "business", status: "active", expires_at: expiresAt }),
     });
 
-    // 4. Create employee key
+    // 4. Employee key — with retry
     if (emp_key) {
-      await db("license_keys", {
+      await dbWithRetry("license_keys", {
         method: "POST", prefer: "return=minimal",
         body: JSON.stringify({ key: emp_key, org_id: org.id, key_type: "employee", status: "active", expires_at: expiresAt }),
       });
     }
 
-    // 5. Verify it landed — re-fetch the key to confirm
-    const verify = await db(`license_keys?key=eq.${key}&status=eq.active&select=key,org_id`);
+    // 5. Verify key landed — with retry
+    const verify = await dbWithRetry(`license_keys?key=eq.${key}&status=eq.active&select=key,org_id`);
     if (!verify || verify.length === 0) {
       return c.json({ error: "Org created but key verification failed — check Supabase" }, 500);
     }
@@ -349,7 +360,7 @@ app.delete("/admin/remove-org/:key", async (c) => {
   }
 });
 
-console.log("Syphir API v2.0.0 running");
-// Keep Render awake
-setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(()=>{}), 10 * 60 * 1000);
+console.log("Syphir API v2.1.0 running");
+// Keep Render awake — ping every 10 minutes
+setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
