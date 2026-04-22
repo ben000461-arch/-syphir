@@ -238,7 +238,7 @@ app.post("/admin/create-org", async (c) => {
   try {
     const orgRows = await db("organizations", {
       method: "POST", prefer: "return=representation",
-      body: JSON.stringify({ id: "org_" + Date.now(), name, plan, active: status === "active" }),
+      body: JSON.stringify({ id: "org_" + Date.now(), name, plan, active: true }),
     });
     if (!orgRows || orgRows.length === 0) return c.json({ error: "Failed to create organization" }, 500);
     const org = orgRows[0];
