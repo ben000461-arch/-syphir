@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { Resend } from "resend";
+import Stripe from "stripe";
 
 const app = new Hono();
 const SCANNER_URL = "https://syphir-scanner.onrender.com";
@@ -8,6 +9,13 @@ const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcm9qb2Jocm1mbm94YXZscm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTU5MDcsImV4cCI6MjA5MTQ5MTkwN30.0FFbJq_gwsFtZSQY7isojouZAT3xWAUBGFXx-j9nbzo";
 const resend = new Resend("re_efn93Zvb_47cNT8pdRWnhnvHFnfhQ7yqR");
 const ADMIN_SECRET = "bridgeline2025";
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+
+const STRIPE_PLANS = {
+  Starter:      { amount: 9900,  label: "Syphir Starter — $99/mo" },
+  Professional: { amount: 24900, label: "Syphir Professional — $249/mo" },
+  Institution:  { amount: 59900, label: "Syphir Institution — $599/mo" },
+};
 
 // ── SUPABASE HELPER ────────────────────────────────────────────────────────
 async function db(path, options = {}) {
@@ -53,7 +61,7 @@ app.use("/*", cors({
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.3.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.4.0", db: "supabase" });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
@@ -445,7 +453,82 @@ app.delete("/admin/remove-org/:key", async (c) => {
   }
 });
 
-console.log("Syphir API v2.3.0 running");
+// ── STRIPE: CREATE CHECKOUT SESSION ───────────────────────────────────────
+app.post("/create-checkout-session", async (c) => {
+  if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
+  const { key, plan } = await c.req.json();
+  if (!key || !plan) return c.json({ error: "key and plan are required" }, 400);
+
+  const price = STRIPE_PLANS[plan];
+  if (!price) return c.json({ error: `Unknown plan: ${plan}` }, 400);
+
+  try {
+    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ error: "Invalid or inactive key" }, 401);
+    const org = rows[0].organizations;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "subscription",
+      line_items: [{
+        price_data: {
+          currency: "usd",
+          product_data: { name: price.label, description: `Syphir AI Data Protection for ${org.name}` },
+          unit_amount: price.amount,
+          recurring: { interval: "month" },
+        },
+        quantity: 1,
+      }],
+      metadata: { org_id: org.id, org_name: org.name, key, plan },
+      customer_email: org.admin_email || undefined,
+      success_url: `https://syphir.vercel.app/app.html?key=${key}&payment=success`,
+      cancel_url: `https://syphir.vercel.app/pricing.html`,
+    });
+
+    return c.json({ url: session.url });
+  } catch (err) {
+    return c.json({ error: "Stripe error: " + err.message }, 500);
+  }
+});
+
+// ── STRIPE: WEBHOOK ────────────────────────────────────────────────────────
+app.post("/stripe-webhook", async (c) => {
+  if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
+  const sig = c.req.header("stripe-signature");
+  const rawBody = await c.req.text();
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET || "");
+  } catch (err) {
+    console.error("Webhook signature failed:", err.message);
+    return c.text("Webhook signature invalid", 400);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const { org_id, plan } = session.metadata || {};
+    if (org_id && plan) {
+      try {
+        await dbWithRetry(`organizations?id=eq.${org_id}`, {
+          method: "PATCH", prefer: "return=minimal",
+          body: JSON.stringify({ plan, active: true }),
+        });
+        await dbWithRetry(`license_keys?org_id=eq.${org_id}`, {
+          method: "PATCH", prefer: "return=minimal",
+          body: JSON.stringify({ expires_at: null, status: "active" }),
+        });
+        console.log(`✓ Payment success: org ${org_id} → plan ${plan}`);
+      } catch (err) {
+        console.error("Failed to update org post-payment:", err.message);
+      }
+    }
+  }
+
+  return c.json({ received: true });
+});
+
+console.log("Syphir API v2.4.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };

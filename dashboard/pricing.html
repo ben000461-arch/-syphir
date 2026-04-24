@@ -24,7 +24,11 @@
 </head>
 <body>
 <script>
-if (new URLSearchParams(window.location.search).get("expired") === "1") {
+const API = 'https://syphir-api.onrender.com';
+const _params = new URLSearchParams(window.location.search);
+const _upgradeKey = _params.get("key") || "";
+
+if (_params.get("expired") === "1") {
   document.addEventListener("DOMContentLoaded", function() {
     const banner = document.createElement("div");
     banner.style.cssText = "background:#f44336;color:#fff;text-align:center;padding:14px 20px;font-family:Inter,sans-serif;font-size:14px;font-weight:600;";
@@ -32,6 +36,46 @@ if (new URLSearchParams(window.location.search).get("expired") === "1") {
     document.body.insertBefore(banner, document.body.firstChild);
   });
 }
+
+async function upgradeCheckout(plan) {
+  const key = _upgradeKey;
+  if (!key) { openModal(); return; }
+  const btn = document.getElementById('btn-' + plan);
+  if (btn) { btn.textContent = 'Redirecting…'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${API}/create-checkout-session`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, plan })
+    });
+    const d = await r.json();
+    if (d.url) { window.location.href = d.url; }
+    else {
+      alert(d.error || 'Could not start checkout — check your key');
+      if (btn) { btn.textContent = btnLabel(plan); btn.disabled = false; }
+    }
+  } catch(e) {
+    alert('Network error — try again');
+    if (btn) { btn.textContent = btnLabel(plan); btn.disabled = false; }
+  }
+}
+
+function btnLabel(plan) {
+  return _upgradeKey ? 'Upgrade to ' + plan + ' →' : 'Start free pilot →';
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  if (_upgradeKey) {
+    // Show upgrade mode — replace button labels and add key badge
+    ['Starter','Professional','Institution'].forEach(plan => {
+      const btn = document.getElementById('btn-' + plan);
+      if (btn) btn.textContent = 'Upgrade to ' + plan + ' →';
+    });
+    const badge = document.createElement('div');
+    badge.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999;background:#1c2333;border-bottom:1px solid #242d3e;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:#8b949e;';
+    badge.innerHTML = 'Upgrading plan for key <strong style="color:#4db8f0;font-family:monospace;">' + _upgradeKey + '</strong> — select a plan below';
+    document.body.insertBefore(badge, document.body.firstChild);
+  }
+});
 </script>
 <nav>
   <a href="index.html" class="nav-logo">
@@ -90,7 +134,7 @@ if (new URLSearchParams(window.location.search).get("expired") === "1") {
         <li><span class="plan-check">✓</span> 30-day incident history</li>
         <li><span class="plan-check">✓</span> One install link</li>
       </ul>
-      <button class="plan-btn" onclick="openModal()">Start free pilot →</button>
+      <button id="btn-Starter" class="plan-btn" onclick="upgradeCheckout('Starter')">Start free pilot →</button>
     </div>
     <div class="plan featured">
       <div class="plan-pop">MOST POPULAR</div>
@@ -105,7 +149,7 @@ if (new URLSearchParams(window.location.search).get("expired") === "1") {
         <li><span class="plan-check">✓</span> 1-year incident history</li>
         <li><span class="plan-check">✓</span> Priority support</li>
       </ul>
-      <button class="plan-btn" onclick="openModal()">Start free pilot →</button>
+      <button id="btn-Professional" class="plan-btn" onclick="upgradeCheckout('Professional')">Start free pilot →</button>
     </div>
     <div class="plan">
       <div class="plan-tier">Institution</div>
@@ -119,7 +163,7 @@ if (new URLSearchParams(window.location.search).get("expired") === "1") {
         <li><span class="plan-check">✓</span> Unlimited history</li>
         <li><span class="plan-check">✓</span> Dedicated onboarding</li>
       </ul>
-      <button class="plan-btn" onclick="openModal()">Contact sales →</button>
+      <button id="btn-Institution" class="plan-btn" onclick="upgradeCheckout('Institution')">Start free pilot →</button>
     </div>
   </div>
 

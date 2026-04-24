@@ -420,14 +420,33 @@ let dataInterval = null;  // FIX: track interval so we can start it only after o
       document.body.style.cssText = 'margin:0;padding:0;background:#0d1117;';
       document.body.innerHTML =
         '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px;">' +
-          '<div style="background:#161b25;border:1px solid #242d3e;border-radius:16px;padding:48px 40px;max-width:440px;width:100%;text-align:center;">' +
+          '<div style="background:#161b25;border:1px solid #242d3e;border-radius:16px;padding:48px 40px;max-width:480px;width:100%;text-align:center;">' +
             '<div style="font-size:52px;margin-bottom:20px;">&#128274;</div>' +
             '<h1 style="font-size:22px;font-weight:800;color:#e6edf3;margin:0 0 12px;letter-spacing:-0.3px;">Your 7-day free trial has ended</h1>' +
-            '<p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 32px;">Upgrade to keep your team\'s AI activity protected. Choose a plan that fits your organization.</p>' +
-            '<a href="https://syphir.vercel.app/pricing.html" style="display:block;background:#2196d3;color:#fff;padding:14px 24px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">Upgrade to Continue &#8594;</a>' +
-            '<a href="mailto:support@syphir.io" style="display:block;font-size:13px;color:#4a5568;text-decoration:none;margin-top:6px;">Questions? Email support@syphir.io</a>' +
+            '<p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 28px;">Upgrade to keep your team\'s AI activity protected.</p>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">' +
+              '<button onclick="startCheckout(\'Starter\')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Starter</span><span style="color:#4db8f0;font-weight:700;">$99/mo</span></button>' +
+              '<button onclick="startCheckout(\'Professional\')" style="background:#2196d3;border:none;color:#fff;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Professional ★ Most Popular</span><span style="font-weight:700;">$249/mo</span></button>' +
+              '<button onclick="startCheckout(\'Institution\')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Institution</span><span style="color:#4db8f0;font-weight:700;">$599/mo</span></button>' +
+            '</div>' +
+            '<div id="checkout-msg" style="font-size:12px;color:#8b949e;min-height:18px;margin-bottom:12px;"></div>' +
+            '<a href="mailto:support@syphir.io" style="display:block;font-size:12px;color:#4a5568;text-decoration:none;">Questions? Email support@syphir.io</a>' +
           '</div>' +
         '</div>';
+      // Inject checkout function into the replaced page
+      window.startCheckout = async (plan) => {
+        const msg = document.getElementById('checkout-msg');
+        msg.textContent = 'Redirecting to checkout…';
+        try {
+          const r = await fetch(`${API}/create-checkout-session`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: ORG_KEY, plan })
+          });
+          const d = await r.json();
+          if (d.url) { window.location.href = d.url; }
+          else { msg.style.color='#f44336'; msg.textContent = d.error || 'Could not start checkout'; }
+        } catch(e) { msg.style.color='#f44336'; msg.textContent = 'Network error — try again'; }
+      };
       return;
     }
     if (vData.days_left !== null && vData.days_left !== undefined) {
@@ -510,8 +529,21 @@ function showTrialBanner(daysLeft, plan) {
   banner.id = 'trial-banner';
   banner.style.cssText = 'position:fixed;bottom:0;left:220px;right:0;z-index:999;background:' + color + ';color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Inter,sans-serif;font-size:13px;font-weight:500;';
   const daysText = daysLeft === 1 ? '1 day' : daysLeft + ' days';
-  banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong> — upgrade to keep your data protected.</span><a href="https://syphir.vercel.app/pricing.html" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;text-decoration:none;margin-left:16px;flex-shrink:0;">Upgrade Now</a>';
+  banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong> — upgrade to keep your data protected.</span><button onclick="startBannerCheckout()" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;border:none;cursor:pointer;font-family:Inter,sans-serif;margin-left:16px;flex-shrink:0;">Upgrade Now</button>';
   document.body.appendChild(banner);
+}
+
+async function startBannerCheckout() {
+  const plan = 'Professional'; // default upgrade plan from banner
+  try {
+    const r = await fetch(`${API}/create-checkout-session`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, plan })
+    });
+    const d = await r.json();
+    if (d.url) { window.location.href = d.url; }
+    else { alert(d.error || 'Could not start checkout'); }
+  } catch(e) { alert('Network error — try again'); }
 }
 
 // ── NAV ────────────────────────────────────────────────────────────────────
