@@ -188,7 +188,7 @@ async function renderAdmin() {
           <div>
             <span class="biz-key" onclick="copyKey('${b.key||''}')" title="Click to copy">${b.key||'—'}</span>
             ${b.emp_key ? `<div style="margin-top:2px; font-size:0.7rem; color:var(--muted); font-family:monospace;">emp: ${b.emp_key}</div>` : ''}
-            ${b.key ? `<div style="margin-top:4px;"><a href="install.html?key=${b.key}" target="_blank" style="font-size:0.72rem; color:var(--muted); text-decoration:none;">📎 Install link</a></div>` : ''}
+            ${(b.emp_key || b.key) ? `<div style="margin-top:4px;"><a href="install.html?key=${b.emp_key || b.key}" target="_blank" style="font-size:0.72rem; color:var(--muted); text-decoration:none;">📎 Install link</a></div>` : ''}
           </div>
           <div><span class="status-pill ${status}">${status}</span></div>
           <div style="display:flex; gap:4px; flex-wrap:wrap;">
