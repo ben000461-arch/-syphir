@@ -116,6 +116,15 @@
     <div id="bizRows"></div>
   </div>
 
+  <!-- Contact Submissions -->
+  <div class="add-biz-form" style="margin-top:2rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h3 style="margin:0;">Contact Submissions</h3>
+      <button onclick="loadSubmissions()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.35rem 0.75rem; border-radius:6px; font-size:0.78rem; cursor:pointer; font-family:inherit;">↻ Refresh</button>
+    </div>
+    <div id="submissionsContainer"></div>
+  </div>
+
 </div>
 </div>
 
@@ -190,6 +199,8 @@ async function renderAdmin() {
     }).join('');
   } catch(err) {
     container.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
+  } finally {
+    loadSubmissions();
   }
 }
 
@@ -292,6 +303,50 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show', 'success');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function loadSubmissions() {
+  const el = document.getElementById('submissionsContainer');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:0.75rem 0; color:var(--muted); font-size:0.82rem;">Loading…</div>';
+  try {
+    const res = await apiFetch(`${API}/admin/submissions?_t=${Date.now()}`, {
+      headers: { 'X-Admin-Secret': ADMIN_SECRET }
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const list = data.submissions || [];
+    if (list.length === 0) {
+      el.innerHTML = '<div class="empty-state">No submissions yet.</div>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Name</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Email</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Company</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Message</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(s => `
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 10px;font-weight:600;white-space:nowrap;">${s.name}</td>
+                <td style="padding:10px;"><a href="mailto:${s.email}" style="color:var(--accent);text-decoration:none;">${s.email}</a></td>
+                <td style="padding:10px;color:var(--muted2);">${s.company || '—'}</td>
+                <td style="padding:10px;color:var(--muted2);max-width:260px;white-space:pre-wrap;word-break:break-word;">${s.message}</td>
+                <td style="padding:10px;color:var(--muted);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${new Date(s.submitted_at).toLocaleString()}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(err) {
+    el.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
+  }
 }
 </script>
 </body>

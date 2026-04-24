@@ -53,7 +53,7 @@ app.use("/*", cors({
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.2.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.3.0", db: "supabase" });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
@@ -355,6 +355,39 @@ app.post("/admin/create-org", async (c) => {
   }
 });
 
+// ── CONTACT SUBMISSION ────────────────────────────────────────────────────
+app.post("/contact", async (c) => {
+  const { name, email, company, message } = await c.req.json();
+  if (!name || !email || !message) return c.json({ error: "name, email, and message are required" }, 400);
+  try {
+    await db("contact_submissions", {
+      method: "POST", prefer: "return=minimal",
+      body: JSON.stringify({
+        id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        name: name.trim(), email: email.trim(),
+        company: (company || "").trim(),
+        message: message.trim(),
+        submitted_at: new Date().toISOString(),
+      }),
+    });
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: "Failed to save: " + err.message }, 500);
+  }
+});
+
+// ── ADMIN: LIST CONTACT SUBMISSIONS ───────────────────────────────────────
+app.get("/admin/submissions", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  try {
+    const submissions = await db("contact_submissions?select=*&order=submitted_at.desc");
+    return c.json({ submissions: submissions || [] });
+  } catch (err) {
+    return c.json({ submissions: [], error: err.message });
+  }
+});
+
 // ── ADMIN: DEDUP ORGS ─────────────────────────────────────────────────────
 app.post("/admin/dedup-orgs", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
@@ -412,7 +445,7 @@ app.delete("/admin/remove-org/:key", async (c) => {
   }
 });
 
-console.log("Syphir API v2.2.0 running");
+console.log("Syphir API v2.3.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
