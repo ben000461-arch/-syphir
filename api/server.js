@@ -61,7 +61,7 @@ app.use("/*", cors({
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.5.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.6.0", db: "supabase" });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
@@ -114,6 +114,29 @@ app.post("/scan", async (c) => {
         message: result.message, resolved: false, timestamp: new Date().toISOString(),
       };
       await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+    }
+    // Auto-register employee: upsert user record with last_seen timestamp
+    if (user_email && user_email !== "unknown") {
+      try {
+        const now = new Date().toISOString();
+        const existing = await db(`users?org_id=eq.${org.id}&email=eq.${encodeURIComponent(user_email)}&select=id`);
+        if (existing && existing.length > 0) {
+          await db(`users?id=eq.${existing[0].id}`, {
+            method: "PATCH", prefer: "return=minimal",
+            body: JSON.stringify({ status: "active", last_seen: now }),
+          });
+        } else {
+          await db("users", {
+            method: "POST", prefer: "return=minimal",
+            body: JSON.stringify({
+              id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+              org_id: org.id, email: user_email,
+              role: "member", status: "active",
+              invited_at: now, last_seen: now,
+            }),
+          });
+        }
+      } catch(_) {} // non-fatal — scan result must still return
     }
     return c.json({ flagged: result.flagged, risk_level: result.risk_level, message: result.message, detections: result.detections });
   } catch (err) {
@@ -554,7 +577,7 @@ app.post("/create-portal-session", async (c) => {
   }
 });
 
-console.log("Syphir API v2.5.0 running");
+console.log("Syphir API v2.6.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };

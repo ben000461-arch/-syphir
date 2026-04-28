@@ -163,6 +163,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .ai-status{font-size:11px;color:var(--text3);margin-top:2px;}
 .ai-tile.connected .ai-status{color:var(--green);}
 .plan-pill{display:inline-flex;align-items:center;background:var(--blue-g);border:1px solid rgba(33,150,211,0.25);color:var(--blue-l);font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;}
+.prov-row{display:grid;grid-template-columns:190px 1fr 130px 28px;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);}
+.prov-row:last-child{border-bottom:none;}
+.prov-name{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--text);}
+.prov-icon{width:20px;text-align:center;font-size:15px;}
+.prov-key-wrap{position:relative;}
+.prov-key-wrap .inp{font-family:'JetBrains Mono',monospace;font-size:11px;padding-right:34px;letter-spacing:0.02em;}
+.prov-vis{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:0;line-height:1;}
+.prov-vis:hover{color:var(--text2);}
+.prov-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
+.prov-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--text3);}
+.prov-dot.on{background:var(--green);box-shadow:0 0 5px var(--green);}
+.prov-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:all 0.15s;}
+.prov-del:hover{color:var(--red);background:rgba(244,67,54,0.1);}
 </style>
 </head>
 <body>
@@ -276,35 +289,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
     <!-- GATEWAY -->
     <div class="page" id="page-gateway">
-      <div class="section-hdr"><div><div class="section-title">API Gateway</div><div class="section-sub">Protect AI traffic without the browser extension</div></div></div>
-      <div class="card mb-16">
-        <div class="card-hdr"><div><div class="card-title">Your Syphir Gateway Endpoint</div><div class="card-sub">Route AI calls through Syphir — we scan then forward</div></div></div>
-        <div class="card-body">
-          <div class="inp-group"><label class="inp-lbl">Gateway URL</label><input class="inp" id="gateway-url" readonly></div>
-          <div class="code">
-<span class="c"># Before — direct to OpenAI:</span>
-<span class="k">curl</span> https://api.openai.com/v1/chat/completions \
-  -H <span class="s">"Authorization: Bearer $OPENAI_KEY"</span>
-
-<span class="c"># After — scanned by Syphir first:</span>
-<span class="k">curl</span> https://api.syphir.io/v1/gateway/<span id="gateway-org-id">org_demo</span> \
-  -H <span class="s">"Authorization: Bearer <span id="gateway-key-display">SYP-XXXX</span>"</span> \
-  -H <span class="s">"X-AI-Provider: openai"</span> \
-  -H <span class="s">"X-AI-Key: $OPENAI_KEY"</span></div>
-          <button class="btn btn-primary" style="margin-top:14px;" onclick="copyGateway()">Copy Endpoint</button>
-        </div>
+      <div class="section-hdr">
+        <div><div class="section-title">API Gateway</div><div class="section-sub">Connect your AI providers — Syphir scans all traffic automatically</div></div>
+        <button class="btn btn-primary" onclick="saveProviderKeys()">Save Keys</button>
       </div>
       <div class="card">
-        <div class="card-hdr"><div><div class="card-title">Connect AI Providers</div><div class="card-sub">All traffic scanned before reaching these services</div></div></div>
-        <div class="card-body">
-          <div class="ai-grid">
-            <div class="ai-tile" onclick="connectAI(this,'OpenAI')"><div class="ai-icon">🟢</div><div class="ai-name">OpenAI / ChatGPT</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Anthropic')"><div class="ai-icon">🔴</div><div class="ai-name">Anthropic / Claude</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Gemini')"><div class="ai-icon">🔵</div><div class="ai-name">Google Gemini</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Groq')"><div class="ai-icon">⚡</div><div class="ai-name">Groq</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Copilot')"><div class="ai-icon">🪟</div><div class="ai-name">Microsoft Copilot</div><div class="ai-status">Click to connect</div></div>
-            <div class="ai-tile" onclick="connectAI(this,'Custom')"><div class="ai-icon">🔧</div><div class="ai-name">Custom / Other</div><div class="ai-status">Click to connect</div></div>
-          </div>
+        <div class="card-hdr">
+          <div><div class="card-title">AI Provider Keys</div><div class="card-sub">Stored locally in your browser — never sent to Syphir servers</div></div>
+          <button class="btn btn-ghost" onclick="addProviderRow()">+ Add Provider</button>
+        </div>
+        <div style="display:grid;grid-template-columns:190px 1fr 130px 28px;padding:8px 18px 6px;gap:12px;">
+          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">Provider</div>
+          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">API Key</div>
+          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">Status</div>
+          <div></div>
+        </div>
+        <div id="providers-list"></div>
+        <div style="padding:10px 18px 14px;">
+          <div id="provider-save-msg" style="font-size:11px;color:var(--green);min-height:16px;"></div>
         </div>
       </div>
     </div>
@@ -314,11 +316,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects and how it responds</div></div><button class="btn btn-primary" onclick="alert('Policies saved!')">Save Changes</button></div>
       <div class="grid-2">
         <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">🏥 HIPAA Data Types</div></div>
-          <div class="tog-row"><div><div class="tog-lbl">Patient Names</div><div class="tog-sub">Names in clinical context</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Medical Record Numbers</div><div class="tog-sub">MRN and patient IDs</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Diagnosis Information</div><div class="tog-sub">Clinical and treatment data</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Insurance Information</div><div class="tog-sub">Policy numbers and providers</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="card-hdr"><div class="card-title">📋 Sensitive Data Types</div></div>
+          <div class="tog-row"><div><div class="tog-lbl">Client Names</div><div class="tog-sub">Names in business context</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="tog-row"><div><div class="tog-lbl">Contract Numbers</div><div class="tog-sub">Agreement and deal IDs</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="tog-row"><div><div class="tog-lbl">Financial Data</div><div class="tog-sub">Revenue, pricing, forecasts</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="tog-row"><div><div class="tog-lbl">Account Numbers</div><div class="tog-sub">Bank and billing account IDs</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
         </div>
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">🔒 PII Detection</div></div>
@@ -363,26 +365,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           </div>
         </div>
         <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">👥 Team Members</div></div>
+          <div class="card-hdr">
+            <div class="card-title">👥 Team Members</div>
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="loadTeamMembers()">↻ Refresh</button>
+          </div>
           <div class="card-body">
-            <div class="inp-group">
-              <label class="inp-lbl">Invite by Email</label>
-              <div style="display:flex;gap:8px;">
-                <input class="inp" id="invite-email" placeholder="employee@company.com" style="flex:1;">
-                <button class="btn btn-primary" onclick="inviteUser()">Invite</button>
-              </div>
-              <div id="invite-msg" style="font-size:11px;margin-top:6px;"></div>
-            </div>
-            <div style="margin-top:14px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
-              <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Manual Install Link</div>
-              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share this link with employees if the invite email doesn't work:</div>
+            <div style="padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;">
+              <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Employee Install Link</div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share with employees — they install the extension and are added automatically on first use.</div>
               <div style="display:flex;gap:8px;align-items:center;">
                 <input class="inp" id="install-link" readonly style="flex:1;font-size:11px;opacity:0.8;">
-                <button class="btn btn-ghost" onclick="copyInstallLink()" style="white-space:nowrap;flex-shrink:0;">Copy Link</button>
+                <button class="btn btn-ghost" onclick="copyInstallLink()" style="white-space:nowrap;flex-shrink:0;">Copy</button>
               </div>
-              <div id="copy-link-msg" style="font-size:11px;margin-top:6px;"></div>
+              <div id="copy-link-msg" style="font-size:11px;margin-top:5px;color:var(--green);"></div>
             </div>
-            <div id="team-members-list" style="margin-top:8px;"></div>
+            <div id="team-members-list"></div>
           </div>
         </div>
       </div>
@@ -540,6 +537,7 @@ const PLAN_PRICES = { Starter: 99, Professional: 249, Institution: 599, Demo: 0 
   // FIX: Only start polling AFTER ORG_ID is resolved
   await loadData();
   loadTeamMembers();
+  renderProviders();
   dataInterval = setInterval(loadData, 5000);
 })();
 
@@ -605,6 +603,7 @@ function nav(page, el) {
   f.style.display = ['overview','incidents'].includes(page) ? 'flex' : 'none';
   if (['overview','incidents','live'].includes(page)) loadData();
   if (page === 'settings') loadTeamMembers();
+  if (page === 'gateway') renderProviders();
 }
 
 function setFilter(f, el) {
@@ -756,59 +755,66 @@ async function saveSettings() {
 }
 
 // ── TEAM ───────────────────────────────────────────────────────────────────
+function lastSeenLabel(iso) {
+  if (!iso) return '—';
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  if (s < 86400*7) return Math.floor(s/86400) + 'd ago';
+  return new Date(iso).toLocaleDateString();
+}
+
 async function loadTeamMembers() {
-  if (!ORG_ID) return;  // FIX: guard
+  if (!ORG_ID) return;
+  const list = document.getElementById('team-members-list');
+  if (!list) return;
   try {
     const res = await fetch(`${API}/team/${ORG_ID}`);
     const data = await res.json();
-    const list = document.getElementById('team-members-list');
-    if (!list) return;
-    const members = data.users || [];
+    const members = (data.users || []).filter(u => u.status !== 'removed');
     const adminEmail = ORG_ADMIN_EMAIL || ORG_NAME + ' Admin';
-    const adminRow = `<div class="tog-row" style="padding:10px 0 0;">
-      <div><div class="tog-lbl">${adminEmail}</div><div class="tog-sub">Admin · Active</div></div>
-      <span style="font-size:11px;color:var(--green);font-weight:600;">● Active</span>
+
+    const hdr = `<div style="display:grid;grid-template-columns:1fr 80px 100px 60px;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Member</div>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Role</div>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Last Seen</div>
+      <div></div>
     </div>`;
-    if (!members.length) { list.innerHTML = adminRow; return; }
-    const rows = members.map(u => `
-      <div class="tog-row" style="padding:10px 0 0;">
-        <div><div class="tog-lbl">${u.email}</div><div class="tog-sub">${u.role} · ${u.status}</div></div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:11px;color:${u.status==='invited'?'var(--yellow)':'var(--green)'};font-weight:600;">${u.status==='invited'?'● Invited':'● Active'}</span>
-          <button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;">Remove</button>
-        </div>
-      </div>`).join('');
-    list.innerHTML = adminRow + rows;
+
+    const adminRow = `<div style="display:grid;grid-template-columns:1fr 80px 100px 60px;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;">
+      <div><div style="font-size:12.5px;font-weight:600;">${adminEmail}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Dashboard Admin</div></div>
+      <div><span style="font-size:10.5px;font-weight:600;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:2px 7px;border-radius:4px;">Admin</span></div>
+      <div style="font-size:11px;color:var(--green);font-weight:500;">● Active</div>
+      <div></div>
+    </div>`;
+
+    if (!members.length) {
+      list.innerHTML = hdr + adminRow + `<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px;">No employees yet — share the install link above.</div>`;
+      return;
+    }
+
+    const rows = members.map(u => {
+      const isActive = u.status === 'active';
+      const statusColor = isActive ? 'var(--green)' : 'var(--yellow)';
+      const statusLabel = isActive ? '● Active' : '● Invited';
+      return `<div style="display:grid;grid-template-columns:1fr 80px 100px 60px;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;">
+        <div><div style="font-size:12.5px;font-weight:600;">${u.email}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">${u.role||'Member'}</div></div>
+        <div><span style="font-size:10.5px;font-weight:600;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;">${u.role||'Member'}</span></div>
+        <div style="font-size:11px;color:${statusColor};font-weight:500;">${statusLabel}<div style="font-size:10px;color:var(--text3);font-weight:400;margin-top:1px;">${lastSeenLabel(u.last_seen)}</div></div>
+        <div><button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;" title="Remove">✕</button></div>
+      </div>`;
+    }).join('');
+
+    list.innerHTML = hdr + adminRow + rows;
   } catch(e) {
-    console.log('Could not load team members:', e.message);
+    list.innerHTML = `<div style="padding:12px 0;color:var(--text3);font-size:12px;">Could not load members.</div>`;
   }
 }
 
 async function removeUser(id) {
   if (!confirm('Remove this team member?')) return;
   try { await fetch(`${API}/team/${id}/remove`, {method:'PATCH'}); loadTeamMembers(); } catch(e){}
-}
-
-async function inviteUser() {
-  const email = document.getElementById('invite-email').value.trim();
-  const msg = document.getElementById('invite-msg');
-  if (!email) { msg.style.color='var(--red)'; msg.textContent='Enter an email'; return; }
-  msg.style.color='var(--text3)'; msg.textContent='Sending invite...';
-  try {
-    const res = await fetch(`${API}/invite-user`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ org_key: ORG_KEY, employee_email: email, org_name: ORG_NAME })
-    });
-    const data = await res.json();
-    if (data.success) {
-      msg.style.color='var(--green)'; msg.textContent='✓ Invite sent!';
-      document.getElementById('invite-email').value='';
-      loadTeamMembers();
-    } else {
-      msg.style.color='var(--red)'; msg.textContent=data.message||'Failed to send';
-    }
-  } catch(e) { msg.style.color='var(--red)'; msg.textContent='API offline'; }
 }
 
 async function resolve(id) {
@@ -842,8 +848,98 @@ function copyInstallLink() {
 }
 
 function clearFeed() { document.getElementById('feed-list').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Feed cleared</div></div>'; }
-function copyGateway() { navigator.clipboard.writeText(document.getElementById('gateway-url').value || ''); alert('Copied!'); }
-function connectAI(tile,name) { const k=prompt(`Enter your ${name} API key:`); if(k){tile.classList.add('connected');tile.querySelector('.ai-status').textContent='✓ Connected';} }
+
+// ── AI PROVIDER KEYS ────────────────────────────────────────────────────────
+const DEFAULT_PROVIDERS = [
+  { id:'openai',     name:'OpenAI / ChatGPT',   icon:'🟢', placeholder:'sk-...' },
+  { id:'anthropic',  name:'Anthropic / Claude', icon:'🔴', placeholder:'sk-ant-...' },
+  { id:'gemini',     name:'Google Gemini',      icon:'🔵', placeholder:'AIza...' },
+  { id:'groq',       name:'Groq',               icon:'⚡', placeholder:'gsk_...' },
+  { id:'copilot',    name:'Microsoft Copilot',  icon:'🪟', placeholder:'API key...' },
+  { id:'perplexity', name:'Perplexity',         icon:'🔮', placeholder:'pplx-...' },
+];
+const PROVIDER_STORAGE_KEY = 'syphir_provider_keys_' + ORG_KEY;
+
+function loadProviderKeys() {
+  try { return JSON.parse(localStorage.getItem(PROVIDER_STORAGE_KEY) || '{}'); } catch(_) { return {}; }
+}
+
+function renderProviders() {
+  const saved = loadProviderKeys();
+  const list = document.getElementById('providers-list');
+  if (!list) return;
+
+  // Build rows: default providers first, then any custom saved ones
+  const customIds = Object.keys(saved).filter(id => !DEFAULT_PROVIDERS.find(p => p.id === id));
+  const allProviders = [
+    ...DEFAULT_PROVIDERS,
+    ...customIds.map(id => ({ id, name: saved[id].name || id, icon: '🔧', placeholder: 'API key...', custom: true }))
+  ];
+
+  list.innerHTML = allProviders.map(p => {
+    const val = saved[p.id]?.key || '';
+    const connected = val.length > 0;
+    return `<div class="prov-row" data-id="${p.id}">
+      <div class="prov-name"><span class="prov-icon">${p.icon}</span>${p.name}</div>
+      <div class="prov-key-wrap">
+        <input type="password" class="inp prov-key-inp" placeholder="${p.placeholder}" value="${val}" autocomplete="off" oninput="updateProviderStatus(this)">
+        <button class="prov-vis" onclick="toggleKeyVis(this)" tabindex="-1">👁</button>
+      </div>
+      <div class="prov-status">
+        <div class="prov-dot ${connected?'on':''}"></div>
+        <span class="prov-status-txt">${connected?'Connected':'Not connected'}</span>
+      </div>
+      <button class="prov-del" onclick="removeProviderRow(this,'${p.id}')" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function updateProviderStatus(input) {
+  const row = input.closest('.prov-row');
+  const dot  = row.querySelector('.prov-dot');
+  const txt  = row.querySelector('.prov-status-txt');
+  const hasKey = input.value.trim().length > 0;
+  dot.classList.toggle('on', hasKey);
+  txt.textContent = hasKey ? 'Connected' : 'Not connected';
+}
+
+function toggleKeyVis(btn) {
+  const inp = btn.previousElementSibling;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function removeProviderRow(btn, id) {
+  const saved = loadProviderKeys();
+  delete saved[id];
+  localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify(saved));
+  renderProviders();
+}
+
+function addProviderRow() {
+  const name = prompt('Provider name (e.g. "Mistral"):');
+  if (!name || !name.trim()) return;
+  const id = name.trim().toLowerCase().replace(/\s+/g, '_');
+  const saved = loadProviderKeys();
+  if (!saved[id]) saved[id] = { name: name.trim(), key: '' };
+  localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify(saved));
+  renderProviders();
+}
+
+function saveProviderKeys() {
+  const rows = document.querySelectorAll('#providers-list .prov-row');
+  const data = {};
+  rows.forEach(row => {
+    const id   = row.dataset.id;
+    const key  = row.querySelector('.prov-key-inp').value.trim();
+    const name = row.querySelector('.prov-name').textContent.trim();
+    if (id) data[id] = { key, name };
+  });
+  localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify(data));
+  const msg = document.getElementById('provider-save-msg');
+  if (msg) { msg.textContent = '✓ Keys saved locally'; setTimeout(() => msg.textContent='', 3000); }
+  renderProviders();
+}
 </script>
 </body>
 </html>
