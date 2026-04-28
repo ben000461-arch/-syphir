@@ -361,7 +361,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           <div class="card-body">
             <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub" id="settings-plan-renew">Renews May 10, 2026</div></div><div class="plan-pill" id="settings-plan">Business · $249/mo</div></div>
             <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub">Visa •••• 4242</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Update</button></div>
-            <button class="btn btn-ghost" id="portal-btn" style="width:100%;margin-top:14px;justify-content:center;" onclick="openPortal()">Manage via Stripe →</button>
+            <button class="btn btn-ghost" id="portal-btn" style="width:100%;margin-top:14px;justify-content:center;" onclick="openBillingPage()">Manage Payments →</button>
           </div>
         </div>
         <div class="card mb-16">
@@ -562,6 +562,10 @@ function showPaymentSuccess() {
   setTimeout(() => el.remove(), 6000);
 }
 
+function openBillingPage() {
+  window.open('billing.html?key=' + encodeURIComponent(ORG_KEY), '_blank');
+}
+
 async function openPortal() {
   const btn = document.getElementById('portal-btn');
   if (btn) { btn.textContent = 'Opening Stripe…'; btn.disabled = true; }
@@ -574,7 +578,7 @@ async function openPortal() {
     if (d.url) { window.location.href = d.url; }
     else { alert(d.error || 'Could not open billing portal'); }
   } catch(e) { alert('Network error — try again'); }
-  finally { if (btn) { btn.textContent = 'Manage via Stripe →'; btn.disabled = false; } }
+  finally { if (btn) { btn.textContent = 'Manage Payments →'; btn.disabled = false; } }
 }
 
 function startBannerCheckout() {

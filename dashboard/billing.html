@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing — Syphir</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d1117;--bg2:#161b25;--bg3:#1c2333;
+  --border:#242d3e;--accent:#5b4fe8;--accent-l:#7c6ef5;
+  --green:#00e676;--red:#f44336;--yellow:#ffd54f;
+  --text:#e6edf3;--text2:#8b949e;--text3:#4a5568;
+  --mono:'JetBrains Mono',monospace;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-weight:700;font-size:15px;}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),#3b82f6);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:15px;height:15px;fill:#fff;}
+.nav-back{margin-left:auto;color:var(--text2);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s;}
+.nav-back:hover{color:var(--text);}
+
+/* ── LAYOUT ── */
+.page-wrap{max-width:720px;margin:0 auto;padding:80px 20px 60px;}
+.page-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px;}
+.page-sub{font-size:0.88rem;color:var(--text2);margin-bottom:2rem;}
+
+/* ── CARDS ── */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;}
+.section-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.section-title{font-size:0.88rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text2);}
+.section-body{padding:20px;}
+
+/* ── SUBSCRIPTION ── */
+.plan-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.plan-name{font-size:1.15rem;font-weight:700;}
+.plan-pill{background:rgba(91,79,232,0.15);border:1px solid rgba(91,79,232,0.3);color:#a89af7;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:3px 10px;border-radius:100px;}
+.plan-pill.trial{background:rgba(255,213,79,0.1);border-color:rgba(255,213,79,0.25);color:#ffd54f;}
+.plan-pill.cancelled{background:rgba(244,67,54,0.1);border-color:rgba(244,67,54,0.25);color:#f44336;}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.meta-item{background:var(--bg3);border-radius:8px;padding:12px 14px;}
+.meta-lbl{font-size:0.7rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;}
+.meta-val{font-size:0.9rem;font-weight:600;color:var(--text);}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--text2);padding:9px 18px;border-radius:8px;font-size:0.83rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-cancel:hover{border-color:var(--red);color:var(--red);}
+.btn-cancel:disabled{opacity:.45;cursor:not-allowed;}
+.cancel-note{font-size:0.75rem;color:var(--text3);margin-top:8px;}
+
+/* ── PAYMENT METHOD ── */
+.pm-row{display:flex;align-items:center;gap:14px;}
+.pm-icon{width:42px;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--text2);letter-spacing:0.04em;text-transform:uppercase;}
+.pm-info{flex:1;}
+.pm-card{font-size:0.9rem;font-weight:600;}
+.pm-exp{font-size:0.78rem;color:var(--text2);margin-top:2px;}
+.btn-update{background:transparent;border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:7px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .15s;}
+.btn-update:hover{border-color:var(--accent-l);}
+.btn-update:disabled{opacity:.45;cursor:not-allowed;}
+
+/* ── INVOICES ── */
+.invoice-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:0.85rem;}
+.invoice-row:last-child{border-bottom:none;}
+.inv-date{color:var(--text2);font-size:0.8rem;min-width:100px;}
+.inv-num{color:var(--text3);font-size:0.78rem;font-family:var(--mono);}
+.inv-amount{font-weight:600;}
+.inv-status{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 8px;border-radius:100px;}
+.inv-status.paid{background:rgba(0,230,118,0.1);color:var(--green);}
+.inv-status.open{background:rgba(255,213,79,0.1);color:var(--yellow);}
+.inv-status.void{background:rgba(244,67,54,0.1);color:var(--red);}
+.inv-pdf{color:var(--text3);font-size:0.78rem;text-decoration:none;transition:color .15s;}
+.inv-pdf:hover{color:var(--accent-l);}
+.inv-empty{text-align:center;padding:28px 0;color:var(--text3);font-size:0.85rem;}
+
+/* ── STATES ── */
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg2) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;height:18px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.err-banner{background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.25);border-radius:10px;padding:16px 20px;color:#f44336;font-size:0.88rem;margin-bottom:16px;display:none;}
+.loading-wrap{padding:28px 0;text-align:center;color:var(--text3);font-size:0.85rem;}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-bg.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:400px;transform:translateY(12px);transition:transform .2s;}
+.modal-bg.open .modal-box{transform:translateY(0);}
+.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:8px;}
+.modal-body{font-size:0.88rem;color:var(--text2);line-height:1.6;margin-bottom:22px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.btn-confirm-cancel{background:var(--red);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-confirm-cancel:disabled{opacity:.5;cursor:not-allowed;}
+.btn-dismiss{background:transparent;border:1px solid var(--border);color:var(--text);padding:9px 16px;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;}
+
+@media(max-width:480px){.meta-grid{grid-template-columns:1fr;}.modal-box{margin:16px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+    Syphir
+  </a>
+  <a href="javascript:window.close()" class="nav-back" id="nav-back">← Back to Dashboard</a>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-title">Billing</div>
+  <div class="page-sub" id="page-sub">Manage your subscription and payment details.</div>
+
+  <div class="err-banner" id="err-banner"></div>
+
+  <!-- Subscription -->
+  <div class="section">
+    <div class="section-hdr">
+      <span class="section-title">Current Subscription</span>
+      <span id="sub-status-pill"></span>
+    </div>
+    <div class="section-body" id="sub-body">
+      <div class="loading-wrap">Loading subscription…</div>
+    </div>
+  </div>
+
+  <!-- Payment Method -->
+  <div class="section">
+    <div class="section-hdr"><span class="section-title">Payment Method</span></div>
+    <div class="section-body" id="pm-body">
+      <div class="loading-wrap">Loading payment method…</div>
+    </div>
+  </div>
+
+  <!-- Invoice History -->
+  <div class="section">
+    <div class="section-hdr"><span class="section-title">Payment History</span></div>
+    <div class="section-body" id="inv-body">
+      <div class="loading-wrap">Loading invoices…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel confirmation modal -->
+<div class="modal-bg" id="cancel-modal">
+  <div class="modal-box">
+    <div class="modal-title">Cancel subscription?</div>
+    <div class="modal-body">Your subscription will remain active until the end of the current billing period. After that, your account will revert to the free plan.</div>
+    <div class="modal-actions">
+      <button class="btn-dismiss" onclick="closeCancelModal()">Keep Subscription</button>
+      <button class="btn-confirm-cancel" id="confirm-cancel-btn" onclick="confirmCancel()">Yes, Cancel →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const _API = 'https://syphir-api.onrender.com';
+const _key = new URLSearchParams(window.location.search).get('key') || '';
+
+if (!_key) {
+  document.getElementById('err-banner').textContent = 'No dashboard key found. Close this tab and try again from your Settings page.';
+  document.getElementById('err-banner').style.display = 'block';
+}
+
+// Back link: close tab if opened via window.open, else go to app
+const backLink = document.getElementById('nav-back');
+if (document.referrer && document.referrer.includes('app.html')) {
+  backLink.href = 'app.html?key=' + encodeURIComponent(_key);
+  backLink.removeAttribute('onclick');
+} else {
+  backLink.href = 'app.html?key=' + encodeURIComponent(_key);
+  backLink.removeAttribute('onclick');
+}
+
+function fmt(cents, currency) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: (currency || 'usd').toUpperCase() }).format(cents / 100);
+}
+function fmtDate(ts) {
+  return new Date(ts * 1000).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+function showErr(msg) {
+  const el = document.getElementById('err-banner');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function loadBilling() {
+  if (!_key) return;
+  try {
+    const r = await fetch(`${_API}/billing/${encodeURIComponent(_key)}`);
+    const d = await r.json();
+    if (!r.ok || d.error) { showErr(d.error || 'Could not load billing info'); renderSubFallback(); renderPmFallback(); return; }
+    renderSub(d);
+    renderPm(d);
+  } catch(e) {
+    showErr('Network error loading billing info — try again');
+    renderSubFallback();
+    renderPmFallback();
+  }
+}
+
+async function loadInvoices() {
+  if (!_key) return;
+  try {
+    const r = await fetch(`${_API}/billing/invoices/${encodeURIComponent(_key)}`);
+    const d = await r.json();
+    if (!r.ok || d.error) { renderInvFallback(d.error); return; }
+    renderInvoices(d.invoices);
+  } catch(e) {
+    renderInvFallback('Network error');
+  }
+}
+
+function renderSub(d) {
+  const sub = d.subscription;
+  const pill = document.getElementById('sub-status-pill');
+
+  if (!sub) {
+    pill.innerHTML = '<span class="plan-pill trial">No Active Plan</span>';
+    document.getElementById('sub-body').innerHTML = `
+      <p style="color:var(--text2);font-size:0.88rem;margin-bottom:16px;">You don't have an active paid subscription.</p>
+      <a href="pricing.html?key=${encodeURIComponent(_key)}" style="display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:9px 20px;border-radius:8px;font-size:0.88rem;font-weight:600;">Choose a Plan →</a>
+    `;
+    return;
+  }
+
+  const isCancelling = sub.cancel_at_period_end;
+  const statusClass = isCancelling ? 'cancelled' : (sub.status === 'active' ? '' : 'trial');
+  const statusText = isCancelling ? 'Cancelling' : capitalize(sub.status);
+  pill.innerHTML = `<span class="plan-pill ${statusClass}">${statusText}</span>`;
+
+  const planLabel = d.plan ? capitalize(d.plan) : (sub.plan_name || 'Paid');
+  const price = fmt(sub.amount, sub.currency);
+  const renewDate = fmtDate(sub.current_period_end);
+
+  document.getElementById('sub-body').innerHTML = `
+    <div class="plan-row">
+      <div class="plan-name">Syphir ${planLabel}</div>
+      <div style="font-size:1.1rem;font-weight:700;">${price}<span style="font-size:0.8rem;font-weight:400;color:var(--text2);">/${sub.interval}</span></div>
+    </div>
+    <div class="meta-grid">
+      <div class="meta-item"><div class="meta-lbl">${isCancelling ? 'Access Until' : 'Next Billing Date'}</div><div class="meta-val">${renewDate}</div></div>
+      <div class="meta-item"><div class="meta-lbl">Billing Cycle</div><div class="meta-val">${capitalize(sub.interval)}ly</div></div>
+    </div>
+    ${isCancelling
+      ? `<p style="font-size:0.83rem;color:var(--yellow);margin-bottom:6px;">Your subscription is set to cancel on ${renewDate}. You'll retain access until then.</p>`
+      : `<button class="btn-cancel" onclick="openCancelModal()">Cancel Subscription</button>
+         <p class="cancel-note">Cancels at end of billing period. You'll keep access until ${renewDate}.</p>`
+    }
+  `;
+}
+
+function renderSubFallback() {
+  document.getElementById('sub-body').innerHTML = '<p style="color:var(--text3);font-size:0.85rem;">Could not load subscription info.</p>';
+}
+
+function renderPm(d) {
+  const pm = d.payment_method;
+  if (!pm) { renderPmFallback(); return; }
+  const brand = pm.brand ? pm.brand.charAt(0).toUpperCase() + pm.brand.slice(1) : 'Card';
+  document.getElementById('pm-body').innerHTML = `
+    <div class="pm-row">
+      <div class="pm-icon">${pm.brand?.toUpperCase() || 'CARD'}</div>
+      <div class="pm-info">
+        <div class="pm-card">${brand} •••• ${pm.last4}</div>
+        <div class="pm-exp">Expires ${pm.exp_month}/${pm.exp_year}</div>
+      </div>
+      <button class="btn-update" id="update-card-btn" onclick="openStripePortal()">Update Card</button>
+    </div>
+  `;
+}
+
+function renderPmFallback() {
+  document.getElementById('pm-body').innerHTML = `
+    <div class="pm-row">
+      <div class="pm-info" style="color:var(--text3);font-size:0.85rem;">No payment method on file.</div>
+      <button class="btn-update" onclick="openStripePortal()">Add Card</button>
+    </div>
+  `;
+}
+
+function renderInvoices(invoices) {
+  if (!invoices || invoices.length === 0) {
+    document.getElementById('inv-body').innerHTML = '<div class="inv-empty">No invoices yet.</div>';
+    return;
+  }
+  const rows = invoices.map(inv => `
+    <div class="invoice-row">
+      <div>
+        <div class="inv-date">${fmtDate(inv.date)}</div>
+        ${inv.number ? `<div class="inv-num">${inv.number}</div>` : ''}
+      </div>
+      <div class="inv-amount">${fmt(inv.amount, inv.currency)}</div>
+      <span class="inv-status ${inv.status}">${capitalize(inv.status)}</span>
+      ${inv.pdf ? `<a class="inv-pdf" href="${inv.pdf}" target="_blank" rel="noopener">PDF ↗</a>` : '<span></span>'}
+    </div>
+  `).join('');
+  document.getElementById('inv-body').innerHTML = rows;
+}
+
+function renderInvFallback(msg) {
+  document.getElementById('inv-body').innerHTML = `<div class="inv-empty">${msg || 'Could not load invoices.'}</div>`;
+}
+
+// ── CANCEL FLOW ─────────────────────────────────────────────────────────────
+function openCancelModal() { document.getElementById('cancel-modal').classList.add('open'); }
+function closeCancelModal() { document.getElementById('cancel-modal').classList.remove('open'); }
+document.getElementById('cancel-modal').addEventListener('click', e => { if (e.target === document.getElementById('cancel-modal')) closeCancelModal(); });
+
+async function confirmCancel() {
+  const btn = document.getElementById('confirm-cancel-btn');
+  btn.textContent = 'Cancelling…';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`${_API}/billing/cancel`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: _key })
+    });
+    const d = await r.json();
+    if (d.success) {
+      closeCancelModal();
+      await loadBilling();
+    } else {
+      alert(d.error || 'Could not cancel — try again');
+      btn.textContent = 'Yes, Cancel →';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    alert('Network error — try again');
+    btn.textContent = 'Yes, Cancel →';
+    btn.disabled = false;
+  }
+}
+
+// ── UPDATE CARD → Stripe Portal ─────────────────────────────────────────────
+async function openStripePortal() {
+  const btn = document.getElementById('update-card-btn');
+  if (btn) { btn.textContent = 'Opening…'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${_API}/create-portal-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: _key })
+    });
+    const d = await r.json();
+    if (d.url) { window.location.href = d.url; }
+    else { alert(d.error || 'Could not open billing portal'); if (btn) { btn.textContent = 'Update Card'; btn.disabled = false; } }
+  } catch(e) {
+    alert('Network error — try again');
+    if (btn) { btn.textContent = 'Update Card'; btn.disabled = false; }
+  }
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (_key) {
+    document.getElementById('page-sub').textContent = `Billing for key ${_key}`;
+    loadBilling();
+    loadInvoices();
+  }
+});
+</script>
+</body>
+</html>

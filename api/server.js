@@ -647,7 +647,115 @@ app.post("/create-portal-session", async (c) => {
   }
 });
 
-console.log("Syphir API v2.7.1 running");
+// ── BILLING: GET invoice history ───────────────────────────────────────────
+// Must be registered BEFORE /billing/:key to prevent "invoices" matching as key param
+app.get("/billing/invoices/:key", async (c) => {
+  if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
+  const key = c.req.param("key");
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ error: "Invalid key" }, 401);
+    const org = rows[0].organizations;
+    if (!org.stripe_customer_id) return c.json({ invoices: [] });
+
+    const invoices = await stripe.invoices.list({ customer: org.stripe_customer_id, limit: 24 });
+    return c.json({
+      invoices: invoices.data.map(inv => ({
+        id: inv.id,
+        date: inv.created,
+        amount: inv.amount_paid,
+        currency: inv.currency,
+        status: inv.status,
+        pdf: inv.invoice_pdf,
+        number: inv.number,
+      })),
+    });
+  } catch (err) {
+    return c.json({ error: "Stripe error: " + err.message }, 500);
+  }
+});
+
+// ── BILLING: GET subscription + payment method ────────────────────────────
+app.get("/billing/:key", async (c) => {
+  if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
+  const key = c.req.param("key");
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ error: "Invalid key" }, 401);
+    const org = rows[0].organizations;
+    if (!org.stripe_customer_id) return c.json({ error: "No billing account found" }, 404);
+
+    const [customer, subscriptions] = await Promise.all([
+      stripe.customers.retrieve(org.stripe_customer_id),
+      stripe.subscriptions.list({ customer: org.stripe_customer_id, limit: 1, status: "all" }),
+    ]);
+
+    const sub = subscriptions.data[0] || null;
+    let paymentMethod = null;
+    if (sub?.default_payment_method) {
+      paymentMethod = await stripe.paymentMethods.retrieve(sub.default_payment_method);
+    } else if (customer.invoice_settings?.default_payment_method) {
+      paymentMethod = await stripe.paymentMethods.retrieve(customer.invoice_settings.default_payment_method);
+    }
+
+    return c.json({
+      org_id: org.id,
+      org_name: org.name,
+      plan: org.plan,
+      stripe_customer_id: org.stripe_customer_id,
+      subscription: sub ? {
+        id: sub.id,
+        status: sub.status,
+        plan_name: sub.items?.data[0]?.price?.nickname || org.plan,
+        amount: sub.items?.data[0]?.price?.unit_amount || 0,
+        currency: sub.items?.data[0]?.price?.currency || "usd",
+        interval: sub.items?.data[0]?.price?.recurring?.interval || "month",
+        current_period_end: sub.current_period_end,
+        cancel_at_period_end: sub.cancel_at_period_end,
+      } : null,
+      payment_method: paymentMethod ? {
+        brand: paymentMethod.card?.brand || "card",
+        last4: paymentMethod.card?.last4 || "????",
+        exp_month: paymentMethod.card?.exp_month,
+        exp_year: paymentMethod.card?.exp_year,
+      } : null,
+    });
+  } catch (err) {
+    return c.json({ error: "Stripe error: " + err.message }, 500);
+  }
+});
+
+// ── BILLING: CANCEL subscription ───────────────────────────────────────────
+app.delete("/billing/cancel", async (c) => {
+  if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
+  const { key } = await c.req.json();
+  if (!key) return c.json({ error: "key is required" }, 400);
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ error: "Invalid key" }, 401);
+    const org = rows[0].organizations;
+    if (!org.stripe_customer_id) return c.json({ error: "No billing account found" }, 404);
+
+    const subscriptions = await stripe.subscriptions.list({ customer: org.stripe_customer_id, status: "active", limit: 1 });
+    if (subscriptions.data.length === 0) return c.json({ error: "No active subscription found" }, 404);
+
+    // Cancel at period end (not immediately)
+    await stripe.subscriptions.update(subscriptions.data[0].id, { cancel_at_period_end: true });
+
+    // Downgrade org to trial in Supabase
+    await dbWithRetry(`organizations?id=eq.${org.id}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify({ plan: "trial" }),
+    });
+
+    console.log(`✓ Cancelled subscription for org ${org.id}`);
+    return c.json({ success: true, message: "Subscription will cancel at end of billing period" });
+  } catch (err) {
+    return c.json({ error: "Stripe error: " + err.message }, 500);
+  }
+});
+
+console.log("Syphir API v2.8.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
