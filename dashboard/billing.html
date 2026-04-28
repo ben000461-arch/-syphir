@@ -189,14 +189,48 @@ async function loadBilling() {
   try {
     const r = await fetch(`${_API}/billing/${encodeURIComponent(_key)}`);
     const d = await r.json();
-    if (!r.ok || d.error) { showErr(d.error || 'Could not load billing info'); renderSubFallback(); renderPmFallback(); return; }
-    renderSub(d);
-    renderPm(d);
+    if (r.ok && !d.error) { renderSub(d); renderPm(d); return; }
+
+    // No Stripe customer yet — fall back to org record for plan info
+    if (d.error === 'No billing account found' || d.error === 'Stripe not configured') {
+      try {
+        const orgR = await fetch(`${_API}/org/${encodeURIComponent(_key)}`);
+        const org = await orgR.json();
+        if (orgR.ok && org && org.id) { renderSubFromOrg(org); renderPmFallback(); return; }
+      } catch(_) {}
+    }
+    showErr(d.error || 'Could not load billing info');
+    renderSubFallback();
+    renderPmFallback();
   } catch(e) {
     showErr('Network error loading billing info — try again');
     renderSubFallback();
     renderPmFallback();
   }
+}
+
+function renderSubFromOrg(org) {
+  const paidPlans = ['Starter', 'Professional', 'Institution'];
+  const plan = org.plan || 'Demo';
+  const isPaid = paidPlans.includes(plan);
+  const prices = { Starter: 99, Professional: 249, Institution: 599 };
+  const pill = document.getElementById('sub-status-pill');
+  pill.innerHTML = `<span class="plan-pill ${isPaid ? '' : 'trial'}">${isPaid ? 'Active' : capitalize(plan)}</span>`;
+
+  document.getElementById('sub-body').innerHTML = isPaid ? `
+    <div class="plan-row">
+      <div class="plan-name">Syphir ${capitalize(plan)}</div>
+      <div style="font-size:1.1rem;font-weight:700;">$${prices[plan]}<span style="font-size:0.8rem;font-weight:400;color:var(--text2);">/mo</span></div>
+    </div>
+    <div class="meta-grid">
+      <div class="meta-item"><div class="meta-lbl">Billing</div><div class="meta-val" style="font-size:0.82rem;color:var(--text2);">Billed manually</div></div>
+      <div class="meta-item"><div class="meta-lbl">Status</div><div class="meta-val" style="color:var(--green);">Active</div></div>
+    </div>
+    <p style="font-size:0.8rem;color:var(--text3);margin-top:4px;">To change or cancel your plan, email <a href="mailto:support@syphir.io" style="color:var(--accent-l);text-decoration:none;">support@syphir.io</a></p>
+  ` : `
+    <p style="color:var(--text2);font-size:0.88rem;margin-bottom:16px;">You're on the demo plan. Choose a plan to protect your team.</p>
+    <a href="pricing.html?key=${encodeURIComponent(_key)}" style="display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:9px 20px;border-radius:8px;font-size:0.88rem;font-weight:600;">Choose a Plan →</a>
+  `;
 }
 
 async function loadInvoices() {

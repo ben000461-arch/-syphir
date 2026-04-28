@@ -36,44 +36,111 @@
 const _params = new URLSearchParams(window.location.search);
 const _key = _params.get('key') || '';
 const _PLAN_API = 'https://syphir-api.onrender.com';
+const _PLAN = 'Starter';
 
 function _showPlanErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 function _hidePlanErr(el) { el.textContent = ''; el.style.display = 'none'; }
 
-async function subscribePlan() {
-  const btn = document.getElementById('sub-btn');
-  const emailInput = document.getElementById('sub-email');
-  const errEl = document.getElementById('sub-err');
-  const email = emailInput ? emailInput.value.trim() : '';
+function subscribePlan() {
+  if (_key) { doCheckout(_key, null); } else { kgmOpen(); }
+}
 
+function kgmOpen() {
+  const m = document.getElementById('kgm');
+  m.style.display = 'flex';
+  document.getElementById('kgm-key-view').style.display = '';
+  document.getElementById('kgm-email-view').style.display = 'none';
+  _hidePlanErr(document.getElementById('kgm-err'));
+  document.getElementById('kgm-key-input').value = '';
+  document.getElementById('kgm-continue-btn').textContent = 'Continue →';
+  document.getElementById('kgm-continue-btn').disabled = false;
+}
+
+function kgmClose() { document.getElementById('kgm').style.display = 'none'; }
+
+function kgmShowEmail(e) {
+  e.preventDefault();
+  document.getElementById('kgm-key-view').style.display = 'none';
+  document.getElementById('kgm-email-view').style.display = '';
+  _hidePlanErr(document.getElementById('kgm-email-err'));
+  document.getElementById('kgm-email-input').value = '';
+  document.getElementById('kgm-email-btn').textContent = 'Subscribe Now →';
+  document.getElementById('kgm-email-btn').disabled = false;
+}
+
+function kgmShowKey(e) {
+  e.preventDefault();
+  document.getElementById('kgm-email-view').style.display = 'none';
+  document.getElementById('kgm-key-view').style.display = '';
+  _hidePlanErr(document.getElementById('kgm-err'));
+}
+
+async function kgmValidateKey() {
+  const keyInput = document.getElementById('kgm-key-input');
+  const errEl = document.getElementById('kgm-err');
+  const btn = document.getElementById('kgm-continue-btn');
+  const key = keyInput.value.trim().toUpperCase();
   _hidePlanErr(errEl);
-
-  if (!_key && !email) { _showPlanErr(errEl, 'Enter your email to continue.'); return; }
-  if (!_key && !email.includes('@')) { _showPlanErr(errEl, 'Enter a valid email address.'); return; }
-
-  btn.textContent = 'Redirecting…';
-  btn.disabled = true;
-
+  if (!key) { _showPlanErr(errEl, 'Enter your org key.'); return; }
+  btn.textContent = 'Validating…'; btn.disabled = true;
   try {
-    const body = _key ? { key: _key, plan: 'Starter' } : { email, plan: 'Starter' };
+    const r = await fetch(`${_PLAN_API}/validate-key`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, context: 'dashboard' })
+    });
+    const d = await r.json();
+    if (d.valid) { kgmClose(); doCheckout(key, null); }
+    else { _showPlanErr(errEl, d.error || 'Key not found — check and try again'); btn.textContent = 'Continue →'; btn.disabled = false; }
+  } catch(e) {
+    _showPlanErr(errEl, 'Network error — try again');
+    btn.textContent = 'Continue →'; btn.disabled = false;
+  }
+}
+
+async function kgmSubscribeEmail() {
+  const emailInput = document.getElementById('kgm-email-input');
+  const errEl = document.getElementById('kgm-email-err');
+  const btn = document.getElementById('kgm-email-btn');
+  const email = emailInput.value.trim();
+  _hidePlanErr(errEl);
+  if (!email) { _showPlanErr(errEl, 'Enter your email.'); return; }
+  if (!email.includes('@')) { _showPlanErr(errEl, 'Enter a valid email address.'); return; }
+  btn.textContent = 'Redirecting…'; btn.disabled = true;
+  try {
+    const r = await fetch(`${_PLAN_API}/create-checkout-session`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, plan: _PLAN })
+    });
+    const d = await r.json();
+    if (d.url) { window.location.href = d.url; }
+    else { _showPlanErr(errEl, d.error || 'Could not start checkout — try again'); btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
+  } catch(e) {
+    _showPlanErr(errEl, 'Network error — try again');
+    btn.textContent = 'Subscribe Now →'; btn.disabled = false;
+  }
+}
+
+async function doCheckout(key, email) {
+  const btn = document.getElementById('sub-btn');
+  const errEl = document.getElementById('sub-err');
+  btn.textContent = 'Redirecting…'; btn.disabled = true;
+  _hidePlanErr(errEl);
+  try {
+    const body = key ? { key, plan: _PLAN } : { email, plan: _PLAN };
     const r = await fetch(`${_PLAN_API}/create-checkout-session`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     const d = await r.json();
-    if (d.url) {
-      window.location.href = d.url;
-    } else {
-      _showPlanErr(errEl, d.error || 'Could not start checkout — try again');
-      btn.textContent = 'Subscribe Now →';
-      btn.disabled = false;
-    }
+    if (d.url) { window.location.href = d.url; }
+    else { _showPlanErr(errEl, d.error || 'Could not start checkout — try again'); btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
   } catch(e) {
     _showPlanErr(errEl, 'Network error — try again');
-    btn.textContent = 'Subscribe Now →';
-    btn.disabled = false;
+    btn.textContent = 'Subscribe Now →'; btn.disabled = false;
   }
 }
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') kgmClose(); });
 </script>
 <nav>
   <a href="index.html" class="nav-logo">
@@ -126,11 +193,29 @@ async function subscribePlan() {
   </div>
   <p>© 2025 MedHolo Tech · Corona, CA</p>
 </footer>
+<div id="kgm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:900;align-items:center;justify-content:center;" onclick="if(event.target===this)kgmClose()">
+  <div style="background:#16143a;border:1px solid var(--border);border-radius:14px;padding:2rem;width:min(440px,90vw);position:relative;max-height:90vh;overflow-y:auto;">
+    <button onclick="kgmClose()" style="position:absolute;top:0.85rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1;padding:4px;">✕</button>
+    <div id="kgm-key-view">
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;color:var(--text);">Upgrade existing account</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;">Enter your Syphir org key to link this upgrade to your account.</div>
+      <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--muted2,#888);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Org Key</label>
+      <input id="kgm-key-input" type="text" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:0.9rem;color:var(--text);font-family:inherit;outline:none;transition:border-color 0.15s;margin-bottom:0.5rem;box-sizing:border-box;">
+      <div class="err-msg" id="kgm-err" style="margin-bottom:0.5rem;"></div>
+      <button id="kgm-continue-btn" onclick="kgmValidateKey()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:9px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.25rem;">Continue →</button>
+      <p style="text-align:center;margin:1rem 0 0;font-size:0.82rem;color:var(--muted);">New to Syphir? <a href="#" onclick="kgmShowEmail(event)" style="color:var(--accent);text-decoration:none;">Sign up with email →</a></p>
+    </div>
+    <div id="kgm-email-view" style="display:none;">
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;color:var(--text);">Create new account</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;">Enter your work email to set up a new Syphir account.</div>
+      <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--muted2,#888);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Work Email</label>
+      <input id="kgm-email-input" type="email" placeholder="jane@yourcompany.com" autocomplete="email" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:0.9rem;color:var(--text);font-family:inherit;outline:none;transition:border-color 0.15s;margin-bottom:0.5rem;box-sizing:border-box;">
+      <div class="err-msg" id="kgm-email-err" style="margin-bottom:0.5rem;"></div>
+      <button id="kgm-email-btn" onclick="kgmSubscribeEmail()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:9px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.25rem;">Subscribe Now →</button>
+      <p style="text-align:center;margin:1rem 0 0;font-size:0.82rem;color:var(--muted);">Already on Syphir? <a href="#" onclick="kgmShowKey(event)" style="color:var(--accent);text-decoration:none;">Enter org key →</a></p>
+    </div>
+  </div>
+</div>
 <script src="auth.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  if (!_key) document.getElementById('email-section').style.display = '';
-});
-</script>
 </body>
 </html>

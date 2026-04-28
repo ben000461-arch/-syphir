@@ -585,6 +585,37 @@ function startBannerCheckout() {
   window.open('https://syphir.vercel.app/pricing.html' + (ORG_KEY ? '?key=' + ORG_KEY : ''), '_blank');
 }
 
+async function refreshSettingsBilling() {
+  if (!ORG_KEY) return;
+  try {
+    const r = await fetch(`${API}/validate-key`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' })
+    });
+    const vData = await r.json();
+    if (!vData.valid) return;
+    if (vData.plan) ORG_PLAN = vData.plan;
+    ORG_EXPIRES_AT = vData.expires_at || null;
+    const sp = document.getElementById('settings-plan');
+    const pr = document.getElementById('settings-plan-renew');
+    const planPrice = PLAN_PRICES[ORG_PLAN];
+    if (sp) sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
+    if (pr) {
+      if (!ORG_EXPIRES_AT) {
+        pr.textContent = 'Active subscription — renews monthly';
+        pr.style.color = 'var(--green)';
+      } else {
+        const d = new Date(ORG_EXPIRES_AT);
+        const daysLeft = Math.ceil((d - Date.now()) / 86400000);
+        pr.textContent = daysLeft > 0 ? `Trial · ${daysLeft} day${daysLeft===1?'':'s'} left` : 'Trial expired';
+        pr.style.color = daysLeft <= 2 ? 'var(--red)' : 'var(--yellow)';
+      }
+    }
+    const planEl = document.getElementById('org-plan');
+    if (planEl) planEl.textContent = ORG_PLAN;
+  } catch(_) {}
+}
+
 // ── NAV ────────────────────────────────────────────────────────────────────
 const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
 
@@ -597,7 +628,7 @@ function nav(page, el) {
   const f = document.getElementById('topbar-filters');
   f.style.display = ['overview','incidents'].includes(page) ? 'flex' : 'none';
   if (['overview','incidents','live'].includes(page)) loadData();
-  if (page === 'settings') loadTeamMembers();
+  if (page === 'settings') { loadTeamMembers(); refreshSettingsBilling(); }
   if (page === 'gateway') renderProviders();
 }
 

@@ -207,6 +207,37 @@ app.get("/org/:key", async (c) => {
   }
 });
 
+// ── PATCH ORG: UPGRADE PLAN ────────────────────────────────────────────────
+app.patch("/orgs/:org_id/upgrade", async (c) => {
+  const { org_id } = c.req.param();
+  const { plan, status, stripe_customer_id } = await c.req.json();
+  if (!org_id || !plan) return c.json({ error: "org_id and plan are required" }, 400);
+
+  const paidPlans = ["Starter", "Professional", "Institution"];
+  const isPaid = paidPlans.includes(plan);
+  const expiresAt = isPaid ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  try {
+    const orgPatch = { plan, active: true };
+    if (status) orgPatch.status = status;
+    if (stripe_customer_id) orgPatch.stripe_customer_id = stripe_customer_id;
+
+    await dbWithRetry(`organizations?id=eq.${org_id}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify(orgPatch),
+    });
+    await dbWithRetry(`license_keys?org_id=eq.${org_id}&key_type=eq.business`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify({ expires_at: expiresAt, status: "active" }),
+    });
+
+    console.log(`✓ Upgraded org ${org_id} → ${plan} (expires_at: ${expiresAt || "never"})`);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 // ── PATCH ORG (save settings) ──────────────────────────────────────────────
 app.patch("/org/:org_id", async (c) => {
   const { org_id } = c.req.param();
@@ -794,7 +825,7 @@ app.delete("/billing/cancel", async (c) => {
   }
 });
 
-console.log("Syphir API v2.9.0 running");
+console.log("Syphir API v2.10.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
