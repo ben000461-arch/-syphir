@@ -35,9 +35,12 @@
 </head>
 <body>
 <script>
-const API = 'https://syphir-api.onrender.com';
 const _params = new URLSearchParams(window.location.search);
 const _key = _params.get('key') || '';
+const _PLAN_API = 'https://syphir-api.onrender.com';
+
+function _showPlanErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+function _hidePlanErr(el) { el.textContent = ''; el.style.display = 'none'; }
 
 async function subscribePlan() {
   const btn = document.getElementById('sub-btn');
@@ -45,25 +48,30 @@ async function subscribePlan() {
   const errEl = document.getElementById('sub-err');
   const email = emailInput ? emailInput.value.trim() : '';
 
-  errEl.textContent = '';
+  _hidePlanErr(errEl);
 
-  if (!_key && !email) { errEl.textContent = 'Enter your email to continue.'; return; }
-  if (!_key && !email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
+  if (!_key && !email) { _showPlanErr(errEl, 'Enter your email to continue.'); return; }
+  if (!_key && !email.includes('@')) { _showPlanErr(errEl, 'Enter a valid email address.'); return; }
 
   btn.textContent = 'Redirecting…';
   btn.disabled = true;
 
   try {
     const body = _key ? { key: _key, plan: 'Professional' } : { email, plan: 'Professional' };
-    const r = await fetch(`${API}/create-checkout-session`, {
+    const r = await fetch(`${_PLAN_API}/create-checkout-session`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     const d = await r.json();
-    if (d.url) { window.location.href = d.url; }
-    else { errEl.textContent = d.error || 'Could not start checkout — try again'; btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
+    if (d.url) {
+      window.location.href = d.url;
+    } else {
+      _showPlanErr(errEl, d.error || 'Could not start checkout — try again');
+      btn.textContent = 'Subscribe Now →';
+      btn.disabled = false;
+    }
   } catch(e) {
-    errEl.textContent = 'Network error — try again';
+    _showPlanErr(errEl, 'Network error — try again');
     btn.textContent = 'Subscribe Now →';
     btn.disabled = false;
   }
