@@ -420,9 +420,9 @@ const PLAN_PRICES = { Starter: 99, Professional: 249, Institution: 599, Demo: 0 
     });
     const vData = await vRes.json();
     if (vData.expired) {
-      document.body.style.cssText = 'margin:0;padding:0;background:#0d1117;';
+      document.body.style.cssText = 'margin:0;padding:0;overflow:hidden;';
       document.body.innerHTML =
-        '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px;">' +
+        '<div style="position:fixed;inset:0;background:#0d1117;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px;z-index:9999;">' +
           '<div style="background:#161b25;border:1px solid #242d3e;border-radius:16px;padding:48px 40px;max-width:480px;width:100%;text-align:center;">' +
             '<div style="font-size:52px;margin-bottom:20px;">&#128274;</div>' +
             '<h1 style="font-size:22px;font-weight:800;color:#e6edf3;margin:0 0 12px;letter-spacing:-0.3px;">Your 7-day free trial has ended</h1>' +
