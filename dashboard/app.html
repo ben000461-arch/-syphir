@@ -359,7 +359,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           <div class="card-body">
             <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub" id="settings-plan-renew">Renews May 10, 2026</div></div><div class="plan-pill" id="settings-plan">Business · $249/mo</div></div>
             <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub">Visa •••• 4242</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Update</button></div>
-            <button class="btn btn-ghost" style="width:100%;margin-top:14px;justify-content:center;">Manage via Stripe →</button>
+            <button class="btn btn-ghost" id="portal-btn" style="width:100%;margin-top:14px;justify-content:center;" onclick="openPortal()">Manage via Stripe →</button>
           </div>
         </div>
         <div class="card mb-16">
@@ -399,13 +399,16 @@ const ORG_KEY = params.get('key') || 'SYP-DEMO-2026-SYPHIR';
 const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || 'Demo');
 
 // These are placeholders — real values set after org resolves
-let ORG_ID = null;       // FIX: null until resolved, prevents premature fetches
+let ORG_ID = null;
 let ORG_NAME = ORG_NAME_PARAM;
 let ORG_PLAN = 'Business';
 let ORG_ADMIN_EMAIL = '';
 let ORG_EMP_KEY = '';
+let ORG_EXPIRES_AT = null;   // null = paying, ISO string = trial/demo
 let incidents = [];
-let dataInterval = null;  // FIX: track interval so we can start it only after org resolves
+let dataInterval = null;
+
+const PLAN_PRICES = { Starter: 99, Professional: 249, Institution: 599, Demo: 0 };
 
 // ── BOOT: Resolve org then start everything ────────────────────────────────
 (async () => {
@@ -449,10 +452,17 @@ let dataInterval = null;  // FIX: track interval so we can start it only after o
       };
       return;
     }
+    ORG_EXPIRES_AT = vData.expires_at || null;
     if (vData.days_left !== null && vData.days_left !== undefined) {
       showTrialBanner(vData.days_left, vData.plan);
     }
   } catch(_) {} // network error must not block dashboard access
+
+  // Show success toast if returning from Stripe checkout
+  if (params.get('payment') === 'success') {
+    history.replaceState(null, '', `app.html?key=${ORG_KEY}`);
+    setTimeout(() => showPaymentSuccess(), 800);
+  }
 
   try {
     const res = await fetch(`${API}/org/${ORG_KEY}`);
@@ -479,7 +489,20 @@ let dataInterval = null;  // FIX: track interval so we can start it only after o
       if (sn)  sn.value  = ORG_NAME;
       if (sae) sae.value = ORG_ADMIN_EMAIL;
       if (sk)  sk.value  = ORG_KEY;
-      if (sp)  sp.textContent = ORG_PLAN + ' · $249/mo';
+      const planPrice = PLAN_PRICES[ORG_PLAN];
+      if (sp)  sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
+      const pr = document.getElementById('settings-plan-renew');
+      if (pr) {
+        if (!ORG_EXPIRES_AT) {
+          pr.textContent = 'Active subscription — renews monthly';
+          pr.style.color = 'var(--green)';
+        } else {
+          const d = new Date(ORG_EXPIRES_AT);
+          const daysLeft = Math.ceil((d - Date.now()) / 86400000);
+          pr.textContent = daysLeft > 0 ? `Trial · ${daysLeft} day${daysLeft===1?'':'s'} left` : 'Trial expired';
+          pr.style.color = daysLeft <= 2 ? 'var(--red)' : 'var(--yellow)';
+        }
+      }
 
       // Employee key
       try {
@@ -531,6 +554,29 @@ function showTrialBanner(daysLeft, plan) {
   const daysText = daysLeft === 1 ? '1 day' : daysLeft + ' days';
   banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong> — upgrade to keep your data protected.</span><button onclick="startBannerCheckout()" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;border:none;cursor:pointer;font-family:Inter,sans-serif;margin-left:16px;flex-shrink:0;">Upgrade Now</button>';
   document.body.appendChild(banner);
+}
+
+function showPaymentSuccess() {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:#00e676;color:#000;padding:14px 20px;border-radius:10px;font-size:13px;font-weight:700;font-family:Inter,sans-serif;box-shadow:0 4px 20px rgba(0,230,118,0.4);animation:fadeUp 0.3s ease;';
+  el.textContent = '✓ Payment successful — your plan is now active!';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 6000);
+}
+
+async function openPortal() {
+  const btn = document.getElementById('portal-btn');
+  if (btn) { btn.textContent = 'Opening Stripe…'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${API}/create-portal-session`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY })
+    });
+    const d = await r.json();
+    if (d.url) { window.location.href = d.url; }
+    else { alert(d.error || 'Could not open billing portal'); }
+  } catch(e) { alert('Network error — try again'); }
+  finally { if (btn) { btn.textContent = 'Manage via Stripe →'; btn.disabled = false; } }
 }
 
 async function startBannerCheckout() {

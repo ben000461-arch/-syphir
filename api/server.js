@@ -61,7 +61,7 @@ app.use("/*", cors({
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.4.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.5.0", db: "supabase" });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
@@ -512,13 +512,13 @@ app.post("/stripe-webhook", async (c) => {
       try {
         await dbWithRetry(`organizations?id=eq.${org_id}`, {
           method: "PATCH", prefer: "return=minimal",
-          body: JSON.stringify({ plan, active: true }),
+          body: JSON.stringify({ plan, active: true, stripe_customer_id: session.customer || null }),
         });
         await dbWithRetry(`license_keys?org_id=eq.${org_id}`, {
           method: "PATCH", prefer: "return=minimal",
           body: JSON.stringify({ expires_at: null, status: "active" }),
         });
-        console.log(`✓ Payment success: org ${org_id} → plan ${plan}`);
+        console.log(`✓ Payment success: org ${org_id} → plan ${plan}, customer ${session.customer}`);
       } catch (err) {
         console.error("Failed to update org post-payment:", err.message);
       }
@@ -528,7 +528,33 @@ app.post("/stripe-webhook", async (c) => {
   return c.json({ received: true });
 });
 
-console.log("Syphir API v2.4.0 running");
+// ── STRIPE: CUSTOMER PORTAL ────────────────────────────────────────────────
+app.post("/create-portal-session", async (c) => {
+  if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
+  const { key } = await c.req.json();
+  if (!key) return c.json({ error: "key is required" }, 400);
+
+  try {
+    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ error: "Invalid key" }, 401);
+    const org = rows[0].organizations;
+
+    if (!org.stripe_customer_id) {
+      return c.json({ error: "No active subscription found for this account" }, 404);
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: org.stripe_customer_id,
+      return_url: `https://syphir.vercel.app/app.html?key=${key}`,
+    });
+
+    return c.json({ url: session.url });
+  } catch (err) {
+    return c.json({ error: "Stripe error: " + err.message }, 500);
+  }
+});
+
+console.log("Syphir API v2.5.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
