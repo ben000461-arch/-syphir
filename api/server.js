@@ -466,6 +466,45 @@ app.post("/admin/dedup-orgs", async (c) => {
   }
 });
 
+// ── ADMIN: UPDATE ORG ─────────────────────────────────────────────────────
+app.patch("/admin/update-org", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+
+  const { org_id, name, admin_email, plan, status } = await c.req.json();
+  if (!org_id) return c.json({ error: "org_id is required" }, 400);
+
+  try {
+    const paidPlans = ["Starter", "Professional", "Institution"];
+    const isPaid = paidPlans.includes(plan);
+    const expiresAt = isPaid ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const orgPatch = {};
+    if (name)        orgPatch.name        = name;
+    if (admin_email) orgPatch.admin_email = admin_email;
+    if (plan)        orgPatch.plan        = plan;
+
+    await dbWithRetry(`organizations?id=eq.${org_id}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify(orgPatch),
+    });
+
+    // Update business key: expiry driven by plan, status from form
+    const keyPatch = { expires_at: expiresAt };
+    if (status) keyPatch.status = status === "inactive" ? "inactive" : "active";
+
+    await dbWithRetry(`license_keys?org_id=eq.${org_id}&key_type=eq.business`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify(keyPatch),
+    });
+
+    console.log(`✓ Updated org ${org_id}: plan=${plan}, status=${status}, paid=${isPaid}`);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 // ── ADMIN: REMOVE ORG ──────────────────────────────────────────────────────
 app.delete("/admin/remove-org/:key", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
@@ -755,7 +794,7 @@ app.delete("/billing/cancel", async (c) => {
   }
 });
 
-console.log("Syphir API v2.8.0 running");
+console.log("Syphir API v2.9.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };

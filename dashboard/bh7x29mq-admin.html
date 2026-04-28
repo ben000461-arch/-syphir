@@ -128,12 +128,66 @@
 </div>
 </div>
 
+<!-- ── EDIT ORG MODAL ─────────────────────────────────────────────────── -->
+<div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:500; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:2rem; width:100%; max-width:480px; position:relative;">
+    <button onclick="closeEditModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer; padding:0.25rem 0.5rem; border-radius:4px;">✕</button>
+    <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.25rem;">Edit Business</h3>
+    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;" id="editModalSub">Updating org details in Supabase.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Business Name</label>
+        <input id="editName" class="form-input" style="width:100%;" placeholder="Org name">
+      </div>
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Admin Email</label>
+        <input id="editEmail" class="form-input" style="width:100%;" type="email" placeholder="admin@example.com">
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Plan</label>
+        <select id="editPlan" class="form-select" style="width:100%;">
+          <option value="Demo">Demo</option>
+          <option value="Starter">Starter — $99/mo</option>
+          <option value="Professional">Professional — $249/mo</option>
+          <option value="Institution">Institution — $599/mo</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Status</label>
+        <select id="editStatus" class="form-select" style="width:100%;">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.5rem;">
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Dashboard Key (read only)</label>
+        <input id="editKeyDisplay" class="form-input" style="width:100%; opacity:0.5; cursor:not-allowed; font-family:'JetBrains Mono',monospace; font-size:0.75rem;" readonly>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Employee Key (read only)</label>
+        <input id="editEmpKeyDisplay" class="form-input" style="width:100%; opacity:0.5; cursor:not-allowed; font-family:'JetBrains Mono',monospace; font-size:0.75rem;" readonly>
+      </div>
+    </div>
+    <div id="editErr" style="color:var(--danger); font-size:0.82rem; margin-bottom:0.75rem; display:none;"></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button onclick="closeEditModal()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.6rem 1.1rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; font-family:inherit;">Cancel</button>
+      <button id="editSaveBtn" onclick="saveEdit()" style="background:var(--accent); color:white; border:none; padding:0.6rem 1.4rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; font-family:inherit;">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="auth.js?v=2.2.0"></script>
 <script>
 const ADMIN_SECRET  = 'bridgeline2025';
 const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
+let _bizMap = {}; // keyed by business key, holds full org data for edit modal
 
 // All API calls bypass browser cache
 const apiFetch = (url, opts = {}) => fetch(url, { cache: 'no-store', ...opts });
@@ -153,6 +207,10 @@ function checkAdminKey() {
 document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('adminKeyIn');
   if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') checkAdminKey(); });
+  document.getElementById('editModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('editModal')) closeEditModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditModal(); });
 });
 
 async function renderAdmin() {
@@ -192,11 +250,15 @@ async function renderAdmin() {
           </div>
           <div><span class="status-pill ${status}">${status}</span></div>
           <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button onclick="editBiz('${b.key||b.id}')" title="Edit" style="background:rgba(91,79,232,0.12); border:1px solid rgba(91,79,232,0.25); color:#a89af7; padding:5px 8px; border-radius:6px; font-size:0.82rem; cursor:pointer; font-family:inherit; transition:background 0.15s;" onmouseover="this.style.background='rgba(91,79,232,0.22)'" onmouseout="this.style.background='rgba(91,79,232,0.12)'">✏</button>
             <button class="remove-btn" onclick="removeBiz('${b.key||b.id}')" title="Remove">🗑</button>
           </div>
         </div>
       `;
     }).join('');
+    // Populate map for edit modal lookups
+    _bizMap = {};
+    bizList.forEach(b => { _bizMap[b.key || b.id] = b; });
   } catch(err) {
     container.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
   } finally {
@@ -296,6 +358,84 @@ async function cleanDuplicates() {
 function copyKey(key) {
   if (!key) return;
   navigator.clipboard.writeText(key).then(() => showToast('Copied: ' + key));
+}
+
+// ── EDIT ORG ──────────────────────────────────────────────────────────────
+let _editOrgId = null;
+
+function editBiz(keyOrId) {
+  const b = _bizMap[keyOrId];
+  if (!b) { showToast('Business data not loaded — refresh and try again'); return; }
+  _editOrgId = b.id;
+  document.getElementById('editModalSub').textContent = 'Editing: ' + b.name;
+  document.getElementById('editName').value = b.name || '';
+  document.getElementById('editEmail').value = b.admin_email || '';
+  document.getElementById('editKeyDisplay').value = b.key || '—';
+  document.getElementById('editEmpKeyDisplay').value = b.emp_key || '—';
+
+  const planSel = document.getElementById('editPlan');
+  const plan = b.plan || 'Demo';
+  planSel.value = plan;
+  if (!planSel.value) planSel.value = 'Demo'; // fallback if plan not in list
+
+  const statusSel = document.getElementById('editStatus');
+  const derivedStatus = b.key_status === 'inactive' ? 'inactive' : 'active';
+  statusSel.value = derivedStatus;
+
+  const errEl = document.getElementById('editErr');
+  errEl.style.display = 'none';
+  errEl.textContent = '';
+  document.getElementById('editSaveBtn').textContent = 'Save Changes';
+  document.getElementById('editSaveBtn').disabled = false;
+
+  const modal = document.getElementById('editModal');
+  modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+  _editOrgId = null;
+}
+
+async function saveEdit() {
+  if (!_editOrgId) return;
+  const name        = document.getElementById('editName').value.trim();
+  const admin_email = document.getElementById('editEmail').value.trim();
+  const plan        = document.getElementById('editPlan').value;
+  const status      = document.getElementById('editStatus').value;
+  const errEl       = document.getElementById('editErr');
+  const btn         = document.getElementById('editSaveBtn');
+
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Business name is required.'; errEl.style.display = 'block'; return; }
+  if (!admin_email || !admin_email.includes('@')) { errEl.textContent = 'Valid email is required.'; errEl.style.display = 'block'; return; }
+
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+
+  try {
+    const res = await apiFetch(`${API}/admin/update-org`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
+      body: JSON.stringify({ org_id: _editOrgId, name, admin_email, plan, status })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      errEl.textContent = data.error || 'Save failed — try again';
+      errEl.style.display = 'block';
+      btn.textContent = 'Save Changes';
+      btn.disabled = false;
+      return;
+    }
+    closeEditModal();
+    await renderAdmin();
+    showToast('✓ ' + name + ' updated');
+  } catch(e) {
+    errEl.textContent = 'API error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Save Changes';
+    btn.disabled = false;
+  }
 }
 
 function showToast(msg) {
