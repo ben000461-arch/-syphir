@@ -88,6 +88,18 @@ textarea{min-height:112px;}
 <script>
 const API = 'https://syphir-api.onrender.com';
 
+(function() {
+  const plan = new URLSearchParams(window.location.search).get('plan');
+  if (plan) {
+    document.addEventListener('DOMContentLoaded', function() {
+      const prices = { Starter: 99, Professional: 249, Institution: 599 };
+      const price = prices[plan];
+      const msgEl = document.getElementById('c-message');
+      if (msgEl) msgEl.value = `I'm interested in the ${plan} plan${price ? ' ($' + price + '/mo)' : ''}. Please set up my account.`;
+    });
+  }
+})();
+
 async function submitContact() {
   const name    = document.getElementById('c-name').value.trim();
   const email   = document.getElementById('c-email').value.trim();

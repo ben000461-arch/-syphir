@@ -17,6 +17,17 @@ const STRIPE_PLANS = {
   Institution:  { amount: 59900, label: "Syphir Institution — $599/mo" },
 };
 
+function genKey() {
+  const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const s = n => Array.from({length:n}, () => c[Math.floor(Math.random()*c.length)]).join("");
+  return `SYP-${s(4)}-${s(4)}-${s(4)}`;
+}
+function genEmpKey() {
+  const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const s = n => Array.from({length:n}, () => c[Math.floor(Math.random()*c.length)]).join("");
+  return `EMP-${s(4)}-${s(4)}`;
+}
+
 // ── SUPABASE HELPER ────────────────────────────────────────────────────────
 async function db(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -479,16 +490,45 @@ app.delete("/admin/remove-org/:key", async (c) => {
 // ── STRIPE: CREATE CHECKOUT SESSION ───────────────────────────────────────
 app.post("/create-checkout-session", async (c) => {
   if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
-  const { key, plan } = await c.req.json();
-  if (!key || !plan) return c.json({ error: "key and plan are required" }, 400);
+  const body = await c.req.json();
+  const { plan } = body;
+  if (!plan) return c.json({ error: "plan is required" }, 400);
 
   const price = STRIPE_PLANS[plan];
   if (!price) return c.json({ error: `Unknown plan: ${plan}` }, 400);
 
   try {
-    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
-    if (!rows || rows.length === 0) return c.json({ error: "Invalid or inactive key" }, 401);
-    const org = rows[0].organizations;
+    let org, key, isNewCustomer = false;
+
+    if (body.key) {
+      // Existing customer upgrading
+      const rows = await db(`license_keys?key=eq.${body.key}&status=eq.active&select=*,organizations(*)`);
+      if (!rows || rows.length === 0) return c.json({ error: "Invalid or inactive key" }, 401);
+      org = rows[0].organizations;
+      key = body.key;
+    } else if (body.email) {
+      // New customer — create org + key upfront
+      isNewCustomer = true;
+      const email = body.email.toLowerCase().trim();
+      const orgName = body.orgName || email.split("@")[0];
+      const orgId = `org_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      key = genKey();
+      const empKey = genEmpKey();
+      const now = new Date().toISOString();
+      const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+      await dbWithRetry("organizations", {
+        method: "POST", prefer: "return=minimal",
+        body: JSON.stringify({ id: orgId, name: orgName, admin_email: email, plan: "trial", active: true }),
+      });
+      await dbWithRetry("license_keys", {
+        method: "POST", prefer: "return=minimal",
+        body: JSON.stringify({ key, org_id: orgId, emp_key: empKey, status: "active", created_at: now, expires_at: trialEnd }),
+      });
+      org = { id: orgId, name: orgName, admin_email: email };
+    } else {
+      return c.json({ error: "key or email is required" }, 400);
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -502,9 +542,11 @@ app.post("/create-checkout-session", async (c) => {
         },
         quantity: 1,
       }],
-      metadata: { org_id: org.id, org_name: org.name, key, plan },
+      metadata: { org_id: org.id, org_name: org.name, key, plan, is_new_customer: isNewCustomer ? "true" : "false" },
       customer_email: org.admin_email || undefined,
-      success_url: `https://syphir.vercel.app/app.html?key=${key}&payment=success`,
+      success_url: isNewCustomer
+        ? `https://syphir.vercel.app/success.html`
+        : `https://syphir.vercel.app/app.html?key=${key}&payment=success`,
       cancel_url: `https://syphir.vercel.app/pricing.html`,
     });
 
@@ -530,7 +572,7 @@ app.post("/stripe-webhook", async (c) => {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { org_id, plan } = session.metadata || {};
+    const { org_id, plan, key, is_new_customer } = session.metadata || {};
     if (org_id && plan) {
       try {
         await dbWithRetry(`organizations?id=eq.${org_id}`, {
@@ -542,6 +584,29 @@ app.post("/stripe-webhook", async (c) => {
           body: JSON.stringify({ expires_at: null, status: "active" }),
         });
         console.log(`✓ Payment success: org ${org_id} → plan ${plan}, customer ${session.customer}`);
+
+        if (is_new_customer === "true" && session.customer_details?.email && key) {
+          const email = session.customer_details.email;
+          const dashboardUrl = `https://syphir.vercel.app/app.html?key=${key}`;
+          await resend.emails.send({
+            from: "Syphir Shield <onboarding@resend.dev>",
+            to: email,
+            subject: "Welcome to Syphir — your dashboard is ready",
+            html: `
+              <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1a1a2e;">
+                <div style="font-size:24px;font-weight:700;margin-bottom:8px;">You're protected. 🛡️</div>
+                <p style="color:#555;margin-bottom:24px;">Your Syphir ${plan} subscription is active. Here's your dashboard access:</p>
+                <div style="background:#f4f4f8;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+                  <div style="font-size:12px;color:#888;margin-bottom:4px;">YOUR DASHBOARD KEY</div>
+                  <code style="font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:1px;">${key}</code>
+                </div>
+                <a href="${dashboardUrl}" style="display:inline-block;background:#6c63ff;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Open Dashboard →</a>
+                <p style="color:#888;font-size:13px;">Save this key — you'll need it every time you sign in. If you have any questions, reply to this email.</p>
+              </div>
+            `,
+          });
+          console.log(`✓ Welcome email sent to ${email} with key ${key}`);
+        }
       } catch (err) {
         console.error("Failed to update org post-payment:", err.message);
       }
@@ -577,7 +642,7 @@ app.post("/create-portal-session", async (c) => {
   }
 });
 
-console.log("Syphir API v2.6.0 running");
+console.log("Syphir API v2.7.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };

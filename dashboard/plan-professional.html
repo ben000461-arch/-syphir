@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional Plan — Syphir AI Data Protection</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .plan-page { max-width: 560px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.85rem; text-decoration: none; margin-bottom: 2rem; transition: color 0.15s; }
+  .back-link:hover { color: var(--text); }
+  .plan-badge { display: inline-block; background: rgba(91,79,232,0.15); border: 1px solid rgba(91,79,232,0.35); color: #c4b8ff; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; }
+  .plan-popular { display: inline-block; background: #5b4fe8; color: #fff; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 9px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+  .plan-name { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.25rem; letter-spacing: -0.03em; }
+  .plan-price-line { font-size: 1.1rem; color: var(--muted); margin-bottom: 2rem; }
+  .plan-price-line strong { color: var(--text); font-size: 2rem; font-weight: 700; }
+  .feature-list { list-style: none; padding: 0; margin: 0 0 2.5rem; display: flex; flex-direction: column; gap: 0.65rem; }
+  .feature-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.93rem; color: var(--muted); line-height: 1.5; }
+  .feature-list li .chk { color: #4ade80; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .feature-list li .new { background: rgba(91,79,232,0.15); color: #a89af7; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 6px; border-radius: 4px; margin-left: 4px; }
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-pilot { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 13px 20px; border-radius: 9px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: border-color 0.15s, background 0.15s; text-align: center; }
+  .btn-pilot:hover { border-color: var(--accent); background: rgba(91,79,232,0.06); }
+  .btn-subscribe { background: var(--accent); color: #fff; border: none; padding: 13px 20px; border-radius: 9px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; text-align: center; }
+  .btn-subscribe:hover { opacity: 0.88; }
+  .btn-subscribe:disabled { opacity: 0.5; cursor: not-allowed; }
+  .email-field { margin-bottom: 1.5rem; }
+  .email-field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .email-field input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; font-size: 0.9rem; color: var(--text); font-family: inherit; outline: none; transition: border-color 0.15s; }
+  .email-field input:focus { border-color: var(--accent); }
+  .err-msg { font-size: 0.8rem; color: var(--danger, #f44336); margin-top: 8px; min-height: 18px; }
+  @media(max-width: 480px) { .action-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<script>
+const API = 'https://syphir-api.onrender.com';
+const _params = new URLSearchParams(window.location.search);
+const _key = _params.get('key') || '';
+
+async function subscribePlan() {
+  const btn = document.getElementById('sub-btn');
+  const emailInput = document.getElementById('sub-email');
+  const errEl = document.getElementById('sub-err');
+  const email = emailInput ? emailInput.value.trim() : '';
+
+  errEl.textContent = '';
+
+  if (!_key && !email) { errEl.textContent = 'Enter your email to continue.'; return; }
+  if (!_key && !email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
+
+  btn.textContent = 'Redirecting…';
+  btn.disabled = true;
+
+  try {
+    const body = _key ? { key: _key, plan: 'Professional' } : { email, plan: 'Professional' };
+    const r = await fetch(`${API}/create-checkout-session`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.url) { window.location.href = d.url; }
+    else { errEl.textContent = d.error || 'Could not start checkout — try again'; btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
+  } catch(e) {
+    errEl.textContent = 'Network error — try again';
+    btn.textContent = 'Subscribe Now →';
+    btn.disabled = false;
+  }
+}
+</script>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+    Syphir
+  </a>
+  <div class="nav-links">
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html" class="active">Pricing</a>
+  </div>
+  <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
+</nav>
+
+<div class="plan-page">
+  <a href="pricing.html" class="back-link">← Back to pricing</a>
+
+  <div>
+    <span class="plan-badge">Professional</span>
+    <span class="plan-popular">Most Popular</span>
+  </div>
+  <div class="plan-name">Professional Plan</div>
+  <div class="plan-price-line"><strong>$249</strong>/month · billed monthly · cancel anytime</div>
+
+  <ul class="feature-list">
+    <li><span class="chk">✓</span> Up to 50 employees</li>
+    <li><span class="chk">✓</span> Everything in Starter</li>
+    <li><span class="chk">✓</span> 40+ PII entity types + <span class="new">custom</span> keyword rules</li>
+    <li><span class="chk">✓</span> Slack & Microsoft Teams alerts <span class="new">new</span></li>
+    <li><span class="chk">✓</span> 1-year incident history</li>
+    <li><span class="chk">✓</span> Priority email support (24h response)</li>
+    <li><span class="chk">✓</span> CSV export of incident logs</li>
+    <li><span class="chk">✓</span> API Gateway (monitor AI API calls)</li>
+    <li><span class="chk">✓</span> Chrome, Edge & Brave support</li>
+    <li><span class="chk">✓</span> Works with ChatGPT, Claude, Gemini & more</li>
+  </ul>
+
+  <div id="email-section" style="display:none;" class="email-field">
+    <label>Your work email</label>
+    <input type="email" id="sub-email" placeholder="jane@yourcompany.com" autocomplete="email">
+  </div>
+
+  <div class="action-row">
+    <button class="btn-pilot" onclick="location.href='contact.html?plan=Professional'">Start Free Pilot →</button>
+    <button class="btn-subscribe" id="sub-btn" onclick="subscribePlan()">Subscribe Now →</button>
+  </div>
+  <div class="err-msg" id="sub-err"></div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a><a href="mailto:hello@medholotech.com">hello@medholotech.com</a>
+  </div>
+  <p>© 2025 MedHolo Tech · Corona, CA</p>
+</footer>
+<script src="auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!_key) document.getElementById('email-section').style.display = '';
+});
+</script>
+</body>
+</html>

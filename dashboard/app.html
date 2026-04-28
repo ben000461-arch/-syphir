@@ -577,17 +577,8 @@ async function openPortal() {
   finally { if (btn) { btn.textContent = 'Manage via Stripe →'; btn.disabled = false; } }
 }
 
-async function startBannerCheckout() {
-  const plan = 'Professional'; // default upgrade plan from banner
-  try {
-    const r = await fetch(`${API}/create-checkout-session`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: ORG_KEY, plan })
-    });
-    const d = await r.json();
-    if (d.url) { window.location.href = d.url; }
-    else { alert(d.error || 'Could not start checkout'); }
-  } catch(e) { alert('Network error — try again'); }
+function startBannerCheckout() {
+  window.open('https://syphir.vercel.app/pricing.html' + (ORG_KEY ? '?key=' + ORG_KEY : ''), '_blank');
 }
 
 // ── NAV ────────────────────────────────────────────────────────────────────

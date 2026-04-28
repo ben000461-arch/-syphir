@@ -37,28 +37,6 @@ if (_params.get("expired") === "1") {
   });
 }
 
-async function upgradeCheckout(plan) {
-  const key = _upgradeKey;
-  if (!key) { openPilotModal(plan); return; }
-  const btn = document.getElementById('btn-' + plan);
-  if (btn) { btn.textContent = 'Redirecting…'; btn.disabled = true; }
-  try {
-    const r = await fetch(`${API}/create-checkout-session`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, plan })
-    });
-    const d = await r.json();
-    if (d.url) { window.location.href = d.url; }
-    else {
-      alert(d.error || 'Could not start checkout — check your key');
-      if (btn) { btn.textContent = 'Upgrade to ' + plan + ' →'; btn.disabled = false; }
-    }
-  } catch(e) {
-    alert('Network error — try again');
-    if (btn) { btn.textContent = 'Upgrade to ' + plan + ' →'; btn.disabled = false; }
-  }
-}
-
 let _pilotPlan = '';
 
 function openPilotModal(plan) {
@@ -110,11 +88,6 @@ async function submitPilot() {
 
 document.addEventListener("DOMContentLoaded", function() {
   if (_upgradeKey) {
-    // Show upgrade mode — replace button labels and add key badge
-    ['Starter','Professional','Institution'].forEach(plan => {
-      const btn = document.getElementById('btn-' + plan);
-      if (btn) btn.textContent = 'Upgrade to ' + plan + ' →';
-    });
     const badge = document.createElement('div');
     badge.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999;background:#1c2333;border-bottom:1px solid #242d3e;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:#8b949e;';
     badge.innerHTML = 'Upgrading plan for key <strong style="color:#4db8f0;font-family:monospace;">' + _upgradeKey + '</strong> — select a plan below';
@@ -191,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <div class="section" style="padding-top:0;">
   <div class="pricing-grid">
-    <div class="plan">
+    <div class="plan" onclick="location.href='plan-starter.html'+(_upgradeKey?'?key='+_upgradeKey:'')" style="cursor:pointer;">
       <div class="plan-tier">Starter</div>
       <div class="plan-price">$99<span>/mo</span></div>
       <div class="plan-desc">Perfect for small practices up to 10 employees.</div>
@@ -203,9 +176,8 @@ document.addEventListener("DOMContentLoaded", function() {
         <li><span class="plan-check">✓</span> 30-day incident history</li>
         <li><span class="plan-check">✓</span> One install link</li>
       </ul>
-      <button id="btn-Starter" class="plan-btn" onclick="upgradeCheckout('Starter')">Start free pilot →</button>
     </div>
-    <div class="plan featured">
+    <div class="plan featured" onclick="location.href='plan-professional.html'+(_upgradeKey?'?key='+_upgradeKey:'')" style="cursor:pointer;">
       <div class="plan-pop">MOST POPULAR</div>
       <div class="plan-tier">Professional</div>
       <div class="plan-price">$249<span>/mo</span></div>
@@ -218,9 +190,8 @@ document.addEventListener("DOMContentLoaded", function() {
         <li><span class="plan-check">✓</span> 1-year incident history</li>
         <li><span class="plan-check">✓</span> Priority support</li>
       </ul>
-      <button id="btn-Professional" class="plan-btn" onclick="upgradeCheckout('Professional')">Start free pilot →</button>
     </div>
-    <div class="plan">
+    <div class="plan" onclick="location.href='plan-institution.html'+(_upgradeKey?'?key='+_upgradeKey:'')" style="cursor:pointer;">
       <div class="plan-tier">Institution</div>
       <div class="plan-price">$599<span>/mo</span></div>
       <div class="plan-desc">For large organizations and MSP partners.</div>
@@ -232,7 +203,6 @@ document.addEventListener("DOMContentLoaded", function() {
         <li><span class="plan-check">✓</span> Unlimited history</li>
         <li><span class="plan-check">✓</span> Dedicated onboarding</li>
       </ul>
-      <button id="btn-Institution" class="plan-btn" onclick="upgradeCheckout('Institution')">Start free pilot →</button>
     </div>
   </div>
 
