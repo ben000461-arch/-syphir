@@ -507,23 +507,28 @@ app.post("/create-checkout-session", async (c) => {
       org = rows[0].organizations;
       key = body.key;
     } else if (body.email) {
-      // New customer — create org + key upfront
+      // New customer — create org + keys upfront
       isNewCustomer = true;
       const email = body.email.toLowerCase().trim();
       const orgName = body.orgName || email.split("@")[0];
       const orgId = `org_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
       key = genKey();
       const empKey = genEmpKey();
-      const now = new Date().toISOString();
       const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
       await dbWithRetry("organizations", {
         method: "POST", prefer: "return=minimal",
         body: JSON.stringify({ id: orgId, name: orgName, admin_email: email, plan: "trial", active: true }),
       });
+      // Business key
       await dbWithRetry("license_keys", {
         method: "POST", prefer: "return=minimal",
-        body: JSON.stringify({ key, org_id: orgId, emp_key: empKey, status: "active", created_at: now, expires_at: trialEnd }),
+        body: JSON.stringify({ key, org_id: orgId, key_type: "business", status: "active", expires_at: trialEnd }),
+      });
+      // Employee key (separate row, key_type=employee)
+      await dbWithRetry("license_keys", {
+        method: "POST", prefer: "return=minimal",
+        body: JSON.stringify({ key: empKey, org_id: orgId, key_type: "employee", status: "active", expires_at: trialEnd }),
       });
       org = { id: orgId, name: orgName, admin_email: email };
     } else {
@@ -642,7 +647,7 @@ app.post("/create-portal-session", async (c) => {
   }
 });
 
-console.log("Syphir API v2.7.0 running");
+console.log("Syphir API v2.7.1 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };
