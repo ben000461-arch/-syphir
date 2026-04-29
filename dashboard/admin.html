@@ -183,41 +183,84 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ── CONFIRM MODAL ──────────────────────────────────────────────────────── -->
+<div id="adminConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:600;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)adminConfirmCancel()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem;width:min(420px,90vw);position:relative;">
+    <p id="adminConfirmMsg" style="color:var(--text);font-size:0.92rem;line-height:1.55;margin:0 0 1.5rem;"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="adminConfirmCancel()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:0.6rem 1.1rem;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+      <button id="adminConfirmOkBtn" style="background:var(--danger,#e53e3e);color:#fff;border:none;padding:0.6rem 1.4rem;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js?v=2.2.0"></script>
 <script>
-const ADMIN_SECRET  = 'bridgeline2025';
-const ADMIN_KEY_VAL = 'SYP-ADMIN-BENNY-2026';
-let _bizMap = {}; // keyed by business key, holds full org data for edit modal
+let _adminSecret = null;
+let _bizMap = {};
 
-// All API calls bypass browser cache
 const apiFetch = (url, opts = {}) => fetch(url, { cache: 'no-store', ...opts });
 
-function checkAdminKey() {
-  const val = document.getElementById('adminKeyIn').value.trim().toUpperCase();
+function _saveAdminSession(secret) {
+  sessionStorage.setItem('syphir_admin_session', JSON.stringify({ secret, saved_at: Date.now() }));
+}
+function _loadAdminSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('syphir_admin_session') || 'null');
+    if (!s || !s.secret) return null;
+    if (Date.now() - s.saved_at > 8 * 60 * 60 * 1000) { sessionStorage.removeItem('syphir_admin_session'); return null; }
+    return s.secret;
+  } catch(_) { return null; }
+}
+
+async function checkAdminKey() {
+  const val = document.getElementById('adminKeyIn').value.trim();
   const err = document.getElementById('adminGateErr');
-  if (val === ADMIN_KEY_VAL) {
-    document.getElementById('adminGate').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-    renderAdmin();
-  } else {
-    err.textContent = 'Invalid admin key.';
+  const btn = document.querySelector('#adminGate button');
+  if (!val) { err.textContent = 'Enter your admin key.'; err.style.display = 'block'; return; }
+  btn.textContent = 'Verifying…'; btn.disabled = true;
+  err.style.display = 'none';
+  try {
+    const res = await fetch(`${API}/admin/orgs`, { cache: 'no-store', headers: { 'X-Admin-Secret': val } });
+    if (res.ok) {
+      _adminSecret = val;
+      _saveAdminSession(val);
+      document.getElementById('adminGate').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      renderAdmin();
+    } else {
+      err.textContent = 'Invalid admin key.';
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Network error — try again.';
     err.style.display = 'block';
+  } finally {
+    btn.textContent = 'Enter Admin Panel →'; btn.disabled = false;
   }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('adminKeyIn');
-  if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') checkAdminKey(); });
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAdminKey(); });
   document.getElementById('editModal').addEventListener('click', e => {
     if (e.target === document.getElementById('editModal')) closeEditModal();
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeEditModal(); adminConfirmCancel(); } });
+  const saved = _loadAdminSession();
+  if (saved) {
+    _adminSecret = saved;
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    renderAdmin();
+  }
 });
 
 async function renderAdmin() {
   const container = document.getElementById('bizRows');
   container.innerHTML = '<div class="empty-state" style="padding:1.5rem; text-align:center; color:var(--muted);">Loading from Supabase…</div>';
   try {
-    const res = await apiFetch(`${API}/admin/orgs?_t=${Date.now()}`, { headers: { 'X-Admin-Secret': ADMIN_SECRET } });
+    const res = await apiFetch(`${API}/admin/orgs?_t=${Date.now()}`, { headers: { 'X-Admin-Secret': _adminSecret } });
     if (!res.ok) throw new Error('API ' + res.status);
     const data = await res.json();
     const bizList = data.orgs || [];
@@ -294,7 +337,7 @@ async function addBusiness() {
   try {
     const res = await apiFetch(`${API}/admin/create-org`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
       body: JSON.stringify({ name, email, plan, status, key, emp_key: empKey })
     });
     const data = await res.json();
@@ -318,11 +361,12 @@ async function addBusiness() {
 }
 
 async function removeBiz(keyOrId) {
-  if (!confirm('Permanently delete this business and all its keys from Supabase? This cannot be undone.')) return;
+  const ok = await adminConfirm('Permanently delete this business and all its keys from Supabase? This cannot be undone.');
+  if (!ok) return;
   try {
     const res = await apiFetch(`${API}/admin/remove-org/${encodeURIComponent(keyOrId)}`, {
       method: 'DELETE',
-      headers: { 'X-Admin-Secret': ADMIN_SECRET }
+      headers: { 'X-Admin-Secret': _adminSecret }
     });
     const data = await res.json();
     if (data.success) {
@@ -337,11 +381,12 @@ async function removeBiz(keyOrId) {
 }
 
 async function cleanDuplicates() {
-  if (!confirm('Scan Supabase for duplicate org names and deactivate extras?')) return;
+  const ok = await adminConfirm('Scan Supabase for duplicate org names and deactivate extras?');
+  if (!ok) return;
   try {
     const res = await apiFetch(`${API}/admin/dedup-orgs`, {
       method: 'POST',
-      headers: { 'X-Admin-Secret': ADMIN_SECRET }
+      headers: { 'X-Admin-Secret': _adminSecret }
     });
     const data = await res.json();
     if (data.success) {
@@ -416,7 +461,7 @@ async function saveEdit() {
   try {
     const res = await apiFetch(`${API}/admin/update-org`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': ADMIN_SECRET },
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
       body: JSON.stringify({ org_id: _editOrgId, name, admin_email, plan, status })
     });
     const data = await res.json();
@@ -438,6 +483,20 @@ async function saveEdit() {
   }
 }
 
+let _adminConfirmResolve = null;
+function adminConfirm(msg) {
+  return new Promise(resolve => {
+    _adminConfirmResolve = resolve;
+    document.getElementById('adminConfirmMsg').textContent = msg;
+    document.getElementById('adminConfirmModal').style.display = 'flex';
+    document.getElementById('adminConfirmOkBtn').onclick = () => { document.getElementById('adminConfirmModal').style.display = 'none'; resolve(true); };
+  });
+}
+function adminConfirmCancel() {
+  document.getElementById('adminConfirmModal').style.display = 'none';
+  if (_adminConfirmResolve) { _adminConfirmResolve(false); _adminConfirmResolve = null; }
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -451,7 +510,7 @@ async function loadSubmissions() {
   el.innerHTML = '<div style="padding:0.75rem 0; color:var(--muted); font-size:0.82rem;">Loading…</div>';
   try {
     const res = await apiFetch(`${API}/admin/submissions?_t=${Date.now()}`, {
-      headers: { 'X-Admin-Secret': ADMIN_SECRET }
+      headers: { 'X-Admin-Secret': _adminSecret }
     });
     if (!res.ok) throw new Error('API ' + res.status);
     const data = await res.json();

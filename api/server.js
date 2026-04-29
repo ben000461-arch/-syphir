@@ -6,9 +6,9 @@ import Stripe from "stripe";
 const app = new Hono();
 const SCANNER_URL = "https://syphir-scanner.onrender.com";
 const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcm9qb2Jocm1mbm94YXZscm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTU5MDcsImV4cCI6MjA5MTQ5MTkwN30.0FFbJq_gwsFtZSQY7isojouZAT3xWAUBGFXx-j9nbzo";
-const resend = new Resend("re_efn93Zvb_47cNT8pdRWnhnvHFnfhQ7yqR");
-const ADMIN_SECRET = "bridgeline2025";
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const resend = new Resend(process.env.RESEND_API_KEY);
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 const STRIPE_PLANS = {
@@ -61,9 +61,27 @@ async function dbWithRetry(path, options = {}, retries = 3) {
   }
 }
 
+// ── DEDUP HELPER — block same org+user+ai_tool within 60 seconds ──────────
+async function isDuplicateIncident(orgId, userEmail, aiTool) {
+  try {
+    const since = new Date(Date.now() - 60_000).toISOString();
+    const rows = await db(
+      `incidents?org_id=eq.${encodeURIComponent(orgId)}&user_email=eq.${encodeURIComponent(userEmail)}&ai_tool=eq.${encodeURIComponent(aiTool)}&timestamp=gte.${encodeURIComponent(since)}&select=id&limit=1`
+    );
+    return rows && rows.length > 0;
+  } catch (_) {
+    return false; // non-fatal: if check fails, allow the write
+  }
+}
+
 // ── CORS ───────────────────────────────────────────────────────────────────
 app.use("/*", cors({
-  origin: "*",
+  origin: (origin) => {
+    if (!origin) return null;
+    if (origin === "https://syphir.vercel.app") return origin;
+    if (origin.startsWith("chrome-extension://")) return origin;
+    return null;
+  },
   allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "X-Admin-Secret", "Authorization"],
   exposeHeaders: ["Content-Type"],
@@ -72,14 +90,15 @@ app.use("/*", cors({
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.6.0", db: "supabase" });
+  return c.json({ status: "ok", service: "Syphir API", version: "2.11.0", db: "supabase" });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
 app.post("/validate-key", async (c) => {
-  const { key, context } = await c.req.json();
+  const { key, context } = await c.req.json().catch(() => ({}));
+  if (!key) return c.json({ valid: false, message: "key is required" }, 400);
   try {
-    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ valid: false, message: "Invalid or expired key" }, 401);
     const row = rows[0];
     const org = row.organizations;
@@ -101,10 +120,11 @@ app.post("/validate-key", async (c) => {
 
 // ── SCAN ───────────────────────────────────────────────────────────────────
 app.post("/scan", async (c) => {
-  const { text, key, user_email, ai_tool, url } = await c.req.json();
+  const { text, key, user_email, ai_tool, url } = await c.req.json().catch(() => ({}));
+  if (!key) return c.json({ valid: false, message: "key is required" }, 400);
   let org;
   try {
-    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ valid: false, message: "Invalid key" }, 401);
     org = rows[0].organizations;
   } catch (err) {
@@ -118,21 +138,24 @@ app.post("/scan", async (c) => {
     });
     const result = await scanResponse.json();
     if (result.flagged) {
-      const incident = {
-        id: `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-        org_id: org.id, org_name: org.name, user_email, ai_tool, url,
-        detections: result.detections, risk_level: result.risk_level,
-        message: result.message, resolved: false, timestamp: new Date().toISOString(),
-      };
-      await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+      const isDup = await isDuplicateIncident(org.id, user_email || "unknown", ai_tool || "AI Tool");
+      if (!isDup) {
+        const incident = {
+          id: `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+          org_id: org.id, org_name: org.name, user_email, ai_tool, url,
+          detections: result.detections, risk_level: result.risk_level,
+          message: result.message, resolved: false, timestamp: new Date().toISOString(),
+        };
+        await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+      }
     }
     // Auto-register employee: upsert user record with last_seen timestamp
     if (user_email && user_email !== "unknown") {
       try {
         const now = new Date().toISOString();
-        const existing = await db(`users?org_id=eq.${org.id}&email=eq.${encodeURIComponent(user_email)}&select=id`);
+        const existing = await db(`users?org_id=eq.${encodeURIComponent(org.id)}&email=eq.${encodeURIComponent(user_email)}&select=id`);
         if (existing && existing.length > 0) {
-          await db(`users?id=eq.${existing[0].id}`, {
+          await db(`users?id=eq.${encodeURIComponent(existing[0].id)}`, {
             method: "PATCH", prefer: "return=minimal",
             body: JSON.stringify({ status: "active", last_seen: now }),
           });
@@ -157,24 +180,30 @@ app.post("/scan", async (c) => {
 
 // ── LOG INCIDENT DIRECTLY ──────────────────────────────────────────────────
 app.post("/log-incident", async (c) => {
-  const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = await c.req.json();
+  const { key, user_email, ai_tool, url, risk_level, detections, message, id, timestamp } = await c.req.json().catch(() => ({}));
+  if (!key) return c.json({ success: false, message: "key is required" }, 400);
   let org;
   try {
-    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ success: false, message: "Invalid key" }, 401);
     org = rows[0].organizations;
   } catch (err) { return c.json({ success: false, message: "Auth failed" }, 500); }
   try {
-    const incident = {
-      id: id || `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-      org_id: org.id, org_name: org.name,
-      user_email: user_email || "unknown",
-      ai_tool: ai_tool || "AI Tool", url: url || "",
-      detections: detections || [], risk_level: risk_level || "low",
-      message: message || "PII detected", resolved: false,
-      timestamp: timestamp || new Date().toISOString(),
-    };
-    await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+    const normEmail = user_email || "unknown";
+    const normTool = ai_tool || "AI Tool";
+    const isDup = await isDuplicateIncident(org.id, normEmail, normTool);
+    if (!isDup) {
+      const incident = {
+        id: id || `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        org_id: org.id, org_name: org.name,
+        user_email: normEmail,
+        ai_tool: normTool, url: url || "",
+        detections: detections || [], risk_level: risk_level || "low",
+        message: message || "PII detected", resolved: false,
+        timestamp: timestamp || new Date().toISOString(),
+      };
+      await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+    }
     return c.json({ success: true });
   } catch (err) {
     return c.json({ success: false, message: err.message }, 500);
@@ -185,7 +214,7 @@ app.post("/log-incident", async (c) => {
 app.get("/emp-key/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
-    const rows = await db(`license_keys?org_id=eq.${org_id}&key_type=eq.employee&status=eq.active&select=key`);
+    const rows = await db(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&key_type=eq.employee&status=eq.active&select=key`);
     if (!rows || rows.length === 0) return c.json({ emp_key: null });
     return c.json({ emp_key: rows[0].key });
   } catch (err) {
@@ -197,7 +226,7 @@ app.get("/emp-key/:org_id", async (c) => {
 app.get("/org/:key", async (c) => {
   const { key } = c.req.param();
   try {
-    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ error: "Not found" }, 404);
     const org = rows[0].organizations;
     const keyType = rows[0].key_type;
@@ -210,7 +239,7 @@ app.get("/org/:key", async (c) => {
 // ── PATCH ORG: UPGRADE PLAN ────────────────────────────────────────────────
 app.patch("/orgs/:org_id/upgrade", async (c) => {
   const { org_id } = c.req.param();
-  const { plan, status, stripe_customer_id } = await c.req.json();
+  const { plan, status, stripe_customer_id } = await c.req.json().catch(() => ({}));
   if (!org_id || !plan) return c.json({ error: "org_id and plan are required" }, 400);
 
   const paidPlans = ["Starter", "Professional", "Institution"];
@@ -222,11 +251,11 @@ app.patch("/orgs/:org_id/upgrade", async (c) => {
     if (status) orgPatch.status = status;
     if (stripe_customer_id) orgPatch.stripe_customer_id = stripe_customer_id;
 
-    await dbWithRetry(`organizations?id=eq.${org_id}`, {
+    await dbWithRetry(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify(orgPatch),
     });
-    await dbWithRetry(`license_keys?org_id=eq.${org_id}&key_type=eq.business`, {
+    await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&key_type=eq.business`, {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify({ expires_at: expiresAt, status: "active" }),
     });
@@ -241,12 +270,12 @@ app.patch("/orgs/:org_id/upgrade", async (c) => {
 // ── PATCH ORG (save settings) ──────────────────────────────────────────────
 app.patch("/org/:org_id", async (c) => {
   const { org_id } = c.req.param();
-  const body = await c.req.json();
+  const body = await c.req.json().catch(() => ({}));
   const allowed = {};
   if (body.name)        allowed.name        = body.name;
   if (body.admin_email) allowed.admin_email = body.admin_email;
   try {
-    await db(`organizations?id=eq.${org_id}`, {
+    await db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify(allowed),
     });
@@ -259,7 +288,7 @@ app.patch("/org/:org_id", async (c) => {
 // ── LIST ALL ORGS (admin only) ─────────────────────────────────────────────
 app.get("/admin/orgs", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
   try {
     const orgs = await db("organizations?select=*&order=created_at.desc");
     const keys = await db("license_keys?status=eq.active&select=*");
@@ -284,7 +313,7 @@ app.get("/admin/orgs", async (c) => {
 app.get("/incidents/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
-    const incidents = await db(`incidents?org_id=eq.${org_id}&order=timestamp.desc&limit=100`);
+    const incidents = await db(`incidents?org_id=eq.${encodeURIComponent(org_id)}&order=timestamp.desc&limit=100`);
     return c.json({ incidents: incidents || [], total: incidents?.length || 0 });
   } catch (err) {
     return c.json({ incidents: [], total: 0 });
@@ -294,7 +323,7 @@ app.get("/incidents/:org_id", async (c) => {
 app.get("/stats/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
-    const incidents = await db(`incidents?org_id=eq.${org_id}&select=risk_level,resolved`);
+    const incidents = await db(`incidents?org_id=eq.${encodeURIComponent(org_id)}&select=risk_level,resolved`);
     const list = incidents || [];
     const high     = list.filter(i => i.risk_level === "high").length;
     const medium   = list.filter(i => i.risk_level === "medium").length;
@@ -309,7 +338,7 @@ app.get("/stats/:org_id", async (c) => {
 app.patch("/incidents/:id/resolve", async (c) => {
   const { id } = c.req.param();
   try {
-    await db(`incidents?id=eq.${id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ resolved: true, resolved_at: new Date().toISOString() }) });
+    await db(`incidents?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ resolved: true, resolved_at: new Date().toISOString() }) });
     return c.json({ success: true });
   } catch (err) {
     return c.json({ success: false }, 500);
@@ -320,7 +349,7 @@ app.patch("/incidents/:id/resolve", async (c) => {
 app.get("/team/:org_id", async (c) => {
   const { org_id } = c.req.param();
   try {
-    const users = await db(`users?org_id=eq.${org_id}&order=invited_at.desc`);
+    const users = await db(`users?org_id=eq.${encodeURIComponent(org_id)}&order=invited_at.desc`);
     return c.json({ users: users || [] });
   } catch (err) {
     return c.json({ users: [] });
@@ -330,7 +359,7 @@ app.get("/team/:org_id", async (c) => {
 app.patch("/team/:id/remove", async (c) => {
   const { id } = c.req.param();
   try {
-    await db(`users?id=eq.${id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "removed" }) });
+    await db(`users?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "removed" }) });
     return c.json({ success: true });
   } catch (err) {
     return c.json({ success: false }, 500);
@@ -338,10 +367,11 @@ app.patch("/team/:id/remove", async (c) => {
 });
 
 app.post("/invite-user", async (c) => {
-  const { org_key, employee_email, org_name } = await c.req.json();
+  const { org_key, employee_email, org_name } = await c.req.json().catch(() => ({}));
+  if (!org_key || !employee_email) return c.json({ success: false, message: "org_key and employee_email are required" }, 400);
   let org;
   try {
-    const rows = await db(`license_keys?key=eq.${org_key}&status=eq.active&select=*,organizations(*)`);
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(org_key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ success: false, message: "Invalid key" }, 401);
     org = rows[0].organizations;
   } catch (err) {
@@ -355,7 +385,7 @@ app.post("/invite-user", async (c) => {
   const installUrl = `https://syphir.vercel.app/install.html?key=${org_key}&email=${employee_email}&org=${encodeURIComponent(org_name || org.name)}`;
   const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,sans-serif;"><div style="max-width:560px;margin:0 auto;padding:40px 20px;"><div style="text-align:center;margin-bottom:32px;"><div style="font-size:32px;">🛡️</div><div style="font-size:22px;font-weight:800;color:#fff;">Syphir</div></div><div style="background:#161b25;border:1px solid #242d3e;border-radius:12px;padding:32px;"><h1 style="color:#e6edf3;font-size:20px;font-weight:700;margin:0 0 12px;">You've been protected 🛡️</h1><p style="color:#8b949e;font-size:14px;line-height:1.6;margin:0 0 24px;"><strong style="color:#e6edf3;">${org_name || org.name}</strong> has added you to their Syphir Shield data protection system.</p><a href="${installUrl}" style="display:block;background:#5b4fe8;color:#fff;text-align:center;padding:14px 24px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:16px;">Install Syphir Shield →</a><p style="color:#4a5568;font-size:11px;text-align:center;margin:0;">Only takes 60 seconds · Chrome, Edge, and Brave</p></div></div></body></html>`;
   try {
-    await resend.emails.send({ from: "Syphir Shield <onboarding@resend.dev>", to: employee_email, subject: `You've been added to ${org_name || org.name}'s Syphir Shield`, html: emailHtml });
+    await resend.emails.send({ from: "Syphir Shield <noreply@syphir.io>", to: employee_email, subject: `You've been added to ${org_name || org.name}'s Syphir Shield`, html: emailHtml });
     return c.json({ success: true, message: `Invite sent to ${employee_email}` });
   } catch (err) {
     return c.json({ success: false, message: "Failed to send email" }, 500);
@@ -365,13 +395,13 @@ app.post("/invite-user", async (c) => {
 // ── ADMIN: CREATE ORG ──────────────────────────────────────────────────────
 app.post("/admin/create-org", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
-  const { name, email, plan, status, key, emp_key } = await c.req.json();
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  const { name, email, plan, status, key, emp_key } = await c.req.json().catch(() => ({}));
   if (!name || !key) return c.json({ error: "name and key are required" }, 400);
 
   // Guard: reject if biz key already exists — prevents ghost orgs on retry
   try {
-    const existing = await db(`license_keys?key=eq.${key}&select=key`);
+    const existing = await db(`license_keys?key=eq.${encodeURIComponent(key)}&select=key`);
     if (existing && existing.length > 0) return c.json({ error: `Key already exists: ${key}` }, 409);
   } catch (_) {} // non-fatal pre-check
 
@@ -407,13 +437,13 @@ app.post("/admin/create-org", async (c) => {
     // 5. Poll-verify: confirm biz key is readable before declaring success (up to 10s)
     let verified = false;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const check = await db(`license_keys?key=eq.${key}&status=eq.active&select=key`);
+      const check = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=key`);
       if (check && check.length > 0) { verified = true; break; }
       await new Promise(r => setTimeout(r, 2000));
     }
     if (!verified) {
       // Rollback: deactivate org so it doesn't appear as a ghost in the admin list
-      await db(`organizations?id=eq.${orgId}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ active: false }) }).catch(() => {});
+      await db(`organizations?id=eq.${encodeURIComponent(orgId)}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ active: false }) }).catch(() => {});
       return c.json({ error: "Key write could not be confirmed — org rolled back. Try again." }, 500);
     }
 
@@ -422,7 +452,7 @@ app.post("/admin/create-org", async (c) => {
   } catch (err) {
     // Rollback: deactivate org if key writes failed
     if (orgId) {
-      await db(`organizations?id=eq.${orgId}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ active: false }) }).catch(() => {});
+      await db(`organizations?id=eq.${encodeURIComponent(orgId)}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ active: false }) }).catch(() => {});
     }
     return c.json({ error: "Failed to create org: " + err.message }, 500);
   }
@@ -430,7 +460,7 @@ app.post("/admin/create-org", async (c) => {
 
 // ── CONTACT SUBMISSION ────────────────────────────────────────────────────
 app.post("/contact", async (c) => {
-  const { name, email, company, message } = await c.req.json();
+  const { name, email, company, message } = await c.req.json().catch(() => ({}));
   if (!name || !email || !message) return c.json({ error: "name, email, and message are required" }, 400);
   try {
     await db("contact_submissions", {
@@ -452,7 +482,7 @@ app.post("/contact", async (c) => {
 // ── ADMIN: LIST CONTACT SUBMISSIONS ───────────────────────────────────────
 app.get("/admin/submissions", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
   try {
     const submissions = await db("contact_submissions?select=*&order=submitted_at.desc");
     return c.json({ submissions: submissions || [] });
@@ -464,7 +494,7 @@ app.get("/admin/submissions", async (c) => {
 // ── ADMIN: DEDUP ORGS ─────────────────────────────────────────────────────
 app.post("/admin/dedup-orgs", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
   try {
     const orgs = await db("organizations?select=*&order=created_at.asc");
     const keys = await db("license_keys?status=eq.active&select=*");
@@ -482,13 +512,11 @@ app.post("/admin/dedup-orgs", async (c) => {
       const withKey = group.filter(o => (keys || []).some(k => k.org_id === o.id && k.key_type === "business"));
       const keep = (withKey.length > 0 ? withKey : group).slice(-1)[0];
       for (const dup of group.filter(o => o.id !== keep.id)) {
-        await dbWithRetry(`license_keys?org_id=eq.${dup.id}`, {
+        await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(dup.id)}`, {
           method: "PATCH", prefer: "return=minimal",
           body: JSON.stringify({ status: "inactive" }),
         });
-        deduped.push({ 
-            
-          removed_id: dup.id, name: dup.name, kept_id: keep.id });
+        deduped.push({ removed_id: dup.id, name: dup.name, kept_id: keep.id });
       }
     }
     return c.json({ success: true, count: deduped.length, deduped });
@@ -500,9 +528,9 @@ app.post("/admin/dedup-orgs", async (c) => {
 // ── ADMIN: UPDATE ORG ─────────────────────────────────────────────────────
 app.patch("/admin/update-org", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
 
-  const { org_id, name, admin_email, plan, status } = await c.req.json();
+  const { org_id, name, admin_email, plan, status } = await c.req.json().catch(() => ({}));
   if (!org_id) return c.json({ error: "org_id is required" }, 400);
 
   try {
@@ -515,7 +543,7 @@ app.patch("/admin/update-org", async (c) => {
     if (admin_email) orgPatch.admin_email = admin_email;
     if (plan)        orgPatch.plan        = plan;
 
-    await dbWithRetry(`organizations?id=eq.${org_id}`, {
+    await dbWithRetry(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify(orgPatch),
     });
@@ -524,7 +552,7 @@ app.patch("/admin/update-org", async (c) => {
     const keyPatch = { expires_at: expiresAt };
     if (status) keyPatch.status = status === "inactive" ? "inactive" : "active";
 
-    await dbWithRetry(`license_keys?org_id=eq.${org_id}&key_type=eq.business`, {
+    await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&key_type=eq.business`, {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify(keyPatch),
     });
@@ -539,17 +567,17 @@ app.patch("/admin/update-org", async (c) => {
 // ── ADMIN: REMOVE ORG ──────────────────────────────────────────────────────
 app.delete("/admin/remove-org/:key", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
   const { key } = c.req.param();
   try {
     // Look up org_id (check all key statuses so already-inactive keys still resolve)
-    const rows = await db(`license_keys?key=eq.${key}&select=org_id`);
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&select=org_id`);
     if (!rows || rows.length === 0) return c.json({ success: true, note: "Key not found" });
     const orgId = rows[0].org_id;
 
     // Hard-delete all license keys for this org, then the org itself
-    await db(`license_keys?org_id=eq.${orgId}`, { method: "DELETE", prefer: "return=minimal" });
-    await db(`organizations?id=eq.${orgId}`, { method: "DELETE", prefer: "return=minimal" });
+    await db(`license_keys?org_id=eq.${encodeURIComponent(orgId)}`, { method: "DELETE", prefer: "return=minimal" });
+    await db(`organizations?id=eq.${encodeURIComponent(orgId)}`, { method: "DELETE", prefer: "return=minimal" });
 
     return c.json({ success: true });
   } catch (err) {
@@ -560,7 +588,7 @@ app.delete("/admin/remove-org/:key", async (c) => {
 // ── STRIPE: CREATE CHECKOUT SESSION ───────────────────────────────────────
 app.post("/create-checkout-session", async (c) => {
   if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
-  const body = await c.req.json();
+  const body = await c.req.json().catch(() => ({}));
   const { plan } = body;
   if (!plan) return c.json({ error: "plan is required" }, 400);
 
@@ -572,7 +600,7 @@ app.post("/create-checkout-session", async (c) => {
 
     if (body.key) {
       // Existing customer upgrading
-      const rows = await db(`license_keys?key=eq.${body.key}&status=eq.active&select=*,organizations(*)`);
+      const rows = await db(`license_keys?key=eq.${encodeURIComponent(body.key)}&status=eq.active&select=*,organizations(*)`);
       if (!rows || rows.length === 0) return c.json({ error: "Invalid or inactive key" }, 401);
       org = rows[0].organizations;
       key = body.key;
@@ -650,11 +678,11 @@ app.post("/stripe-webhook", async (c) => {
     const { org_id, plan, key, is_new_customer } = session.metadata || {};
     if (org_id && plan) {
       try {
-        await dbWithRetry(`organizations?id=eq.${org_id}`, {
+        await dbWithRetry(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
           method: "PATCH", prefer: "return=minimal",
           body: JSON.stringify({ plan, active: true, stripe_customer_id: session.customer || null }),
         });
-        await dbWithRetry(`license_keys?org_id=eq.${org_id}`, {
+        await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(org_id)}`, {
           method: "PATCH", prefer: "return=minimal",
           body: JSON.stringify({ expires_at: null, status: "active" }),
         });
@@ -664,7 +692,7 @@ app.post("/stripe-webhook", async (c) => {
           const email = session.customer_details.email;
           const dashboardUrl = `https://syphir.vercel.app/app.html?key=${key}`;
           await resend.emails.send({
-            from: "Syphir Shield <onboarding@resend.dev>",
+            from: "Syphir Shield <noreply@syphir.io>",
             to: email,
             subject: "Welcome to Syphir — your dashboard is ready",
             html: `
@@ -694,11 +722,11 @@ app.post("/stripe-webhook", async (c) => {
 // ── STRIPE: CUSTOMER PORTAL ────────────────────────────────────────────────
 app.post("/create-portal-session", async (c) => {
   if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
-  const { key } = await c.req.json();
+  const { key } = await c.req.json().catch(() => ({}));
   if (!key) return c.json({ error: "key is required" }, 400);
 
   try {
-    const rows = await db(`license_keys?key=eq.${key}&status=eq.active&select=*,organizations(*)`);
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ error: "Invalid key" }, 401);
     const org = rows[0].organizations;
 
@@ -798,7 +826,7 @@ app.get("/billing/:key", async (c) => {
 // ── BILLING: CANCEL subscription ───────────────────────────────────────────
 app.delete("/billing/cancel", async (c) => {
   if (!stripe) return c.json({ error: "Stripe not configured" }, 503);
-  const { key } = await c.req.json();
+  const { key } = await c.req.json().catch(() => ({}));
   if (!key) return c.json({ error: "key is required" }, 400);
   try {
     const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&select=*,organizations(*)`);
@@ -813,7 +841,7 @@ app.delete("/billing/cancel", async (c) => {
     await stripe.subscriptions.update(subscriptions.data[0].id, { cancel_at_period_end: true });
 
     // Downgrade org to trial in Supabase
-    await dbWithRetry(`organizations?id=eq.${org.id}`, {
+    await dbWithRetry(`organizations?id=eq.${encodeURIComponent(org.id)}`, {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify({ plan: "trial" }),
     });
@@ -825,7 +853,7 @@ app.delete("/billing/cancel", async (c) => {
   }
 });
 
-console.log("Syphir API v2.10.0 running");
+console.log("Syphir API v2.11.0 running");
 // Keep Render awake — ping every 10 minutes
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 export default { port: 3000, fetch: app.fetch };

@@ -8,9 +8,9 @@ app = FastAPI(title="Syphir Scanner", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["https://syphir-api.onrender.com"],
+    allow_methods=["POST"],
+    allow_headers=["Content-Type"],
 )
 
 # Build a pattern-only NLP engine (no spaCy model needed)

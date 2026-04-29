@@ -1,6 +1,19 @@
 // ── SYPHIR AUTH & BUSINESS REGISTRY ────────────────────────────────────────
-const ADMIN_KEY = 'SYP-ADMIN-BENNY-2026';
 const API = 'https://syphir-api.onrender.com';
+const SESSION_KEY = 'syphir_session';
+const SESSION_TTL = 8 * 60 * 60 * 1000;
+
+function saveSession(data) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...data, authenticated_at: Date.now() })); } catch(_) {}
+}
+function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (!s || !s.key) return null;
+    if (Date.now() - s.authenticated_at > SESSION_TTL) { sessionStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch(_) { return null; }
+}
 
 const DEFAULT_BUSINESSES = [
   { id: 'biz_demo1', name: 'Demo Dental Practice', email: 'admin@dentalpractice.com', key: 'SYP-DEMO-2026-SYPHIR', emp_key: 'EMP-DENT-DEMO-2026', plan: 'Professional', status: 'demo', created: '2026-01-10' },
@@ -79,14 +92,6 @@ function handleKey() {
   const err = document.getElementById('keyErr');
   if (!raw) { showErr(err, 'Please enter your license key.'); return; }
 
-  // Admin key
-  if (raw === ADMIN_KEY) {
-    hideErr(err);
-    setBtnLoading('keyBtn', 'Opening admin panel…');
-    setTimeout(() => { window.location.href = 'admin.html'; }, 600);
-    return;
-  }
-
   // Block employee keys from dashboard
   if (isEmployeeKey(raw)) {
     showErr(err, 'This is an employee key — it only works in the Syphir Chrome extension. Contact your admin for dashboard access.');
@@ -97,6 +102,7 @@ function handleKey() {
   const biz = findBusinessByKey(raw);
   if (biz && biz.key.toUpperCase() === raw) {
     hideErr(err);
+    saveSession({ key: raw, org_name: biz.name, org_id: biz.id || '' });
     setBtnLoading('keyBtn', 'Opening your dashboard…');
     setTimeout(() => {
       window.location.href = 'app.html?key=' + encodeURIComponent(raw) + '&org=' + encodeURIComponent(biz.name);
@@ -115,6 +121,7 @@ function handleKey() {
   .then(data => {
     if (data.valid) {
       hideErr(err);
+      saveSession({ key: raw, org_name: data.org_name, org_id: data.org_id || '' });
       window.location.href = 'app.html?key=' + encodeURIComponent(raw) + '&org=' + encodeURIComponent(data.org_name);
     } else if (data.key_type === 'employee') {
       resetBtn('keyBtn', 'Open Dashboard →');
@@ -139,6 +146,7 @@ function handleEmail() {
   const biz = getBusinesses().find(b => b.email.toLowerCase() === email.toLowerCase());
   if (biz && pass.length >= 4) {
     hideErr(err);
+    saveSession({ key: biz.key, org_name: biz.name, org_id: biz.id || '' });
     setBtnLoading('emailBtn', 'Signing in…');
     setTimeout(() => {
       window.location.href = 'app.html?key=' + encodeURIComponent(biz.key) + '&org=' + encodeURIComponent(biz.name);

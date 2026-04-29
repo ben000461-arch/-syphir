@@ -153,7 +153,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,17,23,0.9
 
 <script>
 const _API = 'https://syphir-api.onrender.com';
-const _key = new URLSearchParams(window.location.search).get('key') || '';
+const _SESSION_KEY_B = 'syphir_session', _SESSION_TTL_B = 8 * 60 * 60 * 1000;
+function _getSessionB() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(_SESSION_KEY_B) || 'null');
+    if (!s || !s.key) return null;
+    if (Date.now() - s.authenticated_at > _SESSION_TTL_B) { sessionStorage.removeItem(_SESSION_KEY_B); return null; }
+    return s;
+  } catch(_) { return null; }
+}
+const _urlKey = new URLSearchParams(window.location.search).get('key');
+const _key = (_urlKey || _getSessionB()?.key || '').toUpperCase();
 
 if (!_key) {
   document.getElementById('err-banner').textContent = 'No dashboard key found. Close this tab and try again from your Settings page.';
@@ -356,12 +366,12 @@ async function confirmCancel() {
       closeCancelModal();
       await loadBilling();
     } else {
-      alert(d.error || 'Could not cancel — try again');
+      showErr(d.error || 'Could not cancel — try again');
       btn.textContent = 'Yes, Cancel →';
       btn.disabled = false;
     }
   } catch(e) {
-    alert('Network error — try again');
+    showErr('Network error — try again');
     btn.textContent = 'Yes, Cancel →';
     btn.disabled = false;
   }
@@ -379,9 +389,9 @@ async function openStripePortal() {
     });
     const d = await r.json();
     if (d.url) { window.location.href = d.url; }
-    else { alert(d.error || 'Could not open billing portal'); if (btn) { btn.textContent = 'Update Card'; btn.disabled = false; } }
+    else { showErr(d.error || 'Could not open billing portal'); if (btn) { btn.textContent = 'Update Card'; btn.disabled = false; } }
   } catch(e) {
-    alert('Network error — try again');
+    showErr('Network error — try again');
     if (btn) { btn.textContent = 'Update Card'; btn.disabled = false; }
   }
 }

@@ -313,7 +313,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
     <!-- POLICIES -->
     <div class="page" id="page-policies">
-      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects and how it responds</div></div><button class="btn btn-primary" onclick="alert('Policies saved!')">Save Changes</button></div>
+      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects and how it responds</div></div><button class="btn btn-primary" onclick="showToast('Detection policies saved!')">Save Changes</button></div>
       <div class="grid-2">
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">📋 Sensitive Data Types</div></div>
@@ -388,12 +388,54 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
   </div>
 </main>
 
+<!-- ── TOAST ──────────────────────────────────────────────────────────────── -->
+<div id="app-toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;display:none;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.2s;"></div>
+
+<!-- ── CONFIRM MODAL ─────────────────────────────────────────────────────── -->
+<div id="app-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8000;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)appConfirmCancel()">
+  <div style="background:#161b25;border:1px solid #242d3e;border-radius:14px;padding:1.75rem;width:min(400px,90vw);">
+    <p id="app-confirm-msg" style="color:#e6edf3;font-size:0.92rem;line-height:1.55;margin:0 0 1.5rem;"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="appConfirmCancel()" style="background:transparent;border:1px solid #242d3e;color:#8b949e;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
+      <button id="app-confirm-ok" style="background:#f44336;color:#fff;border:none;padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROMPT MODAL ──────────────────────────────────────────────────────── -->
+<div id="app-prompt-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8000;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)appPromptCancel()">
+  <div style="background:#161b25;border:1px solid #242d3e;border-radius:14px;padding:1.75rem;width:min(380px,90vw);">
+    <p id="app-prompt-label" style="color:#e6edf3;font-size:0.92rem;margin:0 0 0.75rem;"></p>
+    <input id="app-prompt-input" style="width:100%;background:#1c2333;border:1px solid #242d3e;border-radius:7px;padding:9px 12px;font-size:13px;color:#e6edf3;font-family:'Inter',sans-serif;outline:none;margin-bottom:1rem;" placeholder="">
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="appPromptCancel()" style="background:transparent;border:1px solid #242d3e;color:#8b949e;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
+      <button id="app-prompt-ok" style="background:#2196d3;color:#fff;border:none;padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ── ORG CONTEXT FROM URL ───────────────────────────────────────────────────
+// ── ORG CONTEXT ─────────────────────────────────────────────────────────────
 const API = 'https://syphir-api.onrender.com';
+const _SESSION_KEY = 'syphir_session', _SESSION_TTL = 8 * 60 * 60 * 1000;
+function getSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(_SESSION_KEY) || 'null');
+    if (!s || !s.key) return null;
+    if (Date.now() - s.authenticated_at > _SESSION_TTL) { sessionStorage.removeItem(_SESSION_KEY); return null; }
+    return s;
+  } catch(_) { return null; }
+}
+function saveSession(data) {
+  try { sessionStorage.setItem(_SESSION_KEY, JSON.stringify({ ...data, authenticated_at: Date.now() })); } catch(_) {}
+}
+
 const params = new URLSearchParams(window.location.search);
-const ORG_KEY = params.get('key') || 'SYP-DEMO-2026-SYPHIR';
-const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || 'Demo');
+const _urlKey = params.get('key');
+const _session = getSession();
+const ORG_KEY = (_urlKey || _session?.key || '').toUpperCase();
+const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || _session?.org_name || 'Demo');
+if (!ORG_KEY) window.location.replace('index.html?error=session-expired');
 
 // These are placeholders — real values set after org resolves
 let ORG_ID = null;
@@ -409,13 +451,24 @@ const PLAN_PRICES = { Starter: 99, Professional: 249, Institution: 599, Demo: 0 
 
 // ── BOOT: Resolve org then start everything ────────────────────────────────
 (async () => {
-  // ── EXPIRY GATE: block dashboard entirely if trial has ended ──────────────
+  if (!ORG_KEY) return; // redirect already initiated
+
+  // ── EXPIRY / VALIDITY GATE ────────────────────────────────────────────────
   try {
     const vRes = await fetch(`${API}/validate-key`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' })
     });
     const vData = await vRes.json();
+    if (vData.valid) {
+      saveSession({ key: ORG_KEY, org_name: vData.org_name || ORG_NAME_PARAM, org_id: vData.org_id || '' });
+    }
+    if (_urlKey) {
+      const _np = new URLSearchParams();
+      if (params.get('payment')) _np.set('payment', params.get('payment'));
+      history.replaceState(null, '', 'app.html' + (_np.toString() ? '?' + _np.toString() : ''));
+    }
+    if (!vData.valid && !vData.expired) { window.location.replace('index.html?error=invalid-key'); return; }
     if (vData.expired) {
       document.body.style.cssText = 'margin:0;padding:0;overflow:hidden;';
       document.body.innerHTML =
@@ -526,7 +579,7 @@ const PLAN_PRICES = { Starter: 99, Professional: 249, Institution: 599, Demo: 0 
   } catch(e) {
     // API offline — fill what we can from URL params
     console.warn('org resolve failed, using URL params', e);
-    ORG_ID = 'org_demo';  // fallback so data calls still run
+    ORG_ID = null;  // stays null — loadData() guards on !ORG_ID
     document.getElementById('org-name').textContent = ORG_NAME;
     const sk = document.getElementById('settings-license-key');
     if (sk) sk.value = ORG_KEY;
@@ -576,8 +629,8 @@ async function openPortal() {
     });
     const d = await r.json();
     if (d.url) { window.location.href = d.url; }
-    else { alert(d.error || 'Could not open billing portal'); }
-  } catch(e) { alert('Network error — try again'); }
+    else { showToast(d.error || 'Could not open billing portal', 'error'); }
+  } catch(e) { showToast('Network error — try again', 'error'); }
   finally { if (btn) { btn.textContent = 'Manage Payments →'; btn.disabled = false; } }
 }
 
@@ -757,7 +810,7 @@ async function saveSettings() {
   // FIX: Actually save org name + email to API instead of just alert()
   const newName  = document.getElementById('settings-org-name').value.trim();
   const newEmail = document.getElementById('settings-admin-email').value.trim();
-  if (!newName) { alert('Organization name cannot be empty'); return; }
+  if (!newName) { showToast('Organization name cannot be empty', 'error'); return; }
   try {
     const res = await fetch(`${API}/org/${ORG_ID}`, {
       method: 'PATCH',
@@ -768,15 +821,14 @@ async function saveSettings() {
       ORG_NAME = newName;
       ORG_ADMIN_EMAIL = newEmail;
       document.getElementById('org-name').textContent = ORG_NAME;
-      alert('✓ Settings saved!');
+      showToast('✓ Settings saved!');
     } else {
-      alert('Failed to save — API returned an error');
+      showToast('Failed to save — API returned an error', 'error');
     }
   } catch(e) {
-    // API may not support PATCH yet — still update locally
     ORG_NAME = newName;
     document.getElementById('org-name').textContent = ORG_NAME;
-    alert('✓ Saved locally (API offline)');
+    showToast('✓ Saved locally (API offline)');
   }
 }
 
@@ -839,7 +891,8 @@ async function loadTeamMembers() {
 }
 
 async function removeUser(id) {
-  if (!confirm('Remove this team member?')) return;
+  const ok = await appConfirm('Remove this team member?');
+  if (!ok) return;
   try { await fetch(`${API}/team/${id}/remove`, {method:'PATCH'}); loadTeamMembers(); } catch(e){}
 }
 
@@ -852,8 +905,59 @@ async function resolve(id) {
   } catch(e){}
 }
 
+// ── TOAST / CONFIRM / PROMPT ───────────────────────────────────────────────
+let _toastTimer = null;
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('app-toast');
+  if (!el) return;
+  const styles = { success: { bg:'#00e676', color:'#000' }, error: { bg:'#f44336', color:'#fff' }, info: { bg:'#2196d3', color:'#fff' } };
+  const s = styles[type] || styles.success;
+  el.textContent = msg;
+  el.style.background = s.bg;
+  el.style.color = s.color;
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 200); }, 3000);
+}
+
+let _confirmResolve = null;
+function appConfirm(msg) {
+  return new Promise(resolve => {
+    _confirmResolve = resolve;
+    document.getElementById('app-confirm-msg').textContent = msg;
+    const modal = document.getElementById('app-confirm-modal');
+    modal.style.display = 'flex';
+    document.getElementById('app-confirm-ok').onclick = () => { modal.style.display = 'none'; resolve(true); };
+  });
+}
+function appConfirmCancel() {
+  document.getElementById('app-confirm-modal').style.display = 'none';
+  if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+}
+
+let _promptResolve = null;
+function appPrompt(msg, placeholder = '') {
+  return new Promise(resolve => {
+    _promptResolve = resolve;
+    document.getElementById('app-prompt-label').textContent = msg;
+    const inp = document.getElementById('app-prompt-input');
+    inp.value = '';
+    inp.placeholder = placeholder;
+    const modal = document.getElementById('app-prompt-modal');
+    modal.style.display = 'flex';
+    setTimeout(() => inp.focus(), 50);
+    inp.onkeydown = e => { if (e.key === 'Enter') { modal.style.display = 'none'; resolve(inp.value.trim()); } };
+    document.getElementById('app-prompt-ok').onclick = () => { modal.style.display = 'none'; resolve(inp.value.trim()); };
+  });
+}
+function appPromptCancel() {
+  document.getElementById('app-prompt-modal').style.display = 'none';
+  if (_promptResolve) { _promptResolve(null); _promptResolve = null; }
+}
+
 function exportCSV() {
-  if (!incidents.length) return alert('No incidents to export');
+  if (!incidents.length) { showToast('No incidents to export', 'info'); return; }
   const h = ['ID','User','AI Tool','Risk','Detections','Time','Resolved'];
   const r = incidents.map(i => [i.id, i.user_email, i.ai_tool, i.risk_level, (i.detections||[]).map(d=>d.label||d.entity_type).join('|'), i.timestamp, i.resolved]);
   const csv = [h,...r].map(x=>x.join(',')).join('\n');
@@ -942,8 +1046,8 @@ function removeProviderRow(btn, id) {
   renderProviders();
 }
 
-function addProviderRow() {
-  const name = prompt('Provider name (e.g. "Mistral"):');
+async function addProviderRow() {
+  const name = await appPrompt('Provider name (e.g. "Mistral"):', 'Mistral');
   if (!name || !name.trim()) return;
   const id = name.trim().toLowerCase().replace(/\s+/g, '_');
   const saved = loadProviderKeys();
