@@ -6,10 +6,10 @@ import Stripe from "stripe";
 const app = new Hono();
 const SCANNER_URL = "https://syphir-scanner.onrender.com";
 const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
-const resend = new Resend(process.env.RESEND_API_KEY);
-const ADMIN_SECRET = process.env.ADMIN_SECRET;
-if (!ADMIN_SECRET) throw new Error('ADMIN_SECRET env var is not set');
+const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
+const resend = new Resend(process.env.RESEND_API_KEY || '');
+const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
+if (!ADMIN_SECRET) console.warn('WARNING: ADMIN_SECRET env var is not set — admin endpoints will reject all requests');
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 const STRIPE_PLANS = {
