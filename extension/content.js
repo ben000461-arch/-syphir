@@ -4,6 +4,7 @@ let USER_EMAIL = "employee@company.com";
 let lastScanned = "";
 let lastScannedTime = 0;
 let scannedFiles = new Set();
+let bannerDismissed = false;
 
 chrome.storage.local.get(["syphir_key", "syphir_email"], (data) => {
   if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
@@ -145,14 +146,43 @@ function showBanner(message, risk) {
   const d = document.createElement("div");
   d.id = "syphir-banner";
   d.style.cssText = `position:fixed;top:20px;right:20px;z-index:2147483647;background:${c.bg};border:1px solid ${c.border};border-radius:12px;padding:14px 16px;max-width:420px;min-width:280px;color:#fff;font-family:-apple-system,sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.4);animation:syphirSlide 0.3s ease;`;
+
+  // ✕ close — hides this instance only, does not suppress future banners
   const x = document.createElement("button");
   x.textContent = "✕";
   x.style.cssText = `background:rgba(255,255,255,0.25);border:none;color:#fff;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:12px;float:right;margin-left:10px;`;
   x.addEventListener("click", () => d.remove());
+
+  // Dismiss — hides banner AND suppresses re-display until a new input triggers a detection
+  const dismiss = document.createElement("button");
+  dismiss.textContent = "Dismiss";
+  dismiss.style.cssText = `background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:#fff;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;margin-top:7px;display:inline-block;font-family:-apple-system,sans-serif;`;
+  dismiss.addEventListener("click", () => { bannerDismissed = true; d.remove(); });
+
+  const icon = document.createElement("span");
+  icon.style.cssText = `font-size:20px;flex-shrink:0;`;
+  icon.textContent = "🛡️";
+
+  const title = document.createElement("div");
+  title.style.cssText = `font-weight:700;font-size:13px;margin-bottom:3px;`;
+  title.textContent = "Syphir — Sensitive Data Detected";
+
+  const msg = document.createElement("div");
+  msg.style.cssText = `font-size:12px;opacity:0.92;line-height:1.4;`;
+  msg.textContent = message;
+
+  const content = document.createElement("div");
+  content.style.cssText = `flex:1;`;
+  content.appendChild(title);
+  content.appendChild(msg);
+  content.appendChild(dismiss);
+
   const body = document.createElement("div");
   body.style.cssText = `display:flex;align-items:flex-start;gap:10px;`;
-  body.innerHTML = `<span style="font-size:20px;flex-shrink:0;">🛡️</span><div style="flex:1;"><div style="font-weight:700;font-size:13px;margin-bottom:3px;">Syphir — Sensitive Data Detected</div><div style="font-size:12px;opacity:0.92;line-height:1.4;">${message}</div></div>`;
+  body.appendChild(icon);
+  body.appendChild(content);
   body.appendChild(x);
+
   d.appendChild(body);
   document.body.appendChild(d);
   setTimeout(() => { const b = document.getElementById("syphir-banner"); if (b) b.remove(); }, 8000);
@@ -195,6 +225,8 @@ async function scan(text, source) {
   const now = Date.now();
   const trimmed = text.trim();
   if (trimmed === lastScanned && now - lastScannedTime < 5000) return;
+
+  const isNewText = trimmed !== lastScanned;
   lastScanned = trimmed;
   lastScannedTime = now;
 
@@ -205,9 +237,16 @@ async function scan(text, source) {
   const message    = buildMessage(findings);
   const tool       = source || getAITool();
 
-  showBanner(message, risk_level);
+  // Logging fires immediately and unconditionally — dismiss never gates this
+  const logPromise = logIncident(findings, risk_level, message, tool);
   try { chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level }); } catch(e) {}
-  await logIncident(findings, risk_level, message, tool);
+
+  // Reset dismissed state when a genuinely new input triggers a detection
+  if (isNewText) bannerDismissed = false;
+
+  if (!bannerDismissed) showBanner(message, risk_level);
+
+  await logPromise;
 }
 
 // ── FILE SCANNING ─────────────────────────────────────────────────────────────
