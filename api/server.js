@@ -124,9 +124,9 @@ app.post("/validate-key", async (c) => {
         const now = new Date().toISOString();
         const existing = await db(`users?org_id=eq.${encodeURIComponent(org.id)}&email=eq.${encodeURIComponent(email)}&select=id`);
         if (existing && existing.length > 0) {
-          await db(`users?id=eq.${existing[0].id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "active", last_seen: now }) });
+          await db(`users?id=eq.${existing[0].id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "active" }) });
         } else {
-          await db("users", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: `user_${Date.now()}_${Math.random().toString(36).substr(2,4)}`, org_id: org.id, email, role: "member", status: "active", invited_at: now, last_seen: now }) });
+          await db("users", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: `user_${Date.now()}_${Math.random().toString(36).substr(2,4)}`, org_id: org.id, email, role: "member", status: "active", invited_at: now }) });
         }
         console.log(`✓ Employee registered: ${email} → org ${org.name}`);
       } catch(e) { console.warn("User upsert failed (non-fatal):", e.message); }
@@ -171,7 +171,7 @@ app.post("/scan", async (c) => {
         await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
       }
     }
-    // Auto-register employee: upsert user record with last_seen timestamp
+    // Auto-register employee: upsert user record
     if (user_email && user_email !== "unknown") {
       try {
         const now = new Date().toISOString();
@@ -179,7 +179,7 @@ app.post("/scan", async (c) => {
         if (existing && existing.length > 0) {
           await db(`users?id=eq.${encodeURIComponent(existing[0].id)}`, {
             method: "PATCH", prefer: "return=minimal",
-            body: JSON.stringify({ status: "active", last_seen: now }),
+            body: JSON.stringify({ status: "active" }),
           });
         } else {
           await db("users", {
@@ -188,7 +188,7 @@ app.post("/scan", async (c) => {
               id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
               org_id: org.id, email: user_email,
               role: "member", status: "active",
-              invited_at: now, last_seen: now,
+              invited_at: now,
             }),
           });
         }
