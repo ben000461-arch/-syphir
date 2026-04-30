@@ -119,27 +119,17 @@ app.post("/validate-key", async (c) => {
       return c.json({ valid: false, key_type: "employee", message: "This is an employee key. Contact your admin for dashboard access." }, 403);
     }
     // Upsert employee user record so they appear in Team Members immediately
-    if (keyType === "employee" && email) {
+    if (email && keyType === "employee") {
       try {
         const now = new Date().toISOString();
         const existing = await db(`users?org_id=eq.${encodeURIComponent(org.id)}&email=eq.${encodeURIComponent(email)}&select=id`);
         if (existing && existing.length > 0) {
-          await db(`users?id=eq.${encodeURIComponent(existing[0].id)}`, {
-            method: "PATCH", prefer: "return=minimal",
-            body: JSON.stringify({ status: "active", last_seen: now }),
-          });
+          await db(`users?id=eq.${existing[0].id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "active", last_seen: now }) });
         } else {
-          await db("users", {
-            method: "POST", prefer: "return=minimal",
-            body: JSON.stringify({
-              id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-              org_id: org.id, email,
-              role: "member", status: "active",
-              invited_at: now, last_seen: now,
-            }),
-          });
+          await db("users", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: `user_${Date.now()}_${Math.random().toString(36).substr(2,4)}`, org_id: org.id, email, role: "member", status: "active", invited_at: now, last_seen: now }) });
         }
-      } catch(_) {} // non-fatal — validation must still succeed
+        console.log(`✓ Employee registered: ${email} → org ${org.name}`);
+      } catch(e) { console.warn("User upsert failed (non-fatal):", e.message); }
     }
     return c.json({ valid: true, key_type: keyType, org_id: org.id, org_name: org.name, plan: org.plan, expires_at: row.expires_at, days_left: daysLeft });
   } catch (err) {
