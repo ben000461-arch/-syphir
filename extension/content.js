@@ -6,11 +6,13 @@ let lastScannedTime = 0;
 let scannedFiles = new Set();
 let bannerDismissed = false;
 
-chrome.storage.local.get(["syphir_key", "syphir_email"], (data) => {
-  if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
-  if (data.syphir_email) USER_EMAIL = data.syphir_email;
-  wakeAPI();
-});
+try {
+  chrome.storage.local.get(["syphir_key", "syphir_email"], (data) => {
+    if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
+    if (data.syphir_email) USER_EMAIL = data.syphir_email;
+    wakeAPI();
+  });
+} catch(_) { wakeAPI(); }
 
 function wakeAPI() {
   fetch(`${SYPHIR_API}/health`).catch(() => {});
@@ -190,13 +192,21 @@ function showBanner(message, risk) {
 
 // ── LOG INCIDENT ──────────────────────────────────────────────────────────────
 async function logIncident(findings, risk_level, message, ai_tool) {
-  await new Promise(resolve => {
-    chrome.storage.local.get(["syphir_key","syphir_email"], (data) => {
-      if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
-      if (data.syphir_email) USER_EMAIL = data.syphir_email;
-      resolve();
-    });
-  });
+  // Refresh key/email from storage only if the extension context is still alive.
+  // If it's dead (extension reloaded), skip silently and use in-memory values —
+  // the fetch below does not need chrome APIs and must always fire.
+  if (chrome?.runtime?.id) {
+    try {
+      await new Promise(resolve => {
+        chrome.storage.local.get(["syphir_key","syphir_email"], (data) => {
+          if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
+          if (data.syphir_email) USER_EMAIL = data.syphir_email;
+          resolve();
+        });
+      });
+    } catch(_) {}
+  }
+  // Fetch uses only in-memory values — no chrome APIs from this point
   const incident = {
     id: `inc_${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
     key: SYPHIR_KEY,
@@ -239,15 +249,22 @@ async function scan(text, source) {
 
   // Logging fires immediately and unconditionally — no UI setting gates this
   const logPromise = logIncident(findings, risk_level, message, tool);
-  try { chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level }); } catch(e) {}
+  try {
+    if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level });
+  } catch(e) {}
 
   // Reset dismissed state when a genuinely new input triggers a detection
   if (isNewText) bannerDismissed = false;
 
   // Check popup "Hide Alerts" setting — only gates the banner, never the log
-  const hideAlerts = await new Promise(resolve => {
-    chrome.storage.local.get(["syphir_hide_alerts"], (d) => resolve(d.syphir_hide_alerts === true));
-  });
+  let hideAlerts = false;
+  if (chrome?.runtime?.id) {
+    try {
+      hideAlerts = await new Promise(resolve => {
+        chrome.storage.local.get(["syphir_hide_alerts"], (d) => resolve(d.syphir_hide_alerts === true));
+      });
+    } catch(_) {}
+  }
 
   if (!bannerDismissed && !hideAlerts) showBanner(message, risk_level);
 
