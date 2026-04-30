@@ -9,6 +9,7 @@ const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
+if (!ADMIN_SECRET) throw new Error('ADMIN_SECRET env var is not set');
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 const STRIPE_PLANS = {
@@ -91,6 +92,13 @@ app.use("/*", cors({
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
   return c.json({ status: "ok", service: "Syphir API", version: "2.11.0", db: "supabase" });
+});
+
+// ── ADMIN PING ─────────────────────────────────────────────────────────────
+app.get("/admin/ping", (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  return c.json({ ok: true });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
