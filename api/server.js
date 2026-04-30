@@ -76,13 +76,11 @@ async function isDuplicateIncident(orgId, userEmail, aiTool) {
 }
 
 // ── CORS ───────────────────────────────────────────────────────────────────
+// Extension content scripts fire fetches from AI tool page origins
+// (chatgpt.com, grok.com, etc) — not chrome-extension://. Auth is key-based
+// so wildcard origin gives no meaningful attack surface.
 app.use("/*", cors({
-  origin: (origin) => {
-    if (!origin) return null;
-    if (origin === "https://syphir.vercel.app") return origin;
-    if (origin.startsWith("chrome-extension://")) return origin;
-    return null;
-  },
+  origin: "*",
   allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "X-Admin-Secret", "Authorization"],
   exposeHeaders: ["Content-Type"],
