@@ -79,7 +79,7 @@ async function activateEmployee() {
     const res  = await fetch(`${API}/validate-key`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, context: "extension" }),
+      body: JSON.stringify({ key, context: "employee" }),
     });
     const data = await res.json();
     if (data.valid) {
@@ -112,11 +112,11 @@ async function activateBusiness() {
     const res  = await fetch(`${API}/validate-key`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, context: "extension" }),
+      body: JSON.stringify({ key, context: "dashboard" }),
     });
     const data = await res.json();
     if (data.valid) {
-      chrome.storage.local.set({ syphir_key: key, syphir_email: email, syphir_org: data.org_name, syphir_key_type: data.key_type || "business" });
+      chrome.storage.local.set({ syphir_key: key, syphir_email: email, syphir_org: data.org_name, syphir_key_type: data.key_type || "business", syphir_role: "admin" });
       setMsg(msg, "green", "✓ Shield activated!");
       setTimeout(() => showActiveView(data.org_name, key, data.key_type || "business"), 700);
     } else {

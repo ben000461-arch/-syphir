@@ -374,6 +374,25 @@ app.patch("/team/:id/remove", async (c) => {
   }
 });
 
+app.patch("/team/:id", async (c) => {
+  const { id } = c.req.param();
+  const { name, role, notes } = await c.req.json().catch(() => ({}));
+  const patch = {};
+  if (name  !== undefined) patch.name  = name;
+  if (role  !== undefined) patch.role  = role;
+  if (notes !== undefined) patch.notes = notes;
+  if (!Object.keys(patch).length) return c.json({ success: true });
+  try {
+    await db(`users?id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify(patch),
+    });
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ success: false, message: err.message }, 500);
+  }
+});
+
 app.post("/invite-user", async (c) => {
   const { org_key, employee_email, org_name } = await c.req.json().catch(() => ({}));
   if (!org_key || !employee_email) return c.json({ success: false, message: "org_key and employee_email are required" }, 400);
