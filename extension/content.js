@@ -1,18 +1,28 @@
 const SYPHIR_API = "https://syphir-api.onrender.com";
-let SYPHIR_KEY = "SYP-DEMO-2026-SYPHIR";
-let USER_EMAIL = "employee@company.com";
+let SYPHIR_KEY = null;
+let USER_EMAIL = null;
 let lastScanned = "";
 let lastScannedTime = 0;
 let scannedFiles = new Set();
 let bannerDismissed = false;
 
-try {
-  chrome.storage.local.get(["syphir_key", "syphir_email"], (data) => {
-    if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
-    if (data.syphir_email) USER_EMAIL = data.syphir_email;
-    wakeAPI();
-  });
-} catch(_) { wakeAPI(); }
+// Load key/email from storage with up to 3 retries (500ms apart) in case the
+// service worker hasn't written them yet when the content script first runs.
+(function loadStoredCredentials(attempt) {
+  try {
+    chrome.storage.local.get(["syphir_key", "syphir_email"], (data) => {
+      if (data.syphir_key) {
+        SYPHIR_KEY = data.syphir_key;
+        USER_EMAIL = data.syphir_email || null;
+        wakeAPI();
+      } else if (attempt < 3) {
+        setTimeout(() => loadStoredCredentials(attempt + 1), 500);
+      } else {
+        wakeAPI(); // wake even if no key — health ping is free
+      }
+    });
+  } catch(_) { wakeAPI(); }
+})(1);
 
 function wakeAPI() {
   fetch(`${SYPHIR_API}/health`).catch(() => {});
@@ -194,6 +204,7 @@ function showBanner(message, risk) {
 // key and email are passed in — resolved by the caller before this is invoked.
 // No chrome APIs used here; fetch fires unconditionally.
 async function logIncident(findings, risk_level, message, ai_tool, key, email) {
+  if (!key) { console.warn('Syphir: no key loaded, skipping log'); return; }
   const incident = {
     id: `inc_${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
     key:        key   || SYPHIR_KEY,
