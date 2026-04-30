@@ -14,12 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("empEmail").addEventListener("keydown", e => { if (e.key === "Enter") activate(); });
   document.getElementById("actBtn").addEventListener("click", activate);
 
-  document.getElementById("signOutBtn").addEventListener("click", () => {
-    chrome.storage.local.clear();
-    chrome.action.setBadgeText({ text: "" });
-    showLogin();
-  });
-
   document.getElementById("alertToggleBtn").addEventListener("click", () => {
     chrome.storage.local.get(["syphir_hide_alerts"], (data) => {
       const next = !(data.syphir_hide_alerts === true);
@@ -81,7 +75,7 @@ async function activate() {
     const res  = await fetch(`${API}/validate-key`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, context: "employee" }),
+      body: JSON.stringify({ key, context: "employee", email }),
     });
     const data = await res.json();
     if (data.valid) {

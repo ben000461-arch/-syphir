@@ -191,42 +191,28 @@ function showBanner(message, risk) {
 }
 
 // ── LOG INCIDENT ──────────────────────────────────────────────────────────────
-async function logIncident(findings, risk_level, message, ai_tool) {
-  // Refresh key/email from storage only if the extension context is still alive.
-  // If it's dead (extension reloaded), skip silently and use in-memory values —
-  // the fetch below does not need chrome APIs and must always fire.
-  if (chrome?.runtime?.id) {
-    try {
-      await new Promise(resolve => {
-        chrome.storage.local.get(["syphir_key","syphir_email"], (data) => {
-          if (data.syphir_key) SYPHIR_KEY = data.syphir_key;
-          if (data.syphir_email) USER_EMAIL = data.syphir_email;
-          resolve();
-        });
-      });
-    } catch(_) {}
-  }
-  // Fetch uses only in-memory values — no chrome APIs from this point
+// key and email are passed in — resolved by the caller before this is invoked.
+// No chrome APIs used here; fetch fires unconditionally.
+async function logIncident(findings, risk_level, message, ai_tool, key, email) {
   const incident = {
     id: `inc_${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
-    key: SYPHIR_KEY,
-    user_email: USER_EMAIL,
-    ai_tool: ai_tool || getAITool(),
-    url: window.location.href,
+    key:        key   || SYPHIR_KEY,
+    user_email: email || USER_EMAIL,
+    ai_tool:    ai_tool || getAITool(),
+    url:        window.location.href,
     risk_level,
     flagged: true,
     detections: findings.map(f => ({ label: f.label, type: f.type, masked: f.masked })),
     message,
     timestamp: new Date().toISOString(),
   };
-  const send = () => fetch(`${SYPHIR_API}/log-incident`, {
+  console.log('Syphir: firing log-incident fetch', incident.key, incident.user_email);
+  const response = await fetch(`${SYPHIR_API}/log-incident`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(incident),
   });
-  try { await send(); } catch(e) {
-    setTimeout(() => send().catch(()=>{}), 3000);
-  }
+  console.log('Syphir: log-incident response:', response.status);
 }
 
 // ── SCAN TEXT ─────────────────────────────────────────────────────────────────
@@ -247,8 +233,21 @@ async function scan(text, source) {
   const message    = buildMessage(findings);
   const tool       = source || getAITool();
 
+  // Read key/email from storage before logging — chrome.storage call isolated in try/catch
+  let key = SYPHIR_KEY, email = USER_EMAIL;
+  if (chrome?.runtime?.id) {
+    try {
+      const stored = await new Promise(resolve => {
+        chrome.storage.local.get(["syphir_key", "syphir_email"], resolve);
+      });
+      if (stored.syphir_key)   key   = stored.syphir_key;
+      if (stored.syphir_email) email = stored.syphir_email;
+    } catch(_) {}
+  }
+
   // Logging fires immediately and unconditionally — no UI setting gates this
-  const logPromise = logIncident(findings, risk_level, message, tool);
+  const logPromise = logIncident(findings, risk_level, message, tool, key, email)
+    .catch(e => console.error('Syphir: log-incident error:', e));
   try {
     if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level });
   } catch(e) {}

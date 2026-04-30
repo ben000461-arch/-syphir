@@ -360,7 +360,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           <div class="card-hdr"><div class="card-title">💳 Billing</div></div>
           <div class="card-body">
             <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub" id="settings-plan-renew">Renews May 10, 2026</div></div><div class="plan-pill" id="settings-plan">Business · $249/mo</div></div>
-            <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub">Visa •••• 4242</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Update</button></div>
+            <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub" id="settings-payment-method">No payment method on file</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="openBillingPage()">Update</button></div>
             <button class="btn btn-ghost" id="portal-btn" style="width:100%;margin-top:14px;justify-content:center;" onclick="openBillingPage()">Manage Payments →</button>
           </div>
         </div>
@@ -698,6 +698,22 @@ async function refreshSettingsBilling() {
     }
     const planEl = document.getElementById('org-plan');
     if (planEl) planEl.textContent = ORG_PLAN;
+  } catch(_) {}
+  // Load payment method separately — non-fatal, only available for paying orgs
+  try {
+    const br = await fetch(`${API}/billing/${ORG_KEY}`);
+    if (br.ok) {
+      const bd = await br.json();
+      const pm = document.getElementById('settings-payment-method');
+      if (pm) {
+        if (bd.payment_method?.last4) {
+          const brand = bd.payment_method.brand.charAt(0).toUpperCase() + bd.payment_method.brand.slice(1);
+          pm.textContent = `${brand} •••• ${bd.payment_method.last4}`;
+        } else {
+          pm.textContent = 'No payment method on file';
+        }
+      }
+    }
   } catch(_) {}
 }
 
