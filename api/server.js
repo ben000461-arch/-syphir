@@ -153,9 +153,12 @@ app.post("/scan", async (c) => {
   if (!key) return c.json({ valid: false, message: "key is required" }, 400);
   let org;
   try {
+    // Accepts both business (SYP-) and employee (EMP-) keys — no key_type filter
     const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ valid: false, message: "Invalid key" }, 401);
     org = rows[0].organizations;
+    if (!org || !org.id) return c.json({ valid: false, message: "Org not found" }, 401);
+    console.log('scan: key type =', rows[0].key_type, 'org =', org.name);
   } catch (err) {
     return c.json({ valid: false, message: "Auth failed" }, 500);
   }
@@ -213,9 +216,12 @@ app.post("/log-incident", async (c) => {
   if (!key) return c.json({ success: false, message: "key is required" }, 400);
   let org;
   try {
+    // Accepts both business (SYP-) and employee (EMP-) keys — no key_type filter
     const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
     if (!rows || rows.length === 0) return c.json({ success: false, message: "Invalid key" }, 401);
     org = rows[0].organizations;
+    if (!org || !org.id) return c.json({ success: false, message: "Org not found" }, 401);
+    console.log('log-incident: key type =', rows[0].key_type, 'org =', org.name);
   } catch (err) { return c.json({ success: false, message: "Auth failed" }, 500); }
   try {
     const normEmail = user_email || "unknown";
