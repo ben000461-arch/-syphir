@@ -237,14 +237,19 @@ async function scan(text, source) {
   const message    = buildMessage(findings);
   const tool       = source || getAITool();
 
-  // Logging fires immediately and unconditionally — dismiss never gates this
+  // Logging fires immediately and unconditionally — no UI setting gates this
   const logPromise = logIncident(findings, risk_level, message, tool);
   try { chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level }); } catch(e) {}
 
   // Reset dismissed state when a genuinely new input triggers a detection
   if (isNewText) bannerDismissed = false;
 
-  if (!bannerDismissed) showBanner(message, risk_level);
+  // Check popup "Hide Alerts" setting — only gates the banner, never the log
+  const hideAlerts = await new Promise(resolve => {
+    chrome.storage.local.get(["syphir_hide_alerts"], (d) => resolve(d.syphir_hide_alerts === true));
+  });
+
+  if (!bannerDismissed && !hideAlerts) showBanner(message, risk_level);
 
   await logPromise;
 }

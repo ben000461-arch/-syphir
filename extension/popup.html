@@ -112,6 +112,17 @@
     .action-btn.primary { background: #5b4fe8; border-color: #5b4fe8; color: white; }
     .action-btn.primary:hover { background: #7b6df7; }
 
+    .alert-toggle-btn {
+      width: 100%; padding: 6px 10px; margin-top: 9px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 7px; color: #7878a0; font-size: 11px; font-weight: 500;
+      cursor: pointer; font-family: inherit; transition: all 0.15s; text-align: center;
+    }
+    .alert-toggle-btn:hover { border-color: rgba(255,255,255,0.14); color: #eeeef5; }
+    .alert-toggle-btn.alerts-hidden {
+      color: #ffb347; border-color: rgba(255,179,71,0.25); background: rgba(255,179,71,0.06);
+    }
+
     .footer {
       padding: 8px 16px; display: flex; justify-content: space-between; align-items: center;
       border-top: 1px solid rgba(255,255,255,0.05);
@@ -182,6 +193,7 @@
         </div>
         <div id="keyTypePill" style="margin-left:auto;"></div>
       </div>
+      <button class="alert-toggle-btn" id="alertToggleBtn">🔕 Hide Alerts</button>
     </div>
     <div class="active-section">
       <div class="section-label">Session Stats</div>

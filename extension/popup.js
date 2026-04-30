@@ -33,6 +33,10 @@ async function showActiveView(orgName, key, keyType) {
     document.getElementById("signOutBtn").style.display = "block";
   }
 
+  chrome.storage.local.get(["syphir_hide_alerts"], (data) => {
+    updateAlertToggleBtn(data.syphir_hide_alerts === true);
+  });
+
   try {
     const orgRes = await fetch(`${API}/org/${key}`);
     const org = await orgRes.json();
@@ -125,6 +129,19 @@ async function activateBusiness() {
   }
 }
 
+// ── ALERT TOGGLE ───────────────────────────────────────────────────────────
+function updateAlertToggleBtn(hidden) {
+  const btn = document.getElementById("alertToggleBtn");
+  if (!btn) return;
+  if (hidden) {
+    btn.textContent = "🔔 Show Alerts";
+    btn.classList.add("alerts-hidden");
+  } else {
+    btn.textContent = "🔕 Hide Alerts";
+    btn.classList.remove("alerts-hidden");
+  }
+}
+
 // ── BADGE ──────────────────────────────────────────────────────────────────
 function setBadge(count) {
   chrome.action.setBadgeBackgroundColor({ color: "#ff4d6d" });
@@ -183,5 +200,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Footer site link
   document.getElementById("siteLink").addEventListener("click", () => {
     chrome.tabs.create({ url: "https://syphir.vercel.app" });
+  });
+
+  // Alert visibility toggle
+  document.getElementById("alertToggleBtn").addEventListener("click", () => {
+    chrome.storage.local.get(["syphir_hide_alerts"], (data) => {
+      const newHidden = !(data.syphir_hide_alerts === true);
+      chrome.storage.local.set({ syphir_hide_alerts: newHidden }, () => {
+        updateAlertToggleBtn(newHidden);
+      });
+    });
   });
 });
