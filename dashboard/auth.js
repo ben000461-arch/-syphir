@@ -128,7 +128,7 @@ function handleKey() {
       showErr(err, 'This is an employee key — it only works in the Chrome extension. Contact your admin for dashboard access.');
     } else {
       resetBtn('keyBtn', 'Open Dashboard →');
-      showErr(err, 'Invalid key. Check your welcome email or contact support@syphir.io');
+      showErr(err, 'Invalid key. Check your welcome email or contact syphir26@gmail.com');
     }
   })
   .catch(() => {
