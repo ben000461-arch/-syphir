@@ -11,11 +11,9 @@
       color:#eeeef5;
     }
 
-    /* ── HEADER ── */
     .hdr{
       height:48px;display:flex;align-items:center;gap:9px;
-      padding:0 16px;
-      background:#0f0f18;
+      padding:0 16px;background:#0f0f18;
       border-bottom:1px solid rgba(255,255,255,0.07);
     }
     .logo-box{
@@ -24,64 +22,20 @@
       display:flex;align-items:center;justify-content:center;
     }
     .logo-box svg{width:13px;height:13px;fill:#fff;}
-    .brand{font-weight:700;font-size:14px;letter-spacing:-0.01em;}
-    .sdot{
-      width:8px;height:8px;border-radius:50%;margin-left:auto;flex-shrink:0;
-    }
+    .brand{font-weight:700;font-size:14px;}
+    .sdot{width:8px;height:8px;border-radius:50%;margin-left:auto;flex-shrink:0;}
     .sdot-on {background:#00d68f;box-shadow:0 0 6px #00d68f;}
     .sdot-off{background:#ff4d6d;box-shadow:0 0 6px #ff4d6d;}
 
-    /* ── LOGIN VIEW ── */
-    #loginView{display:none;}
-
-    /* ── TABS ── */
-    .tabs{
-      display:flex;
-      border-bottom:2px solid rgba(255,255,255,0.07);
-      background:#0d1117;
-    }
-    .tab{
-      flex:1;
-      padding:13px 8px 11px;
-      text-align:center;
-      font-size:13px;
-      font-weight:700;
-      cursor:pointer;
-      color:#5a5a7a;
-      border:none;
-      border-bottom:3px solid transparent;
-      margin-bottom:-2px;
-      background:none;
-      font-family:inherit;
-      transition:color 0.15s,border-color 0.15s;
-      letter-spacing:0.01em;
-    }
-    .tab:hover{color:#a0a0c0;}
-    .tab.active{
-      color:#eeeef5;
-      border-bottom-color:#5b4fe8;
-    }
-
-    /* ── FORM PANES ── */
-    .pane{display:none;padding:16px;}
-    .pane.active{display:block;}
-
-    .pane-badge{
-      display:inline-flex;align-items:center;gap:4px;
-      font-size:9px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;
-      padding:2px 8px;border-radius:100px;margin-bottom:12px;
-    }
-    .badge-emp{background:rgba(0,214,143,0.1);color:#00d68f;border:1px solid rgba(0,214,143,0.2);}
-    .badge-adm{background:rgba(91,79,232,0.12);color:#9080fa;border:1px solid rgba(91,79,232,0.25);}
-
-    .pane-desc{font-size:11px;color:#6060a0;line-height:1.55;margin-bottom:13px;}
-    .pane-desc strong{color:#c0c0e0;}
+    /* ── LOGIN ── */
+    #loginView{display:none;padding:18px 16px;}
+    .login-title{font-size:15px;font-weight:700;margin-bottom:5px;}
+    .login-sub{font-size:11px;color:#6060a0;line-height:1.55;margin-bottom:16px;}
 
     .field{margin-bottom:10px;}
     .field label{
       display:block;font-size:10px;font-weight:600;
-      color:#6868a0;text-transform:uppercase;letter-spacing:0.08em;
-      margin-bottom:4px;
+      color:#6868a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;
     }
     .field input{
       width:100%;background:#161b25;
@@ -95,18 +49,16 @@
     .field input.mono{font-family:'Courier New',monospace;letter-spacing:0.04em;font-size:11px;}
 
     .act-btn{
-      width:100%;padding:9px;
+      width:100%;padding:9px;margin-top:2px;
       background:#5b4fe8;color:#fff;border:none;
       border-radius:7px;font-size:13px;font-weight:700;
-      cursor:pointer;font-family:inherit;
-      transition:background 0.15s;margin-top:2px;
+      cursor:pointer;font-family:inherit;transition:background 0.15s;
     }
     .act-btn:hover{background:#7060f7;}
     .act-btn:disabled{opacity:0.45;cursor:not-allowed;}
+    .msg{font-size:11px;margin-top:8px;text-align:center;min-height:16px;}
 
-    .msg{font-size:11px;margin-top:7px;text-align:center;min-height:16px;}
-
-    /* ── ACTIVE VIEW ── */
+    /* ── ACTIVE ── */
     #activeView{display:none;}
 
     .section{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.06);}
@@ -116,8 +68,7 @@
     }
 
     .shield-card{
-      background:rgba(91,79,232,0.1);
-      border:1px solid rgba(91,79,232,0.2);
+      background:rgba(91,79,232,0.1);border:1px solid rgba(91,79,232,0.2);
       border-radius:9px;padding:10px 12px;
       display:flex;align-items:center;gap:10px;
     }
@@ -129,35 +80,28 @@
     .shield-icon svg{width:16px;height:16px;fill:#7b6df7;}
     .shield-name{font-size:13px;font-weight:600;color:#9080fa;}
     .shield-org{font-size:11px;color:#5a5a7a;margin-top:1px;}
-
     .pill{
       margin-left:auto;font-size:9px;font-weight:700;letter-spacing:0.06em;
       text-transform:uppercase;padding:2px 7px;border-radius:100px;
+      background:rgba(0,214,143,0.1);color:#00d68f;border:1px solid rgba(0,214,143,0.2);
     }
-    .pill-emp{background:rgba(0,214,143,0.1);color:#00d68f;border:1px solid rgba(0,214,143,0.2);}
-    .pill-adm{background:rgba(91,79,232,0.12);color:#9080fa;border:1px solid rgba(91,79,232,0.25);}
 
-    .stat-row{
-      display:flex;justify-content:space-between;align-items:center;
-      padding:5px 0;
-    }
+    .stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;}
     .stat-row+.stat-row{border-top:1px solid rgba(255,255,255,0.04);}
     .stat-lbl{font-size:12px;color:#6868a0;}
     .stat-val{font-size:13px;font-weight:600;}
-    .c-teal{color:#00d68f;} .c-red{color:#ff4d6d;}
-    .c-ora{color:#ffb347;} .c-yel{color:#ffd166;}
+    .c-teal{color:#00d68f;}.c-red{color:#ff4d6d;}
+    .c-ora{color:#ffb347;}.c-yel{color:#ffd166;}
 
     .toggle-btn{
-      width:100%;padding:7px 10px;
+      width:100%;padding:7px 10px;margin-top:9px;
       background:transparent;border:1px solid rgba(255,255,255,0.07);
       border-radius:7px;color:#6868a0;font-size:11px;font-weight:500;
       cursor:pointer;font-family:inherit;transition:all 0.15s;
-      margin-bottom:7px;
     }
     .toggle-btn:hover{border-color:rgba(255,255,255,0.14);color:#eeeef5;}
     .toggle-btn.alerts-hidden{
-      color:#ffb347;border-color:rgba(255,179,71,0.25);
-      background:rgba(255,179,71,0.06);
+      color:#ffb347;border-color:rgba(255,179,71,0.25);background:rgba(255,179,71,0.06);
     }
 
     .sign-out-btn{
@@ -168,22 +112,16 @@
     }
     .sign-out-btn:hover{border-color:#ff4d6d;color:#ff4d6d;}
 
-    /* ── FOOTER ── */
     .ftr{
-      padding:8px 14px;
-      display:flex;justify-content:space-between;align-items:center;
+      padding:8px 14px;display:flex;justify-content:space-between;align-items:center;
       border-top:1px solid rgba(255,255,255,0.05);
     }
     .ftr-ver{font-size:10px;color:#2e2e4a;}
-    .ftr-link{
-      font-size:10px;color:#5b4fe8;cursor:pointer;
-      background:none;border:none;font-family:inherit;
-    }
+    .ftr-link{font-size:10px;color:#5b4fe8;cursor:pointer;background:none;border:none;font-family:inherit;}
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
   <div class="hdr">
     <div class="logo-box">
       <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
@@ -192,52 +130,22 @@
     <div class="sdot sdot-off" id="statusDot"></div>
   </div>
 
-  <!-- LOGIN VIEW -->
   <div id="loginView">
-
-    <!-- TABS — first thing below header -->
-    <div class="tabs">
-      <button class="tab active" id="tabEmpBtn">👤 Employee</button>
-      <button class="tab"        id="tabAdmBtn">🔑 Admin</button>
+    <div class="login-title">Activate Syphir Shield</div>
+    <div class="login-sub">Enter your employee key and email to start protecting your AI sessions.</div>
+    <div class="field">
+      <label>Employee Key</label>
+      <input class="mono" id="empKey" placeholder="EMP-XXXX-XXXX">
     </div>
-
-    <!-- Employee pane -->
-    <div class="pane active" id="paneEmp">
-      <div class="pane-badge badge-emp">● Employee Key</div>
-      <div class="pane-desc">Enter the <strong>employee key</strong> shared by your admin. Looks like <strong>EMP-XXXX-XXXX</strong>.</div>
-      <div class="field">
-        <label>Employee Key</label>
-        <input class="mono" id="empKey" placeholder="EMP-XXXX-XXXX">
-      </div>
-      <div class="field">
-        <label>Your Work Email</label>
-        <input type="email" id="empEmail" placeholder="you@company.com">
-      </div>
-      <button class="act-btn" id="empBtn">Activate Shield →</button>
-      <div class="msg" id="empMsg"></div>
+    <div class="field">
+      <label>Your Work Email</label>
+      <input type="email" id="empEmail" placeholder="you@company.com">
     </div>
-
-    <!-- Admin pane -->
-    <div class="pane" id="paneAdm">
-      <div class="pane-badge badge-adm">● Admin Key</div>
-      <div class="pane-desc">Enter your <strong>dashboard key</strong> from the Syphir admin panel. Looks like <strong>SYP-XXXX-XXXX-XXXX</strong>.</div>
-      <div class="field">
-        <label>Dashboard Key</label>
-        <input class="mono" id="admKey" placeholder="SYP-XXXX-XXXX-XXXX">
-      </div>
-      <div class="field">
-        <label>Your Email</label>
-        <input type="email" id="admEmail" placeholder="admin@yourcompany.com">
-      </div>
-      <button class="act-btn" id="admBtn">Activate Shield →</button>
-      <div class="msg" id="admMsg"></div>
-    </div>
-
+    <button class="act-btn" id="actBtn">Activate Shield →</button>
+    <div class="msg" id="actMsg"></div>
   </div>
 
-  <!-- ACTIVE VIEW -->
   <div id="activeView">
-
     <div class="section">
       <div class="sec-lbl">Protection Status</div>
       <div class="shield-card">
@@ -248,9 +156,9 @@
           <div class="shield-name">Shield Active</div>
           <div class="shield-org" id="orgLabel">—</div>
         </div>
-        <div id="keyPill"></div>
+        <div class="pill">Employee</div>
       </div>
-      <button class="toggle-btn" id="alertToggleBtn" style="margin-top:9px;">🔕 Hide Alerts</button>
+      <button class="toggle-btn" id="alertToggleBtn">🔕 Hide Alerts</button>
     </div>
 
     <div class="section">
@@ -264,10 +172,8 @@
     <div class="section" style="border-bottom:none;">
       <button class="sign-out-btn" id="signOutBtn">Sign Out</button>
     </div>
-
   </div>
 
-  <!-- FOOTER -->
   <div class="ftr">
     <span class="ftr-ver">Syphir v1.0.0</span>
     <button class="ftr-link" id="siteBtn">syphir.io</button>
