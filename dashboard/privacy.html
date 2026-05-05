@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Syphir</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .legal-wrap { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  .legal-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+  .legal-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 3rem; }
+  .legal-section { margin-bottom: 2.5rem; }
+  .legal-section h2 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+  .legal-section p { color: var(--muted); line-height: 1.8; font-size: 0.9rem; margin-bottom: 0.75rem; }
+  .legal-section ul { color: var(--muted); line-height: 1.8; font-size: 0.9rem; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  .legal-section ul li { margin-bottom: 0.35rem; }
+  a.legal-link { color: var(--accent2); text-decoration: none; }
+  a.legal-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+    Syphir
+  </a>
+  <div class="nav-links">
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+  </div>
+  <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
+</nav>
+
+<div class="legal-wrap">
+  <div class="legal-title">Privacy Policy</div>
+  <div class="legal-meta">Last updated: May 2025</div>
+
+  <div class="legal-section">
+    <h2>1. Information We Collect</h2>
+    <p>Syphir collects the minimum information necessary to provide the Service. This includes:</p>
+    <ul>
+      <li><strong>Organization information:</strong> organization name and admin email address provided at signup</li>
+      <li><strong>Employee information:</strong> employee email addresses used to identify who triggered a detection event</li>
+      <li><strong>Detection events:</strong> when the extension detects sensitive data in an AI prompt, we log the type of data detected (e.g., "SSN"), a masked version of the value, the AI tool name, a timestamp, and a risk level — never the full prompt text</li>
+      <li><strong>Usage metadata:</strong> browser information and page URL at the time of detection</li>
+    </ul>
+    <p>We do not collect, transmit, or store the full text of any AI prompts. All PII scanning is performed locally within the browser extension.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>2. How We Use Information</h2>
+    <p>Information collected is used solely to provide the Syphir Service:</p>
+    <ul>
+      <li>To generate incident reports and populate the admin dashboard</li>
+      <li>To send email alerts to administrators when high-risk incidents occur</li>
+      <li>To maintain account records and process billing</li>
+      <li>To improve detection accuracy and the Service overall</li>
+    </ul>
+    <p>We do not use your data for advertising, profiling, or any purpose unrelated to operating the Service.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>3. Data Storage</h2>
+    <p>All data is stored securely in Supabase, a cloud database provider operating on US-based servers. Data is encrypted in transit (TLS) and at rest. Access to the database is restricted to authenticated requests using row-level security policies that scope each organization's data exclusively to that organization.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>4. Data Sharing</h2>
+    <p>We do not sell, rent, or share your data with third parties for commercial purposes. We may share data only in the following limited circumstances:</p>
+    <ul>
+      <li><strong>Service providers:</strong> Supabase (database), Resend (transactional email), and Stripe (payment processing) receive the minimum data necessary to operate their respective services</li>
+      <li><strong>Legal requirements:</strong> if required by law, court order, or government authority</li>
+      <li><strong>Business transfers:</strong> in the event of a merger or acquisition, data may be transferred to the successor entity subject to the same privacy commitments</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>5. Data Retention</h2>
+    <p>Incident logs are retained according to your subscription plan:</p>
+    <ul>
+      <li><strong>Starter plan:</strong> 30 days of incident history</li>
+      <li><strong>Professional plan:</strong> 1 year of incident history</li>
+      <li><strong>Institution plan:</strong> unlimited incident history</li>
+    </ul>
+    <p>Upon account cancellation, data is retained for 30 days to allow for export, then permanently deleted. You may request immediate deletion at any time by contacting us.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>6. Employee Privacy</h2>
+    <p>Syphir is a monitoring tool deployed by employers. Organizations using Syphir should inform their employees that their AI tool usage is being monitored, in accordance with applicable employment and privacy laws in their jurisdiction. Syphir does not control how organizations deploy or disclose the use of the Service to their employees.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>7. Cookies and Local Storage</h2>
+    <p>Syphir uses browser localStorage and chrome.storage.local for session management only — to store your license key and maintain your login session. We do not use tracking cookies, advertising cookies, or third-party analytics cookies. No data stored locally is shared with or accessible to third parties.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>8. Your Rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+      <li>Request a copy of the data we hold about your organization</li>
+      <li>Request correction of inaccurate data</li>
+      <li>Request deletion of your data</li>
+      <li>Object to or restrict processing of your data</li>
+    </ul>
+    <p>To exercise any of these rights, contact us at <a href="mailto:syphir26@gmail.com" class="legal-link">syphir26@gmail.com</a>. We will respond within 30 days.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>9. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify customers of material changes by email. Continued use of the Service after changes are posted constitutes acceptance of the updated policy. The "Last updated" date at the top of this page reflects the most recent revision.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>10. Contact</h2>
+    <p>Questions or concerns about this Privacy Policy should be directed to <a href="mailto:syphir26@gmail.com" class="legal-link">syphir26@gmail.com</a>.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="mailto:syphir26@gmail.com">syphir26@gmail.com</a>
+  </div>
+  <p>© 2025 Syphir · All rights reserved.</p>
+</footer>
+<script src="auth.js"></script>
+</body>
+</html>
