@@ -5,20 +5,23 @@ let lastScanned = "";
 let lastScannedTime = 0;
 let scannedFiles = new Set();
 let bannerDismissed = false;
+let syphirExpired = false;
 
-// Load key/email from storage with up to 3 retries (500ms apart) in case the
-// service worker hasn't written them yet when the content script first runs.
+// Load key/email and expiry status from storage with up to 3 retries.
 (function loadStoredCredentials(attempt) {
   try {
-    chrome.storage.local.get(["syphir_key", "syphir_email"], (data) => {
-      if (data.syphir_key) {
+    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired"], (data) => {
+      if (data.syphir_expired) {
+        syphirExpired = true;
+        wakeAPI();
+      } else if (data.syphir_key) {
         SYPHIR_KEY = data.syphir_key;
         USER_EMAIL = data.syphir_email || null;
         wakeAPI();
       } else if (attempt < 3) {
         setTimeout(() => loadStoredCredentials(attempt + 1), 500);
       } else {
-        wakeAPI(); // wake even if no key — health ping is free
+        wakeAPI();
       }
     });
   } catch(_) { wakeAPI(); }
@@ -228,6 +231,7 @@ async function logIncident(findings, risk_level, message, ai_tool, key, email) {
 
 // ── SCAN TEXT ─────────────────────────────────────────────────────────────────
 async function scan(text, source) {
+  if (syphirExpired) return; // protection paused — trial ended
   if (!text || text.trim().length < 5) return;
   const now = Date.now();
   const trimmed = text.trim();

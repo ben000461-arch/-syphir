@@ -26,6 +26,7 @@
     .sdot{width:8px;height:8px;border-radius:50%;margin-left:auto;flex-shrink:0;}
     .sdot-on {background:#00d68f;box-shadow:0 0 6px #00d68f;}
     .sdot-off{background:#ff4d6d;box-shadow:0 0 6px #ff4d6d;}
+    .sdot-exp{background:#ffb347;box-shadow:0 0 6px #ffb347;}
 
     /* ── LOGIN ── */
     #loginView{display:none;padding:18px 16px;}
@@ -104,6 +105,23 @@
       color:#ffb347;border-color:rgba(255,179,71,0.25);background:rgba(255,179,71,0.06);
     }
 
+    /* ── EXPIRED ── */
+    #expiredView{display:none;padding:28px 16px 22px;text-align:center;}
+    .exp-icon{font-size:42px;margin-bottom:14px;}
+    .exp-title{font-size:15px;font-weight:700;color:#eeeef5;margin-bottom:7px;}
+    .exp-sub{font-size:12px;color:#6060a0;line-height:1.65;margin-bottom:22px;}
+    .exp-card{
+      background:rgba(255,179,71,0.06);border:1px solid rgba(255,179,71,0.2);
+      border-radius:10px;padding:16px;margin-bottom:18px;
+    }
+    .exp-btn{
+      width:100%;padding:9px;
+      background:#ffb347;color:#0d1117;border:none;
+      border-radius:7px;font-size:13px;font-weight:700;
+      cursor:pointer;font-family:inherit;transition:background 0.15s;
+    }
+    .exp-btn:hover{background:#ffc96a;}
+
     .ftr{
       padding:8px 14px;display:flex;justify-content:space-between;align-items:center;
       border-top:1px solid rgba(255,255,255,0.05);
@@ -161,6 +179,15 @@
       <div class="stat-row"><span class="stat-lbl">Low Risk</span><span class="stat-val c-yel"   id="stLow">0</span></div>
     </div>
 
+  </div>
+
+  <div id="expiredView">
+    <div class="exp-icon">🔒</div>
+    <div class="exp-card">
+      <div class="exp-title">Protection Paused</div>
+      <div class="exp-sub">Your organization's Syphir trial has ended. Contact your admin to restore protection.</div>
+    </div>
+    <button class="exp-btn" id="learnMoreBtn">Learn More →</button>
   </div>
 
   <div class="ftr">

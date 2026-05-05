@@ -1,8 +1,11 @@
 const API = "https://syphir-api.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.local.get(["syphir_key", "syphir_org", "syphir_key_type"], (data) => {
-    if (data.syphir_key && data.syphir_org) {
+  // Check expired flag first — show immediately without an API call
+  chrome.storage.local.get(["syphir_key", "syphir_org", "syphir_expired"], (data) => {
+    if (data.syphir_expired) {
+      showExpired();
+    } else if (data.syphir_key && data.syphir_org) {
       showActive(data.syphir_org, data.syphir_key);
     } else {
       showLogin();
@@ -21,20 +24,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.getElementById("learnMoreBtn").addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://syphir.vercel.app" });
+  });
+
   document.getElementById("siteBtn").addEventListener("click", () => {
     chrome.tabs.create({ url: "https://syphir.vercel.app" });
   });
 });
 
+// ── VIEWS ──────────────────────────────────────────────────────────────────
 function showLogin() {
-  document.getElementById("loginView").style.display  = "block";
-  document.getElementById("activeView").style.display = "none";
+  document.getElementById("loginView").style.display   = "block";
+  document.getElementById("activeView").style.display  = "none";
+  document.getElementById("expiredView").style.display = "none";
   document.getElementById("statusDot").className = "sdot sdot-off";
 }
 
+function showExpired() {
+  document.getElementById("loginView").style.display   = "none";
+  document.getElementById("activeView").style.display  = "none";
+  document.getElementById("expiredView").style.display = "block";
+  document.getElementById("statusDot").className = "sdot sdot-exp";
+}
+
 async function showActive(orgName, key) {
-  document.getElementById("loginView").style.display  = "none";
-  document.getElementById("activeView").style.display = "block";
+  document.getElementById("loginView").style.display   = "none";
+  document.getElementById("activeView").style.display  = "block";
+  document.getElementById("expiredView").style.display = "none";
   document.getElementById("statusDot").className = "sdot sdot-on";
   document.getElementById("orgLabel").textContent = orgName;
 
@@ -42,6 +59,25 @@ async function showActive(orgName, key) {
     renderToggle(data.syphir_hide_alerts === true);
   });
 
+  // Re-validate on every popup open to catch expiry or renewal
+  try {
+    const res  = await fetch(`${API}/validate-key`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, context: "employee" }),
+    });
+    const data = await res.json();
+    if (!data.valid && data.expired) {
+      chrome.storage.local.set({ syphir_expired: true });
+      showExpired();
+      return;
+    }
+    if (data.valid) {
+      chrome.storage.local.remove("syphir_expired");
+    }
+  } catch(e) {} // non-blocking — offline or Render cold start, show active anyway
+
+  // Load stats
   try {
     const orgRes = await fetch(`${API}/org/${key}`);
     const org    = await orgRes.json();
@@ -58,6 +94,7 @@ async function showActive(orgName, key) {
   } catch (e) {}
 }
 
+// ── ACTIVATE ───────────────────────────────────────────────────────────────
 async function activate() {
   const key   = document.getElementById("empKey").value.trim().toUpperCase();
   const email = document.getElementById("empEmail").value.trim();
@@ -85,8 +122,12 @@ async function activate() {
         syphir_org:      data.org_name,
         syphir_key_type: "employee",
       });
+      chrome.storage.local.remove("syphir_expired");
       setMsg(msg, "green", "✓ Shield activated!");
       setTimeout(() => showActive(data.org_name, key), 600);
+    } else if (data.expired) {
+      chrome.storage.local.set({ syphir_expired: true });
+      showExpired();
     } else {
       setMsg(msg, "red", data.message || "Invalid key — check with your admin.");
       btn.disabled = false;
@@ -97,6 +138,7 @@ async function activate() {
   }
 }
 
+// ── HELPERS ────────────────────────────────────────────────────────────────
 function renderToggle(hidden) {
   const btn = document.getElementById("alertToggleBtn");
   if (!btn) return;
