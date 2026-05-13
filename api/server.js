@@ -13,8 +13,8 @@ if (!ADMIN_SECRET) console.warn('WARNING: ADMIN_SECRET env var is not set — ad
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 const STRIPE_PLANS = {
-  Starter:      { amount: 12900, label: "Syphir Starter — $129/mo" },
-  Professional: { amount: 29900, label: "Syphir Professional — $299/mo" },
+  Starter:      { amount: 9900,  label: "Syphir Starter — $99/mo" },
+  Professional: { amount: 24900, label: "Syphir Professional — $249/mo" },
   Institution:  { amount: 59900, label: "Syphir Institution — $599/mo" },
 };
 
