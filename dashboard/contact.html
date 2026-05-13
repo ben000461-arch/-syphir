@@ -92,7 +92,7 @@ const API = 'https://syphir-api.onrender.com';
   const plan = new URLSearchParams(window.location.search).get('plan');
   if (plan) {
     document.addEventListener('DOMContentLoaded', function() {
-      const prices = { Starter: 99, Professional: 249, Institution: 599 };
+      const prices = { Starter: 129, Professional: 299, Institution: 599 };
       const price = prices[plan];
       const msgEl = document.getElementById('c-message');
       if (msgEl) msgEl.value = `I'm interested in the ${plan} plan${price ? ' ($' + price + '/mo)' : ''}. Please set up my account.`;

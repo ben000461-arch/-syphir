@@ -223,7 +223,7 @@ function renderSubFromOrg(org) {
   const paidPlans = ['Starter', 'Professional', 'Institution'];
   const plan = org.plan || 'Demo';
   const isPaid = paidPlans.includes(plan);
-  const prices = { Starter: 99, Professional: 249, Institution: 599 };
+  const prices = { Starter: 129, Professional: 299, Institution: 599 };
   const pill = document.getElementById('sub-status-pill');
   pill.innerHTML = `<span class="plan-pill ${isPaid ? '' : 'trial'}">${isPaid ? 'Active' : capitalize(plan)}</span>`;
 

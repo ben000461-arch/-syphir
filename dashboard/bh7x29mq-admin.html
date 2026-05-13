@@ -77,8 +77,8 @@
       <div>
         <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Plan</label>
         <select class="form-select" id="newBizPlan">
-          <option value="Starter">Starter — $99/mo</option>
-          <option value="Professional" selected>Professional — $249/mo</option>
+          <option value="Starter">Starter — $129/mo</option>
+          <option value="Professional" selected>Professional — $299/mo</option>
           <option value="Institution">Institution — $599/mo</option>
           <option value="Demo">Free Demo / Pilot</option>
         </select>
@@ -150,8 +150,8 @@
         <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Plan</label>
         <select id="editPlan" class="form-select" style="width:100%;">
           <option value="Demo">Demo</option>
-          <option value="Starter">Starter — $99/mo</option>
-          <option value="Professional">Professional — $249/mo</option>
+          <option value="Starter">Starter — $129/mo</option>
+          <option value="Professional">Professional — $299/mo</option>
           <option value="Institution">Institution — $599/mo</option>
         </select>
       </div>
@@ -310,7 +310,7 @@ async function renderAdmin() {
 }
 
 function mrr(list) {
-  const prices = { Starter:99, Professional:249, Institution:599, Demo:0 };
+  const prices = { Starter:129, Professional:299, Institution:599, Demo:0 };
   return list.filter(b => !b.expires_at && b.key_status === 'active')
     .reduce((s, b) => s + (prices[b.plan]||0), 0).toLocaleString();
 }
