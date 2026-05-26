@@ -113,7 +113,15 @@ function buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
-  ${emailHeader('Weekly Report', `${weekStart} &mdash; ${weekEnd}`)}
+  <div style="text-align:center;padding:28px 32px 20px;border-bottom:1px solid #1e2636;margin-bottom:24px;">
+    <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="#2DD4BF"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
+      <span style="font-size:20px;font-weight:800;color:#e6edf3;">Syphir</span>
+    </div>
+    <div style="color:#8b949e;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">AI Data Protection</div>
+    <div style="display:inline-block;background:#1c2333;border:1px solid #2DD4BF;border-radius:4px;padding:3px 10px;color:#2DD4BF;font-size:10px;letter-spacing:0.1em;font-weight:700;text-transform:uppercase;margin-bottom:6px;">Weekly Report</div>
+    <div style="color:#8b949e;font-size:12px;">${weekStart} &mdash; ${weekEnd}</div>
+  </div>
   <div style="font-size:22px;font-weight:800;color:#e6edf3;margin-bottom:8px;">${org.name}</div>
   <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 24px;">${summary}</p>
   <table width="100%" cellpadding="0" cellspacing="6" style="margin-bottom:24px;">
