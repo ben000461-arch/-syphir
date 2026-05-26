@@ -1,3 +1,7 @@
+// CRON: POST /admin/send-weekly-reports   — every Monday    8:00 AM PST  (X-Admin-Secret: [ADMIN_SECRET])
+// CRON: POST /admin/send-expiry-warnings  — every day       9:00 AM PST  (X-Admin-Secret: [ADMIN_SECRET])
+// CRON: POST /admin/send-expiry-notices   — every day       9:05 AM PST  (X-Admin-Secret: [ADMIN_SECRET])
+
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { Resend } from "resend";
@@ -18,6 +22,12 @@ const STRIPE_PLANS = {
   Institution:  { amount: 59900, label: "Syphir Institution — $599/mo" },
 };
 
+const PLAN_DETAILS = {
+  Starter:      { price: "$129/mo", limit: "Up to 15 employees" },
+  Professional: { price: "$299/mo", limit: "Up to 50 employees" },
+  Institution:  { price: "$599/mo", limit: "Unlimited employees" },
+};
+
 function genKey() {
   const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const s = n => Array.from({length:n}, () => c[Math.floor(Math.random()*c.length)]).join("");
@@ -27,6 +37,225 @@ function genEmpKey() {
   const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const s = n => Array.from({length:n}, () => c[Math.floor(Math.random()*c.length)]).join("");
   return `EMP-${s(4)}-${s(4)}`;
+}
+
+// ── EMAIL BUILDERS ─────────────────────────────────────────────────────────
+
+const EMAIL_FROM    = "Syphir Shield <onboarding@resend.dev>";
+const EMAIL_REPLYTO = "syphir26@gmail.com";
+
+function emailFooter(orgName) {
+  return `<div style="padding-top:20px;border-top:1px solid #1e2636;text-align:center;margin-top:8px;">
+    <p style="font-size:11px;color:#4a5568;margin:0;">Syphir AI Data Protection &middot; <a href="https://syphir.vercel.app" style="color:#4a5568;text-decoration:none;">syphir.vercel.app</a> &middot; <a href="mailto:syphir26@gmail.com" style="color:#4a5568;text-decoration:none;">syphir26@gmail.com</a></p>
+    <p style="font-size:11px;color:#4a5568;margin:6px 0 0;">You're receiving this as admin of ${orgName}</p>
+  </div>`;
+}
+
+function emailHeader(rightLabel, rightSub) {
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #1e2636;">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-size:20px;">&#x1F6E1;&#xFE0F;</span>
+        <span style="font-size:18px;font-weight:800;color:#e6edf3;">Syphir</span>
+      </div>
+      <div style="font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:0.08em;">AI Data Protection</div>
+    </div>
+    ${rightLabel ? `<div style="text-align:right;"><div style="font-size:11px;font-weight:700;color:#2DD4BF;text-transform:uppercase;letter-spacing:0.06em;">${rightLabel}</div><div style="font-size:11px;color:#8b949e;margin-top:2px;">${rightSub||''}</div></div>` : ''}
+  </div>`;
+}
+
+function riskBadge(r) {
+  const bg = r === 'high' ? '#ef4444' : r === 'medium' ? '#f59e0b' : '#6b7280';
+  return `<span style="background:${bg};color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;">${r||'—'}</span>`;
+}
+
+function buildIncidentCsv(incidents) {
+  const hdr = 'ID,User,AI Tool,Risk,Detections,Time,Resolved\n';
+  const rows = incidents.map(i => {
+    const dets = Array.isArray(i.detections) ? i.detections.map(d => d.type || d.label || '').filter(Boolean).join('; ') : '';
+    return [i.id||'', i.user_email||'', i.ai_tool||'', i.risk_level||'', dets, i.timestamp||'', i.resolved ? 'Yes' : 'No']
+      .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+  }).join('\n');
+  return hdr + rows;
+}
+
+function buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd) {
+  const total    = incidents.length;
+  const high     = incidents.filter(i => i.risk_level === 'high').length;
+  const low      = incidents.filter(i => i.risk_level === 'low').length;
+  const resolved = incidents.filter(i => i.resolved).length;
+  const byTool   = {};
+  incidents.forEach(i => { byTool[i.ai_tool||'Unknown'] = (byTool[i.ai_tool||'Unknown']||0) + 1; });
+
+  const summary = high > 3
+    ? `This week Syphir caught ${total} incidents at <strong>${org.name}</strong> — including ${high} high-risk detections. <span style="color:#f87171;">Immediate review recommended.</span>`
+    : total > 5
+      ? `Your team had ${total} incidents this week. ${high} were high-risk and warrant a closer look.`
+      : `A quiet week — ${total} incident${total!==1?'s':''} detected, mostly low-risk. Your team appears to be handling data carefully.`;
+
+  const topRows = incidents.slice(0,5).map(i => {
+    const dets = Array.isArray(i.detections) ? i.detections.map(d=>d.type||d.label||'').filter(Boolean).join(', ') : '—';
+    return `<tr>
+      <td style="padding:8px 10px;font-size:12px;color:#e6edf3;border-bottom:1px solid #1e2636;">${i.user_email||'—'}</td>
+      <td style="padding:8px 10px;font-size:12px;color:#8b949e;border-bottom:1px solid #1e2636;">${i.ai_tool||'—'}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #1e2636;">${riskBadge(i.risk_level)}</td>
+      <td style="padding:8px 10px;font-size:11px;color:#8b949e;border-bottom:1px solid #1e2636;">${dets}</td>
+      <td style="padding:8px 10px;font-size:11px;color:#8b949e;border-bottom:1px solid #1e2636;">${i.timestamp ? new Date(i.timestamp).toLocaleDateString() : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const toolList = Object.entries(byTool).sort((a,b)=>b[1]-a[1])
+    .map(([t,n]) => `<li style="font-size:12px;color:#8b949e;margin-bottom:4px;"><strong style="color:#e6edf3;">${t}</strong> — ${n} detection${n!==1?'s':''}</li>`).join('');
+
+  const dashUrl = `https://syphir.vercel.app/app.html?key=${orgKey}`;
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+  ${emailHeader('Weekly Report', `${weekStart} &mdash; ${weekEnd}`)}
+  <div style="font-size:22px;font-weight:800;color:#e6edf3;margin-bottom:8px;">${org.name}</div>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 24px;">${summary}</p>
+  <table width="100%" cellpadding="0" cellspacing="6" style="margin-bottom:24px;">
+    <tr>
+      <td style="background:#161b25;border:1px solid #1e2636;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#e6edf3;font-family:'Courier New',monospace;">${total}</div>
+        <div style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:0.07em;margin-top:3px;">Total</div>
+      </td>
+      <td style="background:#161b25;border:1px solid #1e2636;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#ef4444;font-family:'Courier New',monospace;">${high}</div>
+        <div style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:0.07em;margin-top:3px;">High Risk</div>
+      </td>
+      <td style="background:#161b25;border:1px solid #1e2636;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#f59e0b;font-family:'Courier New',monospace;">${low}</div>
+        <div style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:0.07em;margin-top:3px;">Low Risk</div>
+      </td>
+      <td style="background:#161b25;border:1px solid #1e2636;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#2DD4BF;font-family:'Courier New',monospace;">${resolved}</div>
+        <div style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:0.07em;margin-top:3px;">Resolved</div>
+      </td>
+    </tr>
+  </table>
+  <div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;overflow:hidden;margin-bottom:24px;">
+    <div style="padding:12px 16px;border-bottom:1px solid #1e2636;">
+      <span style="font-size:12px;font-weight:700;color:#e6edf3;text-transform:uppercase;letter-spacing:0.07em;">Top Detections</span>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <thead><tr style="background:#0d1117;">
+        <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:#8b949e;text-transform:uppercase;">User</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:#8b949e;text-transform:uppercase;">AI Tool</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:#8b949e;text-transform:uppercase;">Risk</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:#8b949e;text-transform:uppercase;">Type</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:#8b949e;text-transform:uppercase;">Date</th>
+      </tr></thead>
+      <tbody>${topRows}</tbody>
+    </table>
+  </div>
+  ${Object.keys(byTool).length ? `<div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:16px;margin-bottom:24px;">
+    <div style="font-size:12px;font-weight:700;color:#e6edf3;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">AI Tools Used</div>
+    <ul style="margin:0;padding:0;list-style:none;">${toolList}</ul>
+  </div>` : ''}
+  <p style="font-size:12px;color:#8b949e;margin:0 0 24px;">&#128206; Full incident log attached as CSV</p>
+  <div style="text-align:center;margin-bottom:32px;">
+    <a href="${dashUrl}" style="display:inline-block;background:#2DD4BF;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">View Dashboard &#8594;</a>
+  </div>
+  ${emailFooter(org.name)}
+</div></body></html>`;
+}
+
+function buildQuietWeekHtml(org, weekStart, weekEnd, orgKey) {
+  const dashUrl = `https://syphir.vercel.app/app.html?key=${orgKey}`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+  ${emailHeader('Weekly Report', `${weekStart} &mdash; ${weekEnd}`)}
+  <div style="font-size:22px;font-weight:800;color:#e6edf3;margin-bottom:20px;">${org.name}</div>
+  <div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:28px;margin-bottom:24px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:12px;">&#x2705;</div>
+    <div style="font-size:16px;font-weight:700;color:#2DD4BF;margin-bottom:8px;">All Clear This Week</div>
+    <p style="font-size:14px;color:#8b949e;margin:0;line-height:1.6;">No PII incidents were detected at ${org.name} in the past 7 days. Your team handled their AI tool usage carefully.</p>
+  </div>
+  <div style="text-align:center;margin-bottom:32px;">
+    <a href="${dashUrl}" style="display:inline-block;background:#2DD4BF;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">View Dashboard &#8594;</a>
+  </div>
+  ${emailFooter(org.name)}
+</div></body></html>`;
+}
+
+function buildExpiryWarningHtml(org, expiryDate, total, proofLine) {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+  ${emailHeader('', '')}
+  <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:20px;margin-bottom:24px;">
+    <div style="font-size:13px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">&#x23F0; Trial Ending Soon</div>
+    <div style="font-size:20px;font-weight:800;color:#e6edf3;">Your Syphir trial ends on ${expiryDate}</div>
+  </div>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 16px;">During your trial, Syphir detected <strong style="color:#e6edf3;">${total} incident${total!==1?'s':''}</strong> across your team.${proofLine ? ' ' + proofLine : ''}</p>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 24px;">After your trial ends, Syphir's protection will pause and incidents will no longer be monitored or logged.</p>
+  <div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:16px;margin-bottom:24px;">
+    <div style="font-size:12px;font-weight:700;color:#e6edf3;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Choose a Plan to Continue</div>
+    <div style="margin-bottom:8px;font-size:13px;color:#8b949e;"><strong style="color:#e6edf3;">Starter</strong> &mdash; $129/mo &middot; Up to 15 employees</div>
+    <div style="font-size:13px;color:#8b949e;"><strong style="color:#e6edf3;">Professional</strong> &mdash; $299/mo &middot; Up to 50 employees</div>
+  </div>
+  <div style="text-align:center;margin-bottom:32px;">
+    <a href="https://syphir.vercel.app/pricing.html" style="display:inline-block;background:#f59e0b;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Upgrade Now &#8594;</a>
+  </div>
+  ${emailFooter(org.name)}
+</div></body></html>`;
+}
+
+function buildExpiryNoticeHtml(org, expiryDate, total) {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+  ${emailHeader('', '')}
+  <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:20px;margin-bottom:24px;">
+    <div style="font-size:13px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">&#x1F512; Protection Paused</div>
+    <div style="font-size:20px;font-weight:800;color:#e6edf3;">Your Syphir trial ended on ${expiryDate}</div>
+  </div>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 16px;">During your trial, Syphir detected <strong style="color:#e6edf3;">${total} incident${total!==1?'s':''}</strong>. Your team is now unprotected.</p>
+  <p style="font-size:14px;color:#ef4444;font-weight:600;line-height:1.6;margin:0 0 24px;">Every day without Syphir is a day your team's AI activity goes unmonitored.</p>
+  <div style="text-align:center;margin-bottom:32px;">
+    <a href="https://syphir.vercel.app/pricing.html" style="display:inline-block;background:#ef4444;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Restore Protection &#8594;</a>
+  </div>
+  ${emailFooter(org.name)}
+</div></body></html>`;
+}
+
+function buildUpgradeConfirmationHtml(org, plan, bizKey, empKey) {
+  const planInfo  = PLAN_DETAILS[plan] || {};
+  const dashUrl   = `https://syphir.vercel.app/app.html?key=${bizKey}`;
+  const installUrl = empKey ? `https://syphir.vercel.app/install.html?key=${empKey}` : 'https://syphir.vercel.app/install.html';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+  ${emailHeader('', '')}
+  <div style="background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:10px;padding:24px;margin-bottom:24px;text-align:center;">
+    <div style="font-size:36px;margin-bottom:8px;">&#x2705;</div>
+    <div style="font-size:20px;font-weight:800;color:#e6edf3;margin-bottom:4px;">Welcome to Syphir ${plan}</div>
+    <div style="font-size:14px;color:#2DD4BF;">Your team is now fully protected.</div>
+  </div>
+  <div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:16px;margin-bottom:16px;">
+    <div style="font-size:10px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Dashboard Key</div>
+    <div style="font-family:'Courier New',monospace;font-size:16px;font-weight:700;color:#2DD4BF;letter-spacing:0.05em;">${bizKey}</div>
+    <div style="font-size:11px;color:#8b949e;margin-top:4px;">Save this key — you'll need it every time you log in to your dashboard.</div>
+  </div>
+  ${empKey ? `<div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:16px;margin-bottom:16px;">
+    <div style="font-size:10px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Employee Install Link</div>
+    <a href="${installUrl}" style="color:#2DD4BF;font-size:12px;word-break:break-all;text-decoration:none;">${installUrl}</a>
+    <div style="font-size:11px;color:#8b949e;margin-top:4px;">Share this with your team — they install in 60 seconds, no setup needed.</div>
+  </div>` : ''}
+  <div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:16px;margin-bottom:24px;">
+    <div style="font-size:12px;font-weight:700;color:#e6edf3;margin-bottom:8px;">${plan} Plan</div>
+    ${planInfo.price ? `<div style="font-size:13px;color:#8b949e;margin-bottom:4px;">Price: <strong style="color:#e6edf3;">${planInfo.price}</strong></div>` : ''}
+    ${planInfo.limit ? `<div style="font-size:13px;color:#8b949e;">Team size: <strong style="color:#e6edf3;">${planInfo.limit}</strong></div>` : ''}
+  </div>
+  <div style="text-align:center;margin-bottom:24px;">
+    <a href="${dashUrl}" style="display:inline-block;background:#2DD4BF;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Open Dashboard &#8594;</a>
+  </div>
+  <p style="font-size:12px;color:#8b949e;text-align:center;margin:0 0 24px;">Questions? Reply to this email or contact <a href="mailto:syphir26@gmail.com" style="color:#2DD4BF;text-decoration:none;">syphir26@gmail.com</a></p>
+  ${emailFooter(org.name)}
+</div></body></html>`;
 }
 
 // ── SUPABASE HELPER ────────────────────────────────────────────────────────
@@ -286,6 +515,26 @@ app.patch("/orgs/:org_id/upgrade", async (c) => {
     });
 
     console.log(`✓ Upgraded org ${org_id} → ${plan} (expires_at: ${expiresAt || "never"})`);
+
+    // Send upgrade confirmation email (non-fatal)
+    try {
+      const orgRows = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=*`);
+      const org = orgRows?.[0];
+      if (org?.admin_email) {
+        const keyRows = await db(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&status=eq.active&select=key,key_type`);
+        const bizKey = keyRows?.find(k => k.key_type === 'business')?.key || '';
+        const empKey = keyRows?.find(k => k.key_type === 'employee')?.key || '';
+        await resend.emails.send({
+          from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
+          subject: `Welcome to Syphir ${plan} — you're protected`,
+          html: buildUpgradeConfirmationHtml(org, plan, bizKey, empKey),
+        });
+        console.log('Email sent: upgrade-confirmation', org.name, org.admin_email);
+      }
+    } catch (emailErr) {
+      console.warn('Upgrade confirmation email failed:', emailErr.message);
+    }
+
     return c.json({ success: true });
   } catch (err) {
     return c.json({ error: err.message }, 500);
@@ -895,6 +1144,183 @@ app.delete("/billing/cancel", async (c) => {
   } catch (err) {
     return c.json({ error: "Stripe error: " + err.message }, 500);
   }
+});
+
+// ── WEEKLY REPORTS ─────────────────────────────────────────────────────────
+app.post("/admin/send-weekly-reports", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+
+  const body = await c.req.json().catch(() => ({}));
+  const targetOrgId = body.org_id || null;
+
+  const now      = new Date();
+  const weekAgo  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const weekStart = weekAgo.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const weekEnd   = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const dateLabel = now.toISOString().slice(0, 10);
+
+  let orgs;
+  try {
+    orgs = targetOrgId
+      ? await db(`organizations?id=eq.${encodeURIComponent(targetOrgId)}&select=*`)
+      : await db('organizations?active=eq.true&select=*');
+  } catch (err) {
+    return c.json({ error: 'Failed to load orgs: ' + err.message }, 500);
+  }
+  if (!orgs || orgs.length === 0) return c.json({ sent: 0, skipped: 0 });
+
+  const results = [];
+  for (const org of orgs) {
+    if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
+    try {
+      const incidents = await db(
+        `incidents?org_id=eq.${encodeURIComponent(org.id)}&timestamp=gte.${encodeURIComponent(weekAgo.toISOString())}&order=timestamp.desc`
+      ).catch(() => []) || [];
+
+      const keyRows = await db(
+        `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
+      ).catch(() => []) || [];
+      const orgKey = keyRows[0]?.key || '';
+
+      if (incidents.length === 0) {
+        await resend.emails.send({
+          from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
+          subject: `Your Syphir weekly report — quiet week at ${org.name}`,
+          html: buildQuietWeekHtml(org, weekStart, weekEnd, orgKey),
+        });
+      } else {
+        const csvContent = buildIncidentCsv(incidents);
+        const fileName   = `syphir-report-${org.name.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${dateLabel}.csv`;
+        const total = incidents.length;
+        await resend.emails.send({
+          from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
+          subject: `Syphir weekly report — ${total} incident${total!==1?'s':''} at ${org.name}`,
+          html: buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd),
+          attachments: [{ filename: fileName, content: Buffer.from(csvContent).toString('base64') }],
+        });
+      }
+      console.log('Email sent: weekly-report', org.name, org.admin_email);
+      results.push({ org: org.name, incidents: incidents.length, sent: true });
+    } catch (err) {
+      console.error('Weekly report failed for', org.name, ':', err.message);
+      results.push({ org: org.name, error: err.message });
+    }
+  }
+  return c.json({ sent: results.filter(r=>r.sent).length, total: orgs.length, results });
+});
+
+// ── EXPIRY WARNINGS (3 days before) ────────────────────────────────────────
+app.post("/admin/send-expiry-warnings", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+
+  const now     = new Date();
+  const in3days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+  let orgs;
+  try {
+    orgs = await db(
+      `organizations?expires_at=gte.${encodeURIComponent(now.toISOString())}&expires_at=lte.${encodeURIComponent(in3days.toISOString())}&or=(expiry_warning_sent.is.null,expiry_warning_sent.is.false)&select=*`
+    );
+  } catch (err) {
+    return c.json({ error: 'Failed to query orgs: ' + err.message }, 500);
+  }
+  if (!orgs || orgs.length === 0) return c.json({ sent: 0, message: 'No orgs expiring in 3 days' });
+
+  const results = [];
+  for (const org of orgs) {
+    if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
+    try {
+      const incidents = await db(
+        `incidents?org_id=eq.${encodeURIComponent(org.id)}&order=timestamp.desc`
+      ).catch(() => []) || [];
+
+      const total      = incidents.length;
+      const highRisk   = incidents.find(i => i.risk_level === 'high') || incidents[0];
+      const expiryDate = new Date(org.expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+      let proofLine = '';
+      if (highRisk) {
+        const detType = Array.isArray(highRisk.detections) && highRisk.detections[0]
+          ? (highRisk.detections[0].type || highRisk.detections[0].label || 'PII') : 'PII';
+        proofLine = `Your most critical detection: <strong>${detType}</strong> in ${highRisk.ai_tool || 'an AI tool'} by ${highRisk.user_email || 'a team member'}.`;
+      }
+
+      await resend.emails.send({
+        from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
+        subject: `Your Syphir trial ends in 3 days — ${org.name}`,
+        html: buildExpiryWarningHtml(org, expiryDate, total, proofLine),
+      });
+
+      try {
+        await db(`organizations?id=eq.${encodeURIComponent(org.id)}`, {
+          method: 'PATCH', prefer: 'return=minimal',
+          body: JSON.stringify({ expiry_warning_sent: true }),
+        });
+      } catch(_) {}
+
+      console.log('Email sent: expiry-warning', org.name, org.admin_email);
+      results.push({ org: org.name, sent: true });
+    } catch (err) {
+      console.error('Expiry warning failed for', org.name, ':', err.message);
+      results.push({ org: org.name, error: err.message });
+    }
+  }
+  return c.json({ sent: results.filter(r=>r.sent).length, total: orgs.length, results });
+});
+
+// ── EXPIRY NOTICES (after expiry) ───────────────────────────────────────────
+app.post("/admin/send-expiry-notices", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+
+  const now = new Date();
+
+  let orgs;
+  try {
+    orgs = await db(
+      `organizations?expires_at=lt.${encodeURIComponent(now.toISOString())}&or=(expiry_notice_sent.is.null,expiry_notice_sent.is.false)&select=*`
+    );
+  } catch (err) {
+    return c.json({ error: 'Failed to query orgs: ' + err.message }, 500);
+  }
+  if (!orgs || orgs.length === 0) return c.json({ sent: 0, message: 'No expired orgs found' });
+
+  const results = [];
+  for (const org of orgs) {
+    if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
+    try {
+      const incidents = await db(
+        `incidents?org_id=eq.${encodeURIComponent(org.id)}&order=timestamp.desc`
+      ).catch(() => []) || [];
+
+      const total      = incidents.length;
+      const expiryDate = org.expires_at
+        ? new Date(org.expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'recently';
+
+      await resend.emails.send({
+        from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
+        subject: `Your Syphir protection has paused — ${org.name}`,
+        html: buildExpiryNoticeHtml(org, expiryDate, total),
+      });
+
+      try {
+        await db(`organizations?id=eq.${encodeURIComponent(org.id)}`, {
+          method: 'PATCH', prefer: 'return=minimal',
+          body: JSON.stringify({ expiry_notice_sent: true }),
+        });
+      } catch(_) {}
+
+      console.log('Email sent: expiry-notice', org.name, org.admin_email);
+      results.push({ org: org.name, sent: true });
+    } catch (err) {
+      console.error('Expiry notice failed for', org.name, ':', err.message);
+      results.push({ org: org.name, error: err.message });
+    }
+  }
+  return c.json({ sent: results.filter(r=>r.sent).length, total: orgs.length, results });
 });
 
 console.log("Syphir API v2.11.0 running");
