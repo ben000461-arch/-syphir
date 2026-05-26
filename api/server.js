@@ -6,6 +6,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { Resend } from "resend";
 import Stripe from "stripe";
+import PDFDocument from "pdfkit";
 
 const app = new Hono();
 const SCANNER_URL = "https://syphir-scanner.onrender.com";
@@ -256,6 +257,207 @@ function buildUpgradeConfirmationHtml(org, plan, bizKey, empKey) {
   <p style="font-size:12px;color:#8b949e;text-align:center;margin:0 0 24px;">Questions? Reply to this email or contact <a href="mailto:syphir26@gmail.com" style="color:#2DD4BF;text-decoration:none;">syphir26@gmail.com</a></p>
   ${emailFooter(org.name)}
 </div></body></html>`;
+}
+
+// ── SHORT WEEKLY EMAIL (body only — detail lives in PDF) ───────────────────
+function buildShortWeeklyHtml(org, incidents, orgKey, periodLabel) {
+  const total = incidents.length;
+  const high  = incidents.filter(i => i.risk_level === 'high').length;
+  const dashUrl = `https://syphir.vercel.app/app.html?key=${orgKey}`;
+  const summary = high > 3
+    ? `Syphir caught ${total} incidents at ${org.name}, including ${high} high-risk detections. Immediate review recommended.`
+    : total > 5
+      ? `Your team had ${total} incidents this week. ${high} were high-risk.`
+      : `${total} incident${total !== 1 ? 's' : ''} detected this week, mostly low-risk.`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+  ${emailHeader('Weekly Report', periodLabel)}
+  <div style="font-size:22px;font-weight:800;color:#e6edf3;margin-bottom:8px;">${org.name}</div>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 12px;">${summary}</p>
+  <p style="font-size:13px;color:#8b949e;margin:0 0 28px;">&#128206; Full incident report attached as PDF &amp; CSV.</p>
+  <div style="text-align:center;margin-bottom:32px;">
+    <a href="${dashUrl}" style="display:inline-block;background:#2DD4BF;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">View Dashboard &#8594;</a>
+  </div>
+  ${emailFooter(org.name)}
+</div></body></html>`;
+}
+
+// ── PDF REPORT GENERATOR ────────────────────────────────────────────────────
+async function generateWeeklyPdf(org, incidents, periodLabel, dateLabel) {
+  return new Promise((resolve, reject) => {
+    try {
+      const chunks = [];
+      const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true });
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end',  () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const PW = 595.28, PH = 841.89, M = 50;
+      const C = {
+        bg: '#0d1117', surface: '#161b25', border: '#1e2636',
+        accent: '#2DD4BF', text: '#e6edf3', muted: '#8b949e',
+        red: '#ef4444', amber: '#f59e0b', green: '#22c55e',
+      };
+
+      function bg() { doc.rect(0, 0, PW, PH).fill(C.bg); }
+      function hRule(y) {
+        doc.strokeColor(C.border).lineWidth(0.5).moveTo(M, y).lineTo(PW - M, y).stroke();
+      }
+      function maybeNewPage(y) {
+        if (y > PH - 110) {
+          doc.addPage(); bg(); return M;
+        }
+        return y;
+      }
+
+      bg();
+
+      // ── HEADER ──
+      doc.fontSize(20).font('Helvetica-Bold').fillColor(C.text).text('Syphir', M, M, { lineBreak: false });
+      doc.fontSize(9).font('Helvetica').fillColor(C.muted)
+         .text(`Weekly Report  ·  ${periodLabel}`, M, M + 6, { align: 'right', width: PW - M * 2, lineBreak: false });
+      doc.fontSize(9).font('Helvetica').fillColor(C.muted).text('AI Data Protection', M, M + 26);
+      let y = M + 58;
+      hRule(y); y += 18;
+
+      // ── ORG + SUMMARY ──
+      const total    = incidents.length;
+      const high     = incidents.filter(i => i.risk_level === 'high').length;
+      const low      = incidents.filter(i => i.risk_level === 'low').length;
+      const resolved = incidents.filter(i => i.resolved).length;
+      const summary  = high > 3
+        ? `This week Syphir caught ${total} incidents — including ${high} high-risk detections. Immediate review recommended.`
+        : total > 5
+          ? `${total} incidents detected. ${high} were high-risk and warrant a closer look.`
+          : `A quiet week — ${total} incident${total !== 1 ? 's' : ''} detected, mostly low-risk.`;
+
+      doc.fontSize(15).font('Helvetica-Bold').fillColor(C.text).text(org.name, M, y); y = doc.y + 5;
+      doc.fontSize(10).font('Helvetica').fillColor(C.muted).text(summary, M, y, { width: PW - M * 2 }); y = doc.y + 16;
+
+      // ── STAT CARDS ──
+      const cardW = (PW - M * 2 - 12) / 4, cardH = 58;
+      const stats = [
+        { label: 'TOTAL', val: String(total),    color: C.text  },
+        { label: 'HIGH RISK',   val: String(high),     color: C.red   },
+        { label: 'LOW RISK',    val: String(low),      color: C.amber },
+        { label: 'RESOLVED',    val: String(resolved), color: C.green },
+      ];
+      stats.forEach((s, i) => {
+        const x = M + i * (cardW + 4);
+        doc.roundedRect(x, y, cardW, cardH, 3).fillAndStroke(C.surface, C.border);
+        doc.fontSize(22).font('Helvetica-Bold').fillColor(s.color)
+           .text(s.val, x, y + 7, { width: cardW, align: 'center', lineBreak: false });
+        doc.fontSize(7).font('Helvetica').fillColor(C.muted)
+           .text(s.label, x, y + 38, { width: cardW, align: 'center', lineBreak: false });
+      });
+      y += cardH + 18;
+
+      // ── INCIDENTS BY DAY ──
+      const byDay = {};
+      incidents.forEach(i => {
+        const d = i.timestamp ? i.timestamp.slice(0, 10) : 'Unknown';
+        byDay[d] = (byDay[d] || 0) + 1;
+      });
+      const dayEntries = Object.entries(byDay).sort((a, b) => a[0].localeCompare(b[0]));
+      if (dayEntries.length > 0) {
+        y = maybeNewPage(y);
+        doc.fontSize(9).font('Helvetica-Bold').fillColor(C.accent).text('INCIDENTS BY DAY', M, y); y += 13;
+        dayEntries.forEach(([date, count]) => {
+          doc.fontSize(9).font('Helvetica').fillColor(C.muted).text(`${date}`, M, y, { continued: true, width: 100 });
+          doc.fillColor(C.text).font('Helvetica-Bold').text(`  ${count}`, { continued: false });
+          y += 13;
+        });
+        y += 10;
+      }
+
+      // ── TOP DETECTIONS TABLE ──
+      const top10 = incidents.slice(0, 10);
+      if (top10.length > 0) {
+        y = maybeNewPage(y);
+        doc.fontSize(9).font('Helvetica-Bold').fillColor(C.accent).text('TOP DETECTIONS', M, y); y += 13;
+        // Header
+        doc.rect(M, y, PW - M * 2, 16).fill(C.surface);
+        const cols = [
+          { label: 'USER',      x: M + 4,   w: 130 },
+          { label: 'AI TOOL',   x: M + 138, w: 80  },
+          { label: 'RISK',      x: M + 222, w: 38  },
+          { label: 'DETECTION', x: M + 264, w: 120 },
+          { label: 'DATE',      x: M + 388, w: 70  },
+        ];
+        cols.forEach(col => {
+          doc.fontSize(6.5).font('Helvetica-Bold').fillColor(C.muted)
+             .text(col.label, col.x, y + 4, { width: col.w, lineBreak: false });
+        });
+        y += 16;
+        top10.forEach((inc, idx) => {
+          y = maybeNewPage(y);
+          if (idx % 2 === 0) doc.rect(M, y, PW - M * 2, 15).fill(C.surface);
+          const dets = Array.isArray(inc.detections)
+            ? inc.detections.map(d => (d.type || d.label || '')).filter(Boolean).join(', ').slice(0, 28)
+            : '—';
+          const rColor = inc.risk_level === 'high' ? C.red : inc.risk_level === 'medium' ? C.amber : C.muted;
+          doc.fontSize(7.5).font('Helvetica').fillColor(C.text)
+             .text((inc.user_email || '—').slice(0, 22), cols[0].x, y + 3, { width: cols[0].w, lineBreak: false });
+          doc.fillColor(C.muted)
+             .text((inc.ai_tool || '—').slice(0, 14), cols[1].x, y + 3, { width: cols[1].w, lineBreak: false });
+          doc.fillColor(rColor).font('Helvetica-Bold')
+             .text((inc.risk_level || '—').toUpperCase().slice(0, 6), cols[2].x, y + 3, { width: cols[2].w, lineBreak: false });
+          doc.fillColor(C.muted).font('Helvetica')
+             .text(dets, cols[3].x, y + 3, { width: cols[3].w, lineBreak: false });
+          doc.fillColor(C.muted)
+             .text(inc.timestamp ? inc.timestamp.slice(0, 10) : '—', cols[4].x, y + 3, { width: cols[4].w, lineBreak: false });
+          y += 15;
+        });
+        y += 10;
+      }
+
+      // ── AI TOOLS ──
+      const byTool = {};
+      incidents.forEach(i => { const t = i.ai_tool || 'Unknown'; byTool[t] = (byTool[t] || 0) + 1; });
+      const toolEntries = Object.entries(byTool).sort((a, b) => b[1] - a[1]);
+      if (toolEntries.length > 0) {
+        y = maybeNewPage(y);
+        doc.fontSize(9).font('Helvetica-Bold').fillColor(C.accent).text('AI TOOLS USED', M, y); y += 13;
+        toolEntries.forEach(([tool, count]) => {
+          doc.fontSize(9).font('Helvetica').fillColor(C.text)
+             .text(`${tool}  —  ${count} detection${count !== 1 ? 's' : ''}`, M, y); y += 13;
+        });
+        y += 8;
+      }
+
+      // ── DETECTION TYPES ──
+      const byType = {};
+      incidents.forEach(i => {
+        if (Array.isArray(i.detections)) {
+          i.detections.forEach(d => { const t = d.type || d.label || 'Unknown'; byType[t] = (byType[t] || 0) + 1; });
+        }
+      });
+      const typeEntries = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+      if (typeEntries.length > 0) {
+        y = maybeNewPage(y);
+        doc.fontSize(9).font('Helvetica-Bold').fillColor(C.accent).text('DETECTION TYPES', M, y); y += 13;
+        typeEntries.forEach(([type, count]) => {
+          doc.fontSize(9).font('Helvetica').fillColor(C.text)
+             .text(`${type.replace(/_/g, ' ')}  —  ${count}`, M, y); y += 13;
+        });
+        y += 8;
+      }
+
+      // ── FOOTER ──
+      const footerY = PH - 44;
+      hRule(footerY);
+      doc.fontSize(7.5).font('Helvetica').fillColor(C.muted)
+         .text('Syphir AI Data Protection  ·  syphir.vercel.app  ·  syphir26@gmail.com',
+               M, footerY + 8, { align: 'center', width: PW - M * 2, lineBreak: false });
+      doc.text(`Generated ${new Date().toLocaleDateString()}  ·  Confidential`,
+               M, footerY + 20, { align: 'center', width: PW - M * 2, lineBreak: false });
+
+      doc.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 // ── SUPABASE HELPER ────────────────────────────────────────────────────────
@@ -1154,10 +1356,7 @@ app.post("/admin/send-weekly-reports", async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const targetOrgId = body.org_id || null;
 
-  const now      = new Date();
-  const weekAgo  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const weekStart = weekAgo.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const weekEnd   = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const now       = new Date();
   const dateLabel = now.toISOString().slice(0, 10);
 
   let orgs;
@@ -1174,30 +1373,53 @@ app.post("/admin/send-weekly-reports", async (c) => {
   for (const org of orgs) {
     if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
     try {
+      // FIX 1: 30-day window for demo/trial orgs, 7-day for paid
+      const isDemo    = (org.plan || '').toLowerCase() === 'demo' || org.status === 'demo';
+      const windowMs  = isDemo ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+      const windowStart = new Date(now.getTime() - windowMs);
+      const periodLabel = windowStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        + ' – ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
       const incidents = await db(
-        `incidents?org_id=eq.${encodeURIComponent(org.id)}&timestamp=gte.${encodeURIComponent(weekAgo.toISOString())}&order=timestamp.desc`
+        `incidents?org_id=eq.${encodeURIComponent(org.id)}&timestamp=gte.${encodeURIComponent(windowStart.toISOString())}&order=timestamp.desc`
       ).catch(() => []) || [];
+
+      console.log('Incidents found for', org.name, ':', incidents.length);
 
       const keyRows = await db(
         `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
       ).catch(() => []) || [];
-      const orgKey = keyRows[0]?.key || '';
+      const orgKey  = keyRows[0]?.key || '';
+      const slugName = org.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
       if (incidents.length === 0) {
+        // FIX 3: updated subject
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `Your Syphir weekly report — quiet week at ${org.name}`,
-          html: buildQuietWeekHtml(org, weekStart, weekEnd, orgKey),
+          subject: `Syphir Weekly Report: All clear this week — ${org.name}`,
+          html: buildQuietWeekHtml(org, periodLabel.split(' – ')[0], periodLabel.split(' – ')[1], orgKey),
         });
       } else {
-        const csvContent = buildIncidentCsv(incidents);
-        const fileName   = `syphir-report-${org.name.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${dateLabel}.csv`;
         const total = incidents.length;
+
+        // FIX 2: generate PDF (non-fatal — fall back to CSV-only if it fails)
+        const attachments = [];
+        try {
+          const pdfBuf = await generateWeeklyPdf(org, incidents, periodLabel, dateLabel);
+          attachments.push({ filename: `syphir-report-${slugName}-${dateLabel}.pdf`, content: pdfBuf.toString('base64') });
+        } catch (pdfErr) {
+          console.warn('PDF generation failed for', org.name, ':', pdfErr.message);
+        }
+        // Always attach CSV as well
+        const csvContent = buildIncidentCsv(incidents);
+        attachments.push({ filename: `syphir-report-${slugName}-${dateLabel}.csv`, content: Buffer.from(csvContent).toString('base64') });
+
+        // FIX 3: updated subject + short HTML body
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `Syphir weekly report — ${total} incident${total!==1?'s':''} at ${org.name}`,
-          html: buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd),
-          attachments: [{ filename: fileName, content: Buffer.from(csvContent).toString('base64') }],
+          subject: `Syphir Weekly Report: ${total} incidents detected at ${org.name}`,
+          html: buildShortWeeklyHtml(org, incidents, orgKey, periodLabel),
+          attachments,
         });
       }
       console.log('Email sent: weekly-report', org.name, org.admin_email);
@@ -1207,7 +1429,7 @@ app.post("/admin/send-weekly-reports", async (c) => {
       results.push({ org: org.name, error: err.message });
     }
   }
-  return c.json({ sent: results.filter(r=>r.sent).length, total: orgs.length, results });
+  return c.json({ sent: results.filter(r => r.sent).length, total: orgs.length, results });
 });
 
 // ── EXPIRY WARNINGS (3 days before) ────────────────────────────────────────
