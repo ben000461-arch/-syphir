@@ -2,7 +2,7 @@ name: Weekly Syphir Emails
 
 on:
   schedule:
-    - cron: '0 16 * * 1'   # Monday 8:00 AM PST (UTC-8 → 16:00 UTC)
+    - cron: '0 16 * * 5'   # Friday 8:00 AM PST (UTC-8 → 16:00 UTC)
   workflow_dispatch:         # allow manual trigger from GitHub UI
 
 jobs:

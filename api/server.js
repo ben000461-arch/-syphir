@@ -1373,11 +1373,24 @@ async function sendWeeklyReportsToAllOrgs(targetOrgId = null) {
   }
   if (!orgs || orgs.length === 0) return { sent: 0, skipped: 0 };
 
+  const paidPlans = ['starter', 'professional', 'institution'];
+
   const results = [];
   for (const org of orgs) {
     if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
     try {
-      const isDemo      = (org.plan || '').toLowerCase() === 'demo' || org.status === 'demo';
+      // Filter: only send to active paying orgs, active trials, or pilots with no expiry
+      const status  = (org.status || '').toLowerCase();
+      const plan    = (org.plan   || '').toLowerCase();
+      const isPaid  = paidPlans.includes(plan) && status === 'active';
+      const isActiveTrial = status === 'demo' && (!org.expires_at || new Date(org.expires_at) > now);
+      if (!isPaid && !isActiveTrial) {
+        console.log('Scheduler: skipping', org.name, '— status:', org.status, 'expires:', org.expires_at);
+        results.push({ org: org.name, skipped: `status:${org.status} plan:${org.plan}` });
+        continue;
+      }
+
+      const isDemo      = status === 'demo';
       const windowMs    = isDemo ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
       const windowStart = new Date(now.getTime() - windowMs);
       const periodLabel = windowStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -1398,7 +1411,7 @@ async function sendWeeklyReportsToAllOrgs(targetOrgId = null) {
       if (incidents.length === 0) {
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `Syphir Weekly Report: All clear this week — ${org.name}`,
+          subject: `Syphir Weekly Recap: All clear this week — ${org.name}`,
           html: buildQuietWeekHtml(org, periodLabel.split(' – ')[0], periodLabel.split(' – ')[1], orgKey),
         });
       } else {
@@ -1415,7 +1428,7 @@ async function sendWeeklyReportsToAllOrgs(targetOrgId = null) {
 
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `Syphir Weekly Report: ${total} incidents detected at ${org.name}`,
+          subject: `Syphir Weekly Recap: ${total} incidents detected at ${org.name} this week`,
           html: buildShortWeeklyHtml(org, incidents, orgKey, periodLabel),
           attachments,
         });
@@ -1555,18 +1568,18 @@ console.log("Syphir API v2.11.0 running");
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
 
 // ── IN-PROCESS SCHEDULER (backup: GitHub Actions cron also configured) ──────
-// Fires weekly reports Monday 8am PST; expiry emails daily 9am PST.
+// Fires weekly reports Friday 8am PST; expiry emails daily 9am PST.
 // Uses in-memory last-run tracking to prevent double-firing within the same day.
 const lastRun = { weekly: null, expiry: null };
 
 setInterval(async () => {
   try {
     const pst     = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    const day     = pst.getDay();   // 0 Sun … 1 Mon … 6 Sat
+    const day     = pst.getDay();   // 0 Sun … 5 Fri … 6 Sat
     const hour    = pst.getHours();
     const dateStr = pst.toDateString();
 
-    if (day === 1 && hour === 8 && lastRun.weekly !== dateStr) {
+    if (day === 5 && hour === 8 && lastRun.weekly !== dateStr) {
       lastRun.weekly = dateStr;
       console.log('Scheduler: running weekly reports', new Date().toISOString());
       await sendWeeklyReportsToAllOrgs(null);
