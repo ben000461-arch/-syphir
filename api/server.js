@@ -1356,14 +1356,9 @@ app.delete("/billing/cancel", async (c) => {
   }
 });
 
-// ── WEEKLY REPORTS ─────────────────────────────────────────────────────────
-app.post("/admin/send-weekly-reports", async (c) => {
-  const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+// ── STANDALONE EMAIL FUNCTIONS (called by both HTTP endpoints and scheduler) ─
 
-  const body = await c.req.json().catch(() => ({}));
-  const targetOrgId = body.org_id || null;
-
+async function sendWeeklyReportsToAllOrgs(targetOrgId = null) {
   const now       = new Date();
   const dateLabel = now.toISOString().slice(0, 10);
 
@@ -1373,17 +1368,17 @@ app.post("/admin/send-weekly-reports", async (c) => {
       ? await db(`organizations?id=eq.${encodeURIComponent(targetOrgId)}&select=*`)
       : await db('organizations?active=eq.true&select=*');
   } catch (err) {
-    return c.json({ error: 'Failed to load orgs: ' + err.message }, 500);
+    console.error('sendWeeklyReports: failed to load orgs:', err.message);
+    return { error: err.message };
   }
-  if (!orgs || orgs.length === 0) return c.json({ sent: 0, skipped: 0 });
+  if (!orgs || orgs.length === 0) return { sent: 0, skipped: 0 };
 
   const results = [];
   for (const org of orgs) {
     if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
     try {
-      // FIX 1: 30-day window for demo/trial orgs, 7-day for paid
-      const isDemo    = (org.plan || '').toLowerCase() === 'demo' || org.status === 'demo';
-      const windowMs  = isDemo ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+      const isDemo      = (org.plan || '').toLowerCase() === 'demo' || org.status === 'demo';
+      const windowMs    = isDemo ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
       const windowStart = new Date(now.getTime() - windowMs);
       const periodLabel = windowStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         + ' – ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -1397,20 +1392,17 @@ app.post("/admin/send-weekly-reports", async (c) => {
       const keyRows = await db(
         `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
       ).catch(() => []) || [];
-      const orgKey  = keyRows[0]?.key || '';
+      const orgKey   = keyRows[0]?.key || '';
       const slugName = org.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
       if (incidents.length === 0) {
-        // FIX 3: updated subject
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
           subject: `Syphir Weekly Report: All clear this week — ${org.name}`,
           html: buildQuietWeekHtml(org, periodLabel.split(' – ')[0], periodLabel.split(' – ')[1], orgKey),
         });
       } else {
-        const total = incidents.length;
-
-        // FIX 2: generate PDF (non-fatal — fall back to CSV-only if it fails)
+        const total       = incidents.length;
         const attachments = [];
         try {
           const pdfBuf = await generateWeeklyPdf(org, incidents, periodLabel, dateLabel);
@@ -1418,11 +1410,9 @@ app.post("/admin/send-weekly-reports", async (c) => {
         } catch (pdfErr) {
           console.warn('PDF generation failed for', org.name, ':', pdfErr.message);
         }
-        // Always attach CSV as well
         const csvContent = buildIncidentCsv(incidents);
         attachments.push({ filename: `syphir-report-${slugName}-${dateLabel}.csv`, content: Buffer.from(csvContent).toString('base64') });
 
-        // FIX 3: updated subject + short HTML body
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
           subject: `Syphir Weekly Report: ${total} incidents detected at ${org.name}`,
@@ -1437,14 +1427,10 @@ app.post("/admin/send-weekly-reports", async (c) => {
       results.push({ org: org.name, error: err.message });
     }
   }
-  return c.json({ sent: results.filter(r => r.sent).length, total: orgs.length, results });
-});
+  return { sent: results.filter(r => r.sent).length, total: orgs.length, results };
+}
 
-// ── EXPIRY WARNINGS (3 days before) ────────────────────────────────────────
-app.post("/admin/send-expiry-warnings", async (c) => {
-  const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
-
+async function sendExpiryWarningsToAllOrgs() {
   const now     = new Date();
   const in3days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
@@ -1454,18 +1440,16 @@ app.post("/admin/send-expiry-warnings", async (c) => {
       `organizations?expires_at=gte.${encodeURIComponent(now.toISOString())}&expires_at=lte.${encodeURIComponent(in3days.toISOString())}&or=(expiry_warning_sent.is.null,expiry_warning_sent.is.false)&select=*`
     );
   } catch (err) {
-    return c.json({ error: 'Failed to query orgs: ' + err.message }, 500);
+    console.error('sendExpiryWarnings: failed to query orgs:', err.message);
+    return { error: err.message };
   }
-  if (!orgs || orgs.length === 0) return c.json({ sent: 0, message: 'No orgs expiring in 3 days' });
+  if (!orgs || orgs.length === 0) return { sent: 0, message: 'No orgs expiring in 3 days' };
 
   const results = [];
   for (const org of orgs) {
     if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
     try {
-      const incidents = await db(
-        `incidents?org_id=eq.${encodeURIComponent(org.id)}&order=timestamp.desc`
-      ).catch(() => []) || [];
-
+      const incidents  = await db(`incidents?org_id=eq.${encodeURIComponent(org.id)}&order=timestamp.desc`).catch(() => []) || [];
       const total      = incidents.length;
       const highRisk   = incidents.find(i => i.risk_level === 'high') || incidents[0];
       const expiryDate = new Date(org.expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -1482,11 +1466,9 @@ app.post("/admin/send-expiry-warnings", async (c) => {
         subject: `Your Syphir trial ends in 3 days — ${org.name}`,
         html: buildExpiryWarningHtml(org, expiryDate, total, proofLine),
       });
-
       try {
         await db(`organizations?id=eq.${encodeURIComponent(org.id)}`, {
-          method: 'PATCH', prefer: 'return=minimal',
-          body: JSON.stringify({ expiry_warning_sent: true }),
+          method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ expiry_warning_sent: true }),
         });
       } catch(_) {}
 
@@ -1497,14 +1479,10 @@ app.post("/admin/send-expiry-warnings", async (c) => {
       results.push({ org: org.name, error: err.message });
     }
   }
-  return c.json({ sent: results.filter(r=>r.sent).length, total: orgs.length, results });
-});
+  return { sent: results.filter(r => r.sent).length, total: orgs.length, results };
+}
 
-// ── EXPIRY NOTICES (after expiry) ───────────────────────────────────────────
-app.post("/admin/send-expiry-notices", async (c) => {
-  const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
-
+async function sendExpiryNoticesToAllOrgs() {
   const now = new Date();
 
   let orgs;
@@ -1513,18 +1491,16 @@ app.post("/admin/send-expiry-notices", async (c) => {
       `organizations?expires_at=lt.${encodeURIComponent(now.toISOString())}&or=(expiry_notice_sent.is.null,expiry_notice_sent.is.false)&select=*`
     );
   } catch (err) {
-    return c.json({ error: 'Failed to query orgs: ' + err.message }, 500);
+    console.error('sendExpiryNotices: failed to query orgs:', err.message);
+    return { error: err.message };
   }
-  if (!orgs || orgs.length === 0) return c.json({ sent: 0, message: 'No expired orgs found' });
+  if (!orgs || orgs.length === 0) return { sent: 0, message: 'No expired orgs found' };
 
   const results = [];
   for (const org of orgs) {
     if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
     try {
-      const incidents = await db(
-        `incidents?org_id=eq.${encodeURIComponent(org.id)}&order=timestamp.desc`
-      ).catch(() => []) || [];
-
+      const incidents  = await db(`incidents?org_id=eq.${encodeURIComponent(org.id)}&order=timestamp.desc`).catch(() => []) || [];
       const total      = incidents.length;
       const expiryDate = org.expires_at
         ? new Date(org.expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -1535,11 +1511,9 @@ app.post("/admin/send-expiry-notices", async (c) => {
         subject: `Your Syphir protection has paused — ${org.name}`,
         html: buildExpiryNoticeHtml(org, expiryDate, total),
       });
-
       try {
         await db(`organizations?id=eq.${encodeURIComponent(org.id)}`, {
-          method: 'PATCH', prefer: 'return=minimal',
-          body: JSON.stringify({ expiry_notice_sent: true }),
+          method: 'PATCH', prefer: 'return=minimal', body: JSON.stringify({ expiry_notice_sent: true }),
         });
       } catch(_) {}
 
@@ -1550,10 +1524,65 @@ app.post("/admin/send-expiry-notices", async (c) => {
       results.push({ org: org.name, error: err.message });
     }
   }
-  return c.json({ sent: results.filter(r=>r.sent).length, total: orgs.length, results });
+  return { sent: results.filter(r => r.sent).length, total: orgs.length, results };
+}
+
+// ── WEEKLY REPORTS ─────────────────────────────────────────────────────────
+app.post("/admin/send-weekly-reports", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  const body = await c.req.json().catch(() => ({}));
+  return c.json(await sendWeeklyReportsToAllOrgs(body.org_id || null));
+});
+
+// ── EXPIRY WARNINGS ─────────────────────────────────────────────────────────
+app.post("/admin/send-expiry-warnings", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  return c.json(await sendExpiryWarningsToAllOrgs());
+});
+
+// ── EXPIRY NOTICES ──────────────────────────────────────────────────────────
+app.post("/admin/send-expiry-notices", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  return c.json(await sendExpiryNoticesToAllOrgs());
 });
 
 console.log("Syphir API v2.11.0 running");
-// Keep Render awake — ping every 10 minutes
+
+// ── KEEP RENDER ALIVE ───────────────────────────────────────────────────────
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
+
+// ── IN-PROCESS SCHEDULER (backup: GitHub Actions cron also configured) ──────
+// Fires weekly reports Monday 8am PST; expiry emails daily 9am PST.
+// Uses in-memory last-run tracking to prevent double-firing within the same day.
+const lastRun = { weekly: null, expiry: null };
+
+setInterval(async () => {
+  try {
+    const pst     = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const day     = pst.getDay();   // 0 Sun … 1 Mon … 6 Sat
+    const hour    = pst.getHours();
+    const dateStr = pst.toDateString();
+
+    if (day === 1 && hour === 8 && lastRun.weekly !== dateStr) {
+      lastRun.weekly = dateStr;
+      console.log('Scheduler: running weekly reports', new Date().toISOString());
+      await sendWeeklyReportsToAllOrgs(null);
+      console.log('Scheduler: weekly reports sent', dateStr);
+    }
+
+    if (hour === 9 && lastRun.expiry !== dateStr) {
+      lastRun.expiry = dateStr;
+      console.log('Scheduler: running expiry emails', new Date().toISOString());
+      await sendExpiryWarningsToAllOrgs();
+      await sendExpiryNoticesToAllOrgs();
+      console.log('Scheduler: expiry emails sent', dateStr);
+    }
+  } catch (err) {
+    console.error('Scheduler error:', err.message);
+  }
+}, 60 * 60 * 1000); // check every hour
+
 export default { port: 3000, fetch: app.fetch };

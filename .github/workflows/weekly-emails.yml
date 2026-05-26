@@ -1,0 +1,38 @@
+name: Weekly Syphir Emails
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'   # Monday 8:00 AM PST (UTC-8 → 16:00 UTC)
+  workflow_dispatch:         # allow manual trigger from GitHub UI
+
+jobs:
+  send-reports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Send weekly reports
+        run: |
+          curl -sf -X POST https://syphir-api.onrender.com/admin/send-weekly-reports \
+            -H "Content-Type: application/json" \
+            -H "X-Admin-Secret: ${{ secrets.ADMIN_SECRET }}" \
+            -d "{}" \
+            --max-time 300
+        continue-on-error: true
+
+      - name: Send expiry warnings
+        run: |
+          curl -sf -X POST https://syphir-api.onrender.com/admin/send-expiry-warnings \
+            -H "Content-Type: application/json" \
+            -H "X-Admin-Secret: ${{ secrets.ADMIN_SECRET }}" \
+            -d "{}" \
+            --max-time 60
+        continue-on-error: true
+
+      - name: Send expiry notices
+        run: |
+          curl -sf -X POST https://syphir-api.onrender.com/admin/send-expiry-notices \
+            -H "Content-Type: application/json" \
+            -H "X-Admin-Secret: ${{ secrets.ADMIN_SECRET }}" \
+            -d "{}" \
+            --max-time 60
+        continue-on-error: true
