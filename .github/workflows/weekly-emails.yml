@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Wake up Render
+        run: |
+          curl -s https://syphir-api.onrender.com/health || true
+          sleep 60
+
       - name: Send weekly reports
         run: |
           curl -sf -X POST https://syphir-api.onrender.com/admin/send-weekly-reports \
