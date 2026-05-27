@@ -1373,24 +1373,24 @@ async function sendWeeklyReportsToAllOrgs(targetOrgId = null) {
   }
   if (!orgs || orgs.length === 0) return { sent: 0, skipped: 0 };
 
-  const paidPlans = ['starter', 'professional', 'institution'];
-
   const results = [];
   for (const org of orgs) {
     if (!org.admin_email) { results.push({ org: org.name, skipped: 'no email' }); continue; }
     try {
-      // Filter: only send to active paying orgs, active trials, or pilots with no expiry
-      const status  = (org.status || '').toLowerCase();
-      const plan    = (org.plan   || '').toLowerCase();
-      const isPaid  = paidPlans.includes(plan) && status === 'active';
-      const isActiveTrial = status === 'demo' && (!org.expires_at || new Date(org.expires_at) > now);
-      if (!isPaid && !isActiveTrial) {
-        console.log('Scheduler: skipping', org.name, '— status:', org.status, 'expires:', org.expires_at);
-        results.push({ org: org.name, skipped: `status:${org.status} plan:${org.plan}` });
+      // Filter by plan column (no status column in organizations table)
+      const planLower    = (org.plan || '').toLowerCase();
+      const isPaid       = ['starter', 'professional', 'institution', 'business'].includes(planLower);
+      const isActiveTrial = planLower === 'demo' || planLower === 'trial';
+      const isCancelled  = planLower === 'cancelled' || planLower === 'expired';
+      const trialExpired = isActiveTrial && org.expires_at && new Date(org.expires_at) <= now;
+
+      if (isCancelled || trialExpired || (!isPaid && !isActiveTrial)) {
+        console.log('Scheduler: skipping', org.name, '— plan:', org.plan, 'expires:', org.expires_at);
+        results.push({ org: org.name, skipped: `plan:${org.plan} expires:${org.expires_at || 'none'}` });
         continue;
       }
 
-      const isDemo      = status === 'demo';
+      const isDemo      = isActiveTrial;
       const windowMs    = isDemo ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
       const windowStart = new Date(now.getTime() - windowMs);
       const periodLabel = windowStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
