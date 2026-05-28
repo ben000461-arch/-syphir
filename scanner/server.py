@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
+from presidio_analyzer.nlp_engine import NlpArtifacts
 import re
 
 app = FastAPI(title="Syphir Scanner", version="2.0.0")
@@ -13,18 +14,9 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-# Build a pattern-only NLP engine (no spaCy model needed)
-configuration = {
-    "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
-}
-
-# Use a simple regex-only engine instead
-from presidio_analyzer.nlp_engine import NlpArtifacts
-from presidio_analyzer import EntityRecognizer
 
 class PatternOnlyNlpEngine:
-    """Stub NLP engine — no model, no memory cost."""
+    """Stub NLP engine — no spaCy model, no memory cost."""
     def process_text(self, text, language):
         return NlpArtifacts(
             entities=[], tokens=[], tokens_indices=[],
@@ -33,6 +25,7 @@ class PatternOnlyNlpEngine:
     def is_loaded(self): return True
     def get_supported_languages(self): return ["en"]
     def get_supported_entities(self): return []
+
 
 analyzer = AnalyzerEngine(nlp_engine=PatternOnlyNlpEngine(), supported_languages=["en"])
 
@@ -127,11 +120,10 @@ def health():
 @app.post("/scan", response_model=ScanResponse)
 def scan(req: ScanRequest):
     results = analyzer.analyze(text=req.text, language="en")
-    
+
     findings = []
     for r in results:
         raw = req.text[r.start:r.end]
-        # Mask: keep first 2 + last 2 chars
         if len(raw) > 6:
             masked = raw[:2] + "*" * (len(raw) - 4) + raw[-2:]
         else:
@@ -143,7 +135,7 @@ def scan(req: ScanRequest):
             score=round(r.score, 3),
             text_snippet=masked,
         ))
-    
+
     risk_level = "low"
     if findings:
         max_score = max(f.score for f in findings)
@@ -156,7 +148,7 @@ def scan(req: ScanRequest):
             risk_level = "medium"
         else:
             risk_level = "low"
-    
+
     return ScanResponse(
         has_pii=len(findings) > 0,
         findings=findings,
