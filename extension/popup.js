@@ -1,14 +1,18 @@
 const API = "https://syphir-api.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Check expired flag first — show immediately without an API call
   chrome.storage.local.get(["syphir_key", "syphir_org", "syphir_expired"], (data) => {
+    if (!data.syphir_key || !data.syphir_org) {
+      showLogin();
+      return;
+    }
+    // Always re-validate on popup open so trial resets/renewals take effect immediately.
+    // Show cached state first for responsiveness, then update based on API result.
     if (data.syphir_expired) {
       showExpired();
-    } else if (data.syphir_key && data.syphir_org) {
-      showActive(data.syphir_org, data.syphir_key);
+      revalidateKey(data.syphir_key, data.syphir_org); // may switch to active if renewed
     } else {
-      showLogin();
+      showActive(data.syphir_org, data.syphir_key); // showActive re-validates internally
     }
   });
 
@@ -32,6 +36,30 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.create({ url: "https://syphir.vercel.app" });
   });
 });
+
+// ── KEY RE-VALIDATION ──────────────────────────────────────────────────────
+// Called on every popup open. Updates view + storage based on live API result.
+// On network failure falls back silently — cached state stays.
+async function revalidateKey(key, orgName) {
+  try {
+    const res  = await fetch(`${API}/validate-key`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, context: "employee" }),
+    });
+    const data = await res.json();
+    if (data.valid) {
+      chrome.storage.local.remove("syphir_expired");
+      // If we were showing expired, switch to active now
+      if (document.getElementById("expiredView").style.display === "block") {
+        showActive(orgName, key);
+      }
+    } else if (!data.valid && data.expired) {
+      chrome.storage.local.set({ syphir_expired: true });
+      showExpired();
+    }
+  } catch(e) {} // network error — keep whatever view is already showing
+}
 
 // ── VIEWS ──────────────────────────────────────────────────────────────────
 function showLogin() {
@@ -59,23 +87,10 @@ async function showActive(orgName, key) {
     renderToggle(data.syphir_hide_alerts === true);
   });
 
-  // Re-validate on every popup open to catch expiry or renewal
-  try {
-    const res  = await fetch(`${API}/validate-key`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, context: "employee" }),
-    });
-    const data = await res.json();
-    if (!data.valid && data.expired) {
-      chrome.storage.local.set({ syphir_expired: true });
-      showExpired();
-      return;
-    }
-    if (data.valid) {
-      chrome.storage.local.remove("syphir_expired");
-    }
-  } catch(e) {} // non-blocking — offline or Render cold start, show active anyway
+  // Re-validate — updates view if key became expired or was renewed
+  await revalidateKey(key, orgName);
+  // If revalidateKey switched to expiredView, stop here
+  if (document.getElementById("expiredView").style.display === "block") return;
 
   // Load stats
   try {

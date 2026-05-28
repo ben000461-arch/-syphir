@@ -31,6 +31,19 @@ function wakeAPI() {
   fetch(`${SYPHIR_API}/health`).catch(() => {});
 }
 
+// Re-check expiry + credentials every 30 minutes so mid-session renewals
+// resume automatically without requiring a page reload.
+setInterval(() => {
+  if (!chrome?.runtime?.id) return;
+  try {
+    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired"], (data) => {
+      syphirExpired = data.syphir_expired === true;
+      if (data.syphir_key)   SYPHIR_KEY  = data.syphir_key;
+      if (data.syphir_email) USER_EMAIL  = data.syphir_email;
+    });
+  } catch(_) {}
+}, 30 * 60 * 1000);
+
 // ── PII PATTERNS ──────────────────────────────────────────────────────────────
 const PII_PATTERNS = [
   // SSN
