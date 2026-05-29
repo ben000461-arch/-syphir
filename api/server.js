@@ -700,18 +700,31 @@ app.get("/org/:key", async (c) => {
   }
 });
 
-// ── PATCH ORG: UPGRADE PLAN ────────────────────────────────────────────────
+// ── PATCH ORG: UPGRADE PLAN / RESET TRIAL ─────────────────────────────────
 app.patch("/orgs/:org_id/upgrade", async (c) => {
   const { org_id } = c.req.param();
-  const { plan, status, stripe_customer_id } = await c.req.json().catch(() => ({}));
-  if (!org_id || !plan) return c.json({ error: "org_id and plan are required" }, 400);
+  const { plan, status, stripe_customer_id, reset_trial } = await c.req.json().catch(() => ({}));
 
-  const paidPlans = ["Starter", "Professional", "Institution"];
-  const isPaid = paidPlans.includes(plan);
-  const expiresAt = isPaid ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  // reset_trial: reactivate all keys for 7 more days, keep existing plan
+  let resolvedPlan = plan;
+  let expiresAt;
+
+  if (reset_trial) {
+    expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    if (!resolvedPlan) {
+      // Fetch current plan from DB so we don't overwrite it
+      const cur = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=plan`).catch(() => []);
+      resolvedPlan = cur?.[0]?.plan || "Demo";
+    }
+  } else {
+    if (!org_id || !resolvedPlan) return c.json({ error: "org_id and plan are required" }, 400);
+    const paidPlans = ["Starter", "Professional", "Institution"];
+    const isPaid = paidPlans.includes(resolvedPlan);
+    expiresAt = isPaid ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  }
 
   try {
-    const orgPatch = { plan, active: true };
+    const orgPatch = { plan: resolvedPlan, active: true };
     if (status) orgPatch.status = status;
     if (stripe_customer_id) orgPatch.stripe_customer_id = stripe_customer_id;
 
@@ -719,30 +732,34 @@ app.patch("/orgs/:org_id/upgrade", async (c) => {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify(orgPatch),
     });
-    await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&key_type=eq.business`, {
+    // Update ALL license keys for the org (business + employee)
+    await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(org_id)}`, {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify({ expires_at: expiresAt, status: "active" }),
     });
 
-    console.log(`✓ Upgraded org ${org_id} → ${plan} (expires_at: ${expiresAt || "never"})`);
+    console.log(`✓ ${reset_trial ? "Trial reset" : "Upgraded"} org ${org_id} → ${resolvedPlan} (expires_at: ${expiresAt || "never"})`);
+    console.log("License keys reset for org:", org_id);
 
-    // Send upgrade confirmation email (non-fatal)
-    try {
-      const orgRows = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=*`);
-      const org = orgRows?.[0];
-      if (org?.admin_email) {
-        const keyRows = await db(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&status=eq.active&select=key,key_type`);
-        const bizKey = keyRows?.find(k => k.key_type === 'business')?.key || '';
-        const empKey = keyRows?.find(k => k.key_type === 'employee')?.key || '';
-        await resend.emails.send({
-          from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `Welcome to Syphir ${plan} — you're protected`,
-          html: buildUpgradeConfirmationHtml(org, plan, bizKey, empKey),
-        });
-        console.log('Email sent: upgrade-confirmation', org.name, org.admin_email);
+    // Send upgrade confirmation email — skip for trial resets (not a new signup)
+    if (!reset_trial) {
+      try {
+        const orgRows = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=*`);
+        const org = orgRows?.[0];
+        if (org?.admin_email) {
+          const keyRows = await db(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&status=eq.active&select=key,key_type`);
+          const bizKey = keyRows?.find(k => k.key_type === 'business')?.key || '';
+          const empKey = keyRows?.find(k => k.key_type === 'employee')?.key || '';
+          await resend.emails.send({
+            from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
+            subject: `Welcome to Syphir ${resolvedPlan} — you're protected`,
+            html: buildUpgradeConfirmationHtml(org, resolvedPlan, bizKey, empKey),
+          });
+          console.log('Email sent: upgrade-confirmation', org.name, org.admin_email);
+        }
+      } catch (emailErr) {
+        console.warn('Upgrade confirmation email failed:', emailErr.message);
       }
-    } catch (emailErr) {
-      console.warn('Upgrade confirmation email failed:', emailErr.message);
     }
 
     return c.json({ success: true });
