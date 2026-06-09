@@ -123,6 +123,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .b-medium{background:rgba(255,109,46,0.12);color:#fb923c;border:1px solid rgba(255,109,46,0.2);}
 .b-low{background:rgba(255,193,7,0.12);color:var(--yellow);border:1px solid rgba(255,193,7,0.2);}
 .b-tool{background:var(--blue-g);color:var(--blue-l);border:1px solid rgba(33,150,211,0.2);}
+.b-code{background:rgba(0,188,212,0.08);color:#4ec9b0;border:1px solid rgba(0,188,212,0.2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.02em;}
 .res-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;}
 .res-btn:hover{border-color:var(--green);color:var(--green);}
 .res-btn.done{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.07);}
@@ -753,11 +754,38 @@ function rBadge(r) {
   return `<span class="badge b-${r}">${m[r]||''} ${r}</span>`;
 }
 
+const CODE_SHORT_LABELS = {
+  API_KEY:              'API KEY',
+  JWT_TOKEN:            'JWT',
+  DB_CREDENTIAL:        'DB CRED',
+  HARDCODED_PASSWORD:   'HARDCODED PW',
+  PRIVATE_KEY:          'PRIVATE KEY',
+  OAUTH_TOKEN:          'OAUTH',
+  SQL_SENSITIVE:        'SQL',
+  INTERNAL_URL:         'INT URL',
+  SENSITIVE_FUNCTION:   'SENS FN',
+  COMMENTED_CREDENTIAL: 'COMMENTED CRED',
+  CONSOLE_LOG_SECRET:   'CONSOLE LOG',
+};
+
+function detectionBadge(d) {
+  if (d.isCode) {
+    const short = CODE_SHORT_LABELS[d.type] || (d.type||'').replace(/_/g,' ');
+    const title = d.label || short;
+    return `<span class="badge b-code" title="${title}">${short}</span>`;
+  }
+  const lbl = d.label || d.entity_type || 'PII';
+  return `<span style="font-size:12px;color:var(--text);">${lbl}</span>`;
+}
+
 function renderRows(list) {
   if (!list.length) return `<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div>`;
   return list.map(i => `
     <div class="tbl-row">
-      <div class="td"><div>${(i.detections||[]).map(d=>d.label||d.entity_type||'PII').join(', ')||'PII Detected'}</div><div class="td-sub">${i.org_name||ORG_NAME}</div></div>
+      <div class="td">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${(i.detections||[]).map(d=>detectionBadge(d)).join('')||'<span style="font-size:12px;">PII Detected</span>'}</div>
+        <div class="td-sub">${i.org_name||ORG_NAME}</div>
+      </div>
       <div class="td">${i.user_email||'—'}</div>
       <div class="td"><span class="badge b-tool">${i.ai_tool||'AI Tool'}</span></div>
       <div class="td">${rBadge(i.risk_level||'low')}</div>
@@ -843,7 +871,7 @@ async function loadData() {
       document.getElementById('feed-list').innerHTML = incidents.slice(0,20).map(i=>`
         <div class="feed-item">
           <div class="feed-dot fd-${i.risk_level}">${i.risk_level==='high'?'🔴':i.risk_level==='medium'?'🟠':'🟡'}</div>
-          <div class="feed-body"><div class="feed-title">${(i.detections||[]).map(d=>d.label||d.entity_type||'PII').join(', ')||'PII'} detected</div><div class="feed-detail">${i.user_email||'—'} → ${i.ai_tool||'AI'}</div></div>
+          <div class="feed-body"><div class="feed-title" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${(i.detections||[]).slice(0,4).map(d=>detectionBadge(d)).join('')||'<span>PII</span>'}<span style="color:var(--text3);font-size:11px;"> detected</span></div><div class="feed-detail">${i.user_email||'—'} → ${i.ai_tool||'AI'}</div></div>
           <div class="feed-time">${timeAgo(i.timestamp)}</div>
         </div>`).join('');
     }
