@@ -1118,8 +1118,14 @@ const INTEL_COMMANDS = [
   { pattern: /scan\s+(\w+)/i,      type: 'diagnostic', label: (m) => `Scan ${m[1]}'s machine` },
   { pattern: /status/i,            type: 'status',     label: () => 'Shield status' },
   { pattern: /ping\s+([\d.]+)/i,   type: 'ping',       label: (m) => `Ping ${m[1]}` },
+  { pattern: /^stop$/i,            type: 'stop',       label: () => 'Stop' },
+  { pattern: /^continue$/i,        type: 'continue',   label: () => 'Continue' },
+  { pattern: /^cancel$/i,          type: 'cancel',     label: () => 'Cancel' },
   { pattern: /help/i,              type: 'help',       label: () => 'Help' },
 ];
+
+let intelPaused    = false;
+let intelCurrentJob = null;
 
 function intelFormatKey(inp) {
   let v = inp.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
@@ -1284,11 +1290,13 @@ async function intelRunDiagnostic(id, name) {
     const data = await res.json();
 
     if (data.status === 'dispatched') {
-      intelTermLine(id, 'Diagnostic agent dispatched — terminal window opened.', '#a3e635');
-      intelTermLine(id, 'Watch the terminal for live scan output.', '#8b949e');
-      intelTermLine(id, 'Browser report will open when scan completes.', '#8b949e');
-      intelProgress(id, 100, 'Dispatched');
-      intelDone(id, `Diagnostic agent dispatched to ${name}'s machine. Check the terminal window.`);
+      intelCurrentJob = data.job_id;
+      intelTermLine(id, 'Agent dispatched — terminal window opened.', '#a3e635');
+      intelTermLine(id, 'Running live scan on machine...', '#8b949e');
+      intelProgress(id, 30, 'Agent running...');
+
+      // Poll for real completion
+      await intelPollJob(id, data.job_id);
     } else {
       intelTermLine(id, `Error: ${data.error || 'Unknown error'}`, '#f87171');
       intelProgress(id, 100, 'Failed');
@@ -1299,6 +1307,61 @@ async function intelRunDiagnostic(id, name) {
     intelProgress(id, 100, 'Error');
     intelDone(id, 'Could not reach local server.');
   }
+}
+
+async function intelPollJob(id, job_id) {
+  // Poll every 2s for up to 3 minutes
+  const maxPolls = 90;
+  let   polls    = 0;
+  const progSteps = [35, 45, 55, 65, 72, 80, 88, 93, 97];
+
+  while (polls < maxPolls) {
+    await new Promise(r => setTimeout(r, 2000));
+    polls++;
+
+    // Animate progress while waiting
+    const pct = progSteps[Math.min(polls - 1, progSteps.length - 1)];
+    intelProgress(id, pct, `Agent running... (${polls * 2}s)`);
+
+    if (intelPaused) {
+      intelProgress(id, pct, 'Paused — type "continue" to resume');
+      // Wait for resume
+      while (intelPaused) await new Promise(r => setTimeout(r, 500));
+      intelTermLine(id, 'Resuming...', '#60a5fa');
+    }
+
+    try {
+      const res  = await fetch(`${INTEL_LOCAL}/job-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id })
+      });
+      const data = await res.json();
+
+      if (data.status === 'done') {
+        intelTermLine(id, 'Agent completed — terminal closed.', '#a3e635');
+        intelTermLine(id, 'Browser report opened with results.', '#8b949e');
+        intelDone(id, data.summary || 'Diagnostic complete. Check the browser report for full results.');
+        intelCurrentJob = null;
+        return;
+      }
+      if (data.status === 'stopped') {
+        intelTermLine(id, 'Agent stopped by user.', '#fbbf24');
+        intelDone(id, 'Agent was stopped. No changes were made to the machine.');
+        intelCurrentJob = null;
+        return;
+      }
+      if (data.status === 'error') {
+        intelTermLine(id, 'Agent encountered an error.', '#f87171');
+        intelDone(id, 'Agent failed. Check the terminal output for details.');
+        intelCurrentJob = null;
+        return;
+      }
+    } catch(_) {}
+  }
+
+  intelDone(id, 'Agent timed out. Check the terminal window for status.');
+  intelCurrentJob = null;
 }
 
 async function intelRunStatus(id) {
@@ -1367,10 +1430,13 @@ async function intelCheckLocalServer() {
 function intelHelp() {
   intelAddMsg('system',
     `Available commands:<br>
-    <strong>Fix [name]</strong> — repair an employee's machine<br>
-    <strong>Diagnose [name]</strong> — run a diagnostic scan<br>
-    <strong>Status</strong> — show all connected devices<br>
-    <strong>Ping [ip]</strong> — check if a machine is reachable`
+    <strong>Fix [name]</strong> — run diagnostic scan on an employee's machine<br>
+    <strong>Diagnose [name]</strong> — same as Fix<br>
+    <strong>Status</strong> — show Shield device status<br>
+    <strong>Ping [ip]</strong> — check if a machine is reachable<br>
+    <strong>Stop</strong> — pause the running agent<br>
+    <strong>Continue</strong> — resume after stop<br>
+    <strong>Cancel</strong> — cancel the agent entirely`
   );
 }
 
@@ -1427,6 +1493,23 @@ async function intelSend() {
 
   if (!matched) {
     intelAddMsg('system', `Command not recognized. Type "Help" to see available commands.`);
+  }
+
+  // Stop / continue / cancel — work even while agent is running
+  if (/^stop$/i.test(text)) {
+    intelPaused = true;
+    try { await fetch(`${INTEL_LOCAL}/stop`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); } catch(_){}
+    intelAddMsg('system', 'Agent paused. Is everything ok?<br><strong>Type "continue"</strong> to resume or <strong>"cancel"</strong> to stop completely.');
+  } else if (/^continue$/i.test(text)) {
+    intelPaused = false;
+    intelAddMsg('system', 'Resuming...');
+  } else if (/^cancel$/i.test(text)) {
+    intelPaused  = false;
+    intelRunning = false;
+    document.getElementById('intel-send-btn').disabled = false;
+    document.getElementById('intel-input').disabled    = false;
+    try { await fetch(`${INTEL_LOCAL}/stop`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); } catch(_){}
+    intelAddMsg('system', 'Agent cancelled. Machine was not modified.');
   }
 
   document.getElementById('intel-messages').scrollTop = 99999;
