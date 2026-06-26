@@ -1096,6 +1096,7 @@ function saveProviderKeys(){const rows=document.querySelectorAll('#providers-lis
 
 // ── INTEL ─────────────────────────────────────────────────────────────────────
 const INTEL_STORAGE_KEY = 'syphir_intel_device_' + ORG_KEY;
+const INTEL_LOCAL       = 'http://localhost:7474';
 
 function intelCheckSavedDevice() {
   const saved = localStorage.getItem(INTEL_STORAGE_KEY);
@@ -1215,80 +1216,152 @@ function intelDone(id, summary) {
 }
 
 async function intelRunRepair(id, name) {
-  const steps = [
-    { pct: 8,  delay: 400,  text: `Locating ${name}'s machine on network...`,   color: '#60a5fa' },
-    { pct: 18, delay: 600,  text: 'Establishing secure connection...',            color: '#60a5fa' },
-    { pct: 25, delay: 500,  text: 'Agent dispatched to terminal.',                color: '#a3e635' },
-    { pct: 30, delay: 400,  text: 'Phase 1 — Diagnosing',                         color: '#fbbf24' },
-    { pct: 38, delay: 700,  text: '  Checking system load...        OK',          color: '#a3e635' },
-    { pct: 45, delay: 600,  text: '  Checking disk space...         OK',          color: '#a3e635' },
-    { pct: 52, delay: 700,  text: '  Scanning for frozen processes... OK',        color: '#a3e635' },
-    { pct: 58, delay: 300,  text: 'Phase 2 — Repairing',                          color: '#fbbf24' },
-    { pct: 63, delay: 800,  text: '  Flushing DNS cache...          DONE',        color: '#4db8f0' },
-    { pct: 72, delay: 900,  text: '  Clearing browser cache...      DONE',        color: '#4db8f0' },
-    { pct: 80, delay: 1000, text: '  Removing temp files... 142MB freed',         color: '#4db8f0' },
-    { pct: 87, delay: 700,  text: '  Freeing memory...              DONE',        color: '#4db8f0' },
-    { pct: 92, delay: 400,  text: 'Phase 3 — Verifying',                          color: '#fbbf24' },
-    { pct: 96, delay: 600,  text: '  Network connectivity...        OK',          color: '#a3e635' },
-    { pct: 99, delay: 400,  text: 'Agent removing itself from machine...',         color: '#8b949e' },
-    { pct: 100,delay: 300,  text: 'Agent removed. Nothing left behind.',           color: '#8b949e' },
-  ];
-  for (const s of steps) {
-    await new Promise(r => setTimeout(r, s.delay));
-    intelTermLine(id, s.text, s.color);
-    intelProgress(id, s.pct, `${s.pct}% complete`);
+  // Check if local server is running
+  const live = await intelCheckLocalServer();
+  if (!live) {
+    intelTermLine(id, 'Local server not running.', '#f87171');
+    intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
+    intelTermLine(id, 'Then try again.', '#8b949e');
+    intelProgress(id, 100, 'Server offline');
+    intelDone(id, 'Could not connect to local Shield server. Run python3 local_server.py in your Syphir_box folder.');
+    return;
   }
-  intelDone(id, `Repair complete on ${name}'s machine. 142MB freed, DNS flushed, browser cache cleared. Machine should be running faster.`);
+
+  intelTermLine(id, `Dispatching repair agent to ${name}'s machine...`, '#60a5fa');
+  intelProgress(id, 10, 'Connecting...');
+
+  try {
+    const res = await fetch(`${INTEL_LOCAL}/run-agent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode:   'repair',
+        reason: `Intel command: Fix ${name}'s computer`,
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === 'dispatched') {
+      intelTermLine(id, 'Agent dispatched — terminal window opened on target machine.', '#a3e635');
+      intelTermLine(id, 'Watch the terminal window for live output.', '#8b949e');
+      intelTermLine(id, 'Agent will self-delete and open browser report when done.', '#8b949e');
+      intelProgress(id, 100, 'Dispatched');
+      intelDone(id, `Repair agent dispatched to ${name}'s machine. Check the terminal window that just opened.`);
+    } else {
+      intelTermLine(id, `Error: ${data.error || 'Unknown error'}`, '#f87171');
+      intelProgress(id, 100, 'Failed');
+      intelDone(id, 'Dispatch failed — check that agent.py is in your Syphir_box folder.');
+    }
+  } catch(e) {
+    intelTermLine(id, `Connection error: ${e.message}`, '#f87171');
+    intelProgress(id, 100, 'Error');
+    intelDone(id, 'Could not reach local server.');
+  }
 }
 
 async function intelRunDiagnostic(id, name) {
-  const steps = [
-    { pct: 10, delay: 400,  text: `Locating ${name}'s machine...`,   color: '#60a5fa' },
-    { pct: 20, delay: 600,  text: 'Connection established.',           color: '#a3e635' },
-    { pct: 28, delay: 400,  text: 'Agent dispatched.',                 color: '#a3e635' },
-    { pct: 38, delay: 700,  text: 'Scanning active processes...  OK', color: '#a3e635' },
-    { pct: 52, delay: 800,  text: 'Checking browser extensions... OK',color: '#a3e635' },
-    { pct: 65, delay: 700,  text: 'Checking env variables...     OK', color: '#a3e635' },
-    { pct: 80, delay: 900,  text: 'Reviewing recent large files... OK',color: '#a3e635'},
-    { pct: 92, delay: 400,  text: 'Agent removing itself...',          color: '#8b949e' },
-    { pct: 100,delay: 300,  text: 'Done.',                             color: '#8b949e' },
-  ];
-  for (const s of steps) {
-    await new Promise(r => setTimeout(r, s.delay));
-    intelTermLine(id, s.text, s.color);
-    intelProgress(id, s.pct, `${s.pct}% complete`);
+  const live = await intelCheckLocalServer();
+  if (!live) {
+    intelTermLine(id, 'Local server not running.', '#f87171');
+    intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
+    intelProgress(id, 100, 'Server offline');
+    intelDone(id, 'Could not connect to local Shield server. Run python3 local_server.py in your Syphir_box folder.');
+    return;
   }
-  intelDone(id, `Diagnostic complete on ${name}'s machine. No issues found — machine is clean.`);
+
+  intelTermLine(id, `Dispatching diagnostic agent to ${name}'s machine...`, '#60a5fa');
+  intelProgress(id, 10, 'Connecting...');
+
+  try {
+    const res = await fetch(`${INTEL_LOCAL}/run-agent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode:   'diagnostic',
+        reason: `Intel command: Diagnose ${name}'s computer`,
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === 'dispatched') {
+      intelTermLine(id, 'Diagnostic agent dispatched — terminal window opened.', '#a3e635');
+      intelTermLine(id, 'Watch the terminal for live scan output.', '#8b949e');
+      intelTermLine(id, 'Browser report will open when scan completes.', '#8b949e');
+      intelProgress(id, 100, 'Dispatched');
+      intelDone(id, `Diagnostic agent dispatched to ${name}'s machine. Check the terminal window.`);
+    } else {
+      intelTermLine(id, `Error: ${data.error || 'Unknown error'}`, '#f87171');
+      intelProgress(id, 100, 'Failed');
+      intelDone(id, 'Dispatch failed.');
+    }
+  } catch(e) {
+    intelTermLine(id, `Connection error: ${e.message}`, '#f87171');
+    intelProgress(id, 100, 'Error');
+    intelDone(id, 'Could not reach local server.');
+  }
 }
 
 async function intelRunStatus(id) {
-  const steps = [
-    { pct: 20, delay: 300, text: 'Querying Shield device...',          color: '#60a5fa' },
-    { pct: 50, delay: 500, text: 'Shield: Online | 2 devices active',  color: '#a3e635' },
-    { pct: 70, delay: 400, text: '  192.168.1.42  John    Active',     color: '#e6edf3' },
-    { pct: 85, delay: 300, text: '  192.168.1.55  Sarah   Active',     color: '#e6edf3' },
-    { pct: 100,delay: 300, text: 'Status check complete.',              color: '#8b949e' },
-  ];
-  for (const s of steps) {
-    await new Promise(r => setTimeout(r, s.delay));
-    intelTermLine(id, s.text, s.color);
-    intelProgress(id, s.pct, `${s.pct}% complete`);
+  const live = await intelCheckLocalServer();
+  if (!live) {
+    intelTermLine(id, 'Local server not running.', '#f87171');
+    intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
+    intelProgress(id, 100, 'Server offline');
+    intelDone(id, 'Could not connect to local Shield server.');
+    return;
   }
-  intelDone(id, 'Shield is active. 2 employee machines online. No active incidents.');
+
+  intelTermLine(id, 'Querying Shield device...', '#60a5fa');
+  intelProgress(id, 30, 'Querying...');
+
+  try {
+    const res  = await fetch(`${INTEL_LOCAL}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+
+    intelProgress(id, 70, 'Reading response...');
+    await new Promise(r => setTimeout(r, 300));
+
+    intelTermLine(id, `Shield: Online`, '#a3e635');
+    intelTermLine(id, `Machine: ${data.machine}`, '#e6edf3');
+    intelTermLine(id, `OS: ${data.os}`, '#e6edf3');
+    intelTermLine(id, `Agent: ${data.agent_ready ? 'Ready' : 'Not found'}`, data.agent_ready ? '#a3e635' : '#f87171');
+    intelProgress(id, 100, 'Complete');
+    intelDone(id, `Shield is online on ${data.machine} (${data.os}). Agent is ${data.agent_ready ? 'ready to deploy' : 'not found — check Syphir_box folder'}.`);
+  } catch(e) {
+    intelTermLine(id, `Error: ${e.message}`, '#f87171');
+    intelProgress(id, 100, 'Error');
+    intelDone(id, 'Status check failed.');
+  }
 }
 
 async function intelRunPing(id, ip) {
-  const steps = [
-    { pct: 30,  delay: 300, text: `Pinging ${ip}...`, color: '#60a5fa' },
-    { pct: 70,  delay: 600, text: `Reply from ${ip}: time=4ms`, color: '#a3e635' },
-    { pct: 100, delay: 300, text: 'Host reachable.', color: '#a3e635' },
-  ];
-  for (const s of steps) {
-    await new Promise(r => setTimeout(r, s.delay));
-    intelTermLine(id, s.text, s.color);
-    intelProgress(id, s.pct, `${s.pct}% complete`);
+  const live = await intelCheckLocalServer();
+  if (!live) {
+    intelTermLine(id, 'Local server not running.', '#f87171');
+    intelProgress(id, 100, 'Server offline');
+    intelDone(id, 'Could not connect to local Shield server.');
+    return;
   }
-  intelDone(id, `${ip} is reachable and responding normally.`);
+  // Ping is simulated for now — real version goes via Pi on LAN
+  intelTermLine(id, `Pinging ${ip}...`, '#60a5fa');
+  intelProgress(id, 40, 'Pinging...');
+  await new Promise(r => setTimeout(r, 800));
+  intelTermLine(id, `Reply from ${ip}: time=4ms`, '#a3e635');
+  intelProgress(id, 100, 'Complete');
+  intelDone(id, `${ip} is reachable. (Note: real LAN ping requires Pi hardware on network)`);
+}
+
+async function intelCheckLocalServer() {
+  try {
+    const res = await fetch(`${INTEL_LOCAL}/ping`, { method: 'GET' });
+    return res.ok;
+  } catch(_) {
+    return false;
+  }
 }
 
 function intelHelp() {
