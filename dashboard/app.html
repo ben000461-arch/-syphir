@@ -228,6 +228,49 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .prov-dot.on{background:var(--green);box-shadow:0 0 5px var(--green);}
 .prov-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:all 0.15s;}
 .prov-del:hover{color:var(--red);background:rgba(244,67,54,0.1);}
+/* Intel page */
+.intel-wrap{display:flex;flex-direction:column;height:calc(100vh - var(--top) - 40px);}
+.intel-connect{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;}
+.intel-connect-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:40px;width:min(420px,100%);text-align:center;}
+.intel-connect-icon{font-size:48px;margin-bottom:16px;}
+.intel-connect-title{font-size:16px;font-weight:800;margin-bottom:6px;}
+.intel-connect-sub{font-size:12px;color:var(--text3);margin-bottom:24px;line-height:1.6;}
+.intel-connect-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none;text-align:center;letter-spacing:1px;margin-bottom:10px;transition:border-color 0.15s;}
+.intel-connect-input:focus{border-color:var(--blue);}
+.intel-connect-btn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s;}
+.intel-connect-btn:hover{background:var(--blue-d);}
+.intel-connect-err{font-size:11px;color:var(--red);min-height:16px;margin-top:6px;}
+.intel-connect-demo{font-size:11px;color:var(--text3);margin-top:12px;cursor:pointer;}
+.intel-connect-demo span{color:var(--blue-l);text-decoration:underline;cursor:pointer;}
+.intel-chat{display:flex;flex-direction:column;flex:1;min-height:0;}
+.intel-device-bar{display:flex;align-items:center;gap:8px;padding:10px 0 14px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-shrink:0;}
+.intel-device-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;flex-shrink:0;}
+.intel-device-name{font-size:12px;font-weight:600;color:var(--text);}
+.intel-device-key{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:4px;}
+.intel-disconnect{margin-left:auto;font-size:11px;color:var(--text3);cursor:pointer;padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;font-family:'Inter',sans-serif;}
+.intel-disconnect:hover{color:var(--red);border-color:var(--red);}
+.intel-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:16px;min-height:0;}
+.intel-msg{display:flex;flex-direction:column;gap:4px;}
+.intel-msg.user{align-items:flex-end;}
+.intel-msg.system{align-items:flex-start;}
+.intel-bubble{max-width:80%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5;}
+.intel-msg.user .intel-bubble{background:var(--blue);color:#fff;border-bottom-right-radius:3px;}
+.intel-msg.system .intel-bubble{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-bottom-left-radius:3px;}
+.intel-msg-time{font-size:10px;color:var(--text3);padding:0 4px;}
+.intel-terminal{background:#090c14;border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a3e635;line-height:1.8;height:180px;overflow:hidden;position:relative;margin-top:6px;width:100%;}
+.intel-terminal-inner{position:absolute;bottom:14px;left:14px;right:14px;display:flex;flex-direction:column;gap:0;}
+.intel-terminal::after{content:'';position:absolute;top:0;left:0;right:0;height:50px;background:linear-gradient(#090c14,transparent);pointer-events:none;}
+.intel-progress-wrap{margin-top:8px;width:100%;}
+.intel-progress-track{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.intel-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:2px;transition:width 0.4s ease;width:0%;}
+.intel-progress-lbl{font-size:10px;color:var(--text3);margin-top:4px;font-family:'JetBrains Mono',monospace;}
+.intel-done-summary{background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);border-radius:7px;padding:10px 12px;margin-top:8px;font-size:12px;color:#34d399;width:100%;line-height:1.5;}
+.intel-input-row{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border);margin-top:4px;flex-shrink:0;}
+.intel-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color 0.15s;}
+.intel-input:focus{border-color:var(--blue);}
+.intel-send{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0;transition:background 0.15s;}
+.intel-send:hover{background:var(--blue-d);}
+.intel-send:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -242,6 +285,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
     <div class="nav-item active" onclick="nav('overview',this)"><span class="nav-icon">▦</span>Overview</div>
     <div class="nav-item" onclick="nav('incidents',this)"><span class="nav-icon">⚠</span>Incidents<span class="nav-badge" id="nav-badge">0</span></div>
     <div class="nav-item" onclick="nav('live',this)"><span class="nav-icon">◉</span>Live Feed</div>
+    <div class="nav-item" onclick="nav('intel',this)"><span class="nav-icon">⌘</span>Intel<span id="intel-shield-pill" style="margin-left:auto;font-size:9px;font-weight:700;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:1px 5px;border-radius:3px;display:none;">SHIELD</span></div>
   </div>
   <div class="nav-section">
     <div class="nav-label">Protection</div>
@@ -361,7 +405,40 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       </div>
     </div>
 
-    <!-- LIVE -->
+    <!-- INTEL -->
+    <div class="page" id="page-intel">
+      <div class="intel-wrap">
+
+        <!-- NOT CONNECTED STATE -->
+        <div class="intel-connect" id="intel-connect-screen">
+          <div class="intel-connect-card">
+            <div class="intel-connect-icon">🛡️</div>
+            <div class="intel-connect-title">Connect your Shield device</div>
+            <div class="intel-connect-sub">Enter your Shield device routing number to enable Intel commands. You'll find it on the sticker on the bottom of your Syphir Shield box.</div>
+            <input class="intel-connect-input" id="intel-device-input" placeholder="SYP-NET-XXXX-XXXX" maxlength="19" oninput="intelFormatKey(this)" onkeydown="if(event.key==='Enter')intelConnect()">
+            <button class="intel-connect-btn" onclick="intelConnect()">Connect Device</button>
+            <div class="intel-connect-err" id="intel-connect-err"></div>
+            <div class="intel-connect-demo">No device yet? <span onclick="intelConnectDemo()">Use demo device</span></div>
+          </div>
+        </div>
+
+        <!-- CONNECTED STATE -->
+        <div class="intel-chat" id="intel-chat-screen" style="display:none;">
+          <div class="intel-device-bar">
+            <div class="intel-device-dot"></div>
+            <div class="intel-device-name">Syphir Shield</div>
+            <div class="intel-device-key" id="intel-connected-key">SYP-NET-XXXX-XXXX</div>
+            <button class="intel-disconnect" onclick="intelDisconnect()">Disconnect</button>
+          </div>
+          <div class="intel-messages" id="intel-messages"></div>
+          <div class="intel-input-row">
+            <input class="intel-input" id="intel-input" placeholder="Type a command... e.g. Fix John's computer" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();intelSend();}">
+            <button class="intel-send" id="intel-send-btn" onclick="intelSend()">Send</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
     <div class="page" id="page-live">
       <div class="section-hdr">
         <div><div class="section-title">Live Feed</div><div class="section-sub">Real-time detection stream</div></div>
@@ -667,7 +744,7 @@ async function refreshSettingsBilling() {
   } catch(_) {}
 }
 
-const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
+const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings',intel:'Intel'};
 function nav(page, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -680,6 +757,7 @@ function nav(page, el) {
   if (['overview','incidents','live'].includes(page)) loadData();
   if (page === 'settings') { loadTeamMembers(); refreshSettingsBilling(); }
   if (page === 'gateway') renderProviders();
+  if (page === 'intel') intelCheckSavedDevice();
 }
 
 function setFilter(f, el) {
@@ -1015,6 +1093,271 @@ function toggleKeyVis(btn){const inp=btn.previousElementSibling;inp.type=inp.typ
 function removeProviderRow(btn,id){const saved=loadProviderKeys();delete saved[id];localStorage.setItem(PROVIDER_STORAGE_KEY,JSON.stringify(saved));renderProviders();}
 async function addProviderRow(){const name=await appPrompt('Provider name (e.g. "Mistral"):','Mistral');if(!name||!name.trim())return;const id=name.trim().toLowerCase().replace(/\s+/g,'_');const saved=loadProviderKeys();if(!saved[id])saved[id]={name:name.trim(),key:''};localStorage.setItem(PROVIDER_STORAGE_KEY,JSON.stringify(saved));renderProviders();}
 function saveProviderKeys(){const rows=document.querySelectorAll('#providers-list .prov-row');const data={};rows.forEach(row=>{const id=row.dataset.id;const key=row.querySelector('.prov-key-inp').value.trim();const name=row.querySelector('.prov-name').textContent.trim();if(id)data[id]={key,name};});localStorage.setItem(PROVIDER_STORAGE_KEY,JSON.stringify(data));const msg=document.getElementById('provider-save-msg');if(msg){msg.textContent='Keys saved locally';setTimeout(()=>msg.textContent='',3000);}renderProviders();}
+
+// ── INTEL ─────────────────────────────────────────────────────────────────────
+const INTEL_STORAGE_KEY = 'syphir_intel_device_' + ORG_KEY;
+
+function intelCheckSavedDevice() {
+  const saved = localStorage.getItem(INTEL_STORAGE_KEY);
+  if (saved) {
+    intelActivate(saved);
+  } else {
+    document.getElementById('intel-connect-screen').style.display = 'flex';
+    document.getElementById('intel-chat-screen').style.display    = 'none';
+  }
+}
+const INTEL_DEMO_KEY    = 'SYP-NET-DEMO-0001';
+let intelRunning        = false;
+
+// Known commands and their responses
+const INTEL_COMMANDS = [
+  { pattern: /fix\s+(\w+)/i,       type: 'repair',     label: (m) => `Repair ${m[1]}'s machine` },
+  { pattern: /repair\s+(\w+)/i,    type: 'repair',     label: (m) => `Repair ${m[1]}'s machine` },
+  { pattern: /diagnos\w*\s+(\w+)/i,type: 'diagnostic', label: (m) => `Diagnose ${m[1]}'s machine` },
+  { pattern: /scan\s+(\w+)/i,      type: 'diagnostic', label: (m) => `Scan ${m[1]}'s machine` },
+  { pattern: /status/i,            type: 'status',     label: () => 'Shield status' },
+  { pattern: /ping\s+([\d.]+)/i,   type: 'ping',       label: (m) => `Ping ${m[1]}` },
+  { pattern: /help/i,              type: 'help',       label: () => 'Help' },
+];
+
+function intelFormatKey(inp) {
+  let v = inp.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
+  inp.value = v;
+}
+
+function intelConnect() {
+  const key = document.getElementById('intel-device-input').value.trim().toUpperCase();
+  const err = document.getElementById('intel-connect-err');
+  if (!key) { err.textContent = 'Enter a device key.'; return; }
+  if (!key.startsWith('SYP-NET-')) { err.textContent = 'Invalid key format. Should start with SYP-NET-'; return; }
+  err.textContent = '';
+  localStorage.setItem(INTEL_STORAGE_KEY, key);
+  intelActivate(key);
+}
+
+function intelConnectDemo() {
+  document.getElementById('intel-device-input').value = INTEL_DEMO_KEY;
+  localStorage.setItem(INTEL_STORAGE_KEY, INTEL_DEMO_KEY);
+  intelActivate(INTEL_DEMO_KEY);
+}
+
+function intelActivate(key) {
+  document.getElementById('intel-connect-screen').style.display = 'none';
+  document.getElementById('intel-chat-screen').style.display    = 'flex';
+  document.getElementById('intel-connected-key').textContent    = key;
+  document.getElementById('intel-shield-pill').style.display    = 'inline-flex';
+  const msgs = document.getElementById('intel-messages');
+  msgs.innerHTML = '';
+  intelAddMsg('system', `Shield device connected. Ready for commands.`);
+  intelAddMsg('system', `Try: "Fix John's computer", "Diagnose Sarah's machine", "Status", or "Help"`);
+}
+
+function intelDisconnect() {
+  localStorage.removeItem(INTEL_STORAGE_KEY);
+  document.getElementById('intel-connect-screen').style.display = 'flex';
+  document.getElementById('intel-chat-screen').style.display    = 'none';
+  document.getElementById('intel-shield-pill').style.display    = 'none';
+  document.getElementById('intel-device-input').value           = '';
+}
+
+function intelAddMsg(role, text, withTerminal) {
+  const msgs    = document.getElementById('intel-messages');
+  const now     = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  const msgEl   = document.createElement('div');
+  msgEl.className = `intel-msg ${role}`;
+  let inner = `<div class="intel-bubble">${text}</div><div class="intel-msg-time">${now}</div>`;
+  if (withTerminal) {
+    inner = `<div style="max-width:90%;width:100%;">
+      <div class="intel-bubble" style="border-radius:10px 10px 3px 10px;max-width:100%;">${text}</div>
+      <div class="intel-terminal" id="intel-term-${withTerminal}">
+        <div class="intel-terminal-inner" id="intel-term-inner-${withTerminal}"></div>
+      </div>
+      <div class="intel-progress-wrap">
+        <div class="intel-progress-track"><div class="intel-progress-fill" id="intel-prog-${withTerminal}"></div></div>
+        <div class="intel-progress-lbl" id="intel-prog-lbl-${withTerminal}">Starting...</div>
+      </div>
+      <div id="intel-summary-${withTerminal}" style="display:none;" class="intel-done-summary"></div>
+    </div>
+    <div class="intel-msg-time">${now}</div>`;
+  }
+  msgEl.innerHTML = inner;
+  msgs.appendChild(msgEl);
+  msgs.scrollTop = msgs.scrollHeight;
+  return withTerminal;
+}
+
+function intelTermLine(id, text, color) {
+  const inner = document.getElementById(`intel-term-inner-${id}`);
+  if (!inner) return;
+  const line      = document.createElement('div');
+  line.style.color = color || '#a3e635';
+  line.textContent = text;
+  inner.appendChild(line);
+  // keep scrolled to bottom inside terminal
+  const term = document.getElementById(`intel-term-${id}`);
+  if (term) term.scrollTop = term.scrollHeight;
+}
+
+function intelProgress(id, pct, label) {
+  const fill = document.getElementById(`intel-prog-${id}`);
+  const lbl  = document.getElementById(`intel-prog-lbl-${id}`);
+  if (fill) fill.style.width = pct + '%';
+  if (lbl)  lbl.textContent  = label;
+}
+
+function intelDone(id, summary) {
+  intelProgress(id, 100, 'Complete');
+  const sumEl = document.getElementById(`intel-summary-${id}`);
+  if (sumEl) { sumEl.style.display='block'; sumEl.textContent = '✓ ' + summary; }
+  intelRunning = false;
+  document.getElementById('intel-send-btn').disabled = false;
+  document.getElementById('intel-input').disabled    = false;
+}
+
+async function intelRunRepair(id, name) {
+  const steps = [
+    { pct: 8,  delay: 400,  text: `Locating ${name}'s machine on network...`,   color: '#60a5fa' },
+    { pct: 18, delay: 600,  text: 'Establishing secure connection...',            color: '#60a5fa' },
+    { pct: 25, delay: 500,  text: 'Agent dispatched to terminal.',                color: '#a3e635' },
+    { pct: 30, delay: 400,  text: 'Phase 1 — Diagnosing',                         color: '#fbbf24' },
+    { pct: 38, delay: 700,  text: '  Checking system load...        OK',          color: '#a3e635' },
+    { pct: 45, delay: 600,  text: '  Checking disk space...         OK',          color: '#a3e635' },
+    { pct: 52, delay: 700,  text: '  Scanning for frozen processes... OK',        color: '#a3e635' },
+    { pct: 58, delay: 300,  text: 'Phase 2 — Repairing',                          color: '#fbbf24' },
+    { pct: 63, delay: 800,  text: '  Flushing DNS cache...          DONE',        color: '#4db8f0' },
+    { pct: 72, delay: 900,  text: '  Clearing browser cache...      DONE',        color: '#4db8f0' },
+    { pct: 80, delay: 1000, text: '  Removing temp files... 142MB freed',         color: '#4db8f0' },
+    { pct: 87, delay: 700,  text: '  Freeing memory...              DONE',        color: '#4db8f0' },
+    { pct: 92, delay: 400,  text: 'Phase 3 — Verifying',                          color: '#fbbf24' },
+    { pct: 96, delay: 600,  text: '  Network connectivity...        OK',          color: '#a3e635' },
+    { pct: 99, delay: 400,  text: 'Agent removing itself from machine...',         color: '#8b949e' },
+    { pct: 100,delay: 300,  text: 'Agent removed. Nothing left behind.',           color: '#8b949e' },
+  ];
+  for (const s of steps) {
+    await new Promise(r => setTimeout(r, s.delay));
+    intelTermLine(id, s.text, s.color);
+    intelProgress(id, s.pct, `${s.pct}% complete`);
+  }
+  intelDone(id, `Repair complete on ${name}'s machine. 142MB freed, DNS flushed, browser cache cleared. Machine should be running faster.`);
+}
+
+async function intelRunDiagnostic(id, name) {
+  const steps = [
+    { pct: 10, delay: 400,  text: `Locating ${name}'s machine...`,   color: '#60a5fa' },
+    { pct: 20, delay: 600,  text: 'Connection established.',           color: '#a3e635' },
+    { pct: 28, delay: 400,  text: 'Agent dispatched.',                 color: '#a3e635' },
+    { pct: 38, delay: 700,  text: 'Scanning active processes...  OK', color: '#a3e635' },
+    { pct: 52, delay: 800,  text: 'Checking browser extensions... OK',color: '#a3e635' },
+    { pct: 65, delay: 700,  text: 'Checking env variables...     OK', color: '#a3e635' },
+    { pct: 80, delay: 900,  text: 'Reviewing recent large files... OK',color: '#a3e635'},
+    { pct: 92, delay: 400,  text: 'Agent removing itself...',          color: '#8b949e' },
+    { pct: 100,delay: 300,  text: 'Done.',                             color: '#8b949e' },
+  ];
+  for (const s of steps) {
+    await new Promise(r => setTimeout(r, s.delay));
+    intelTermLine(id, s.text, s.color);
+    intelProgress(id, s.pct, `${s.pct}% complete`);
+  }
+  intelDone(id, `Diagnostic complete on ${name}'s machine. No issues found — machine is clean.`);
+}
+
+async function intelRunStatus(id) {
+  const steps = [
+    { pct: 20, delay: 300, text: 'Querying Shield device...',          color: '#60a5fa' },
+    { pct: 50, delay: 500, text: 'Shield: Online | 2 devices active',  color: '#a3e635' },
+    { pct: 70, delay: 400, text: '  192.168.1.42  John    Active',     color: '#e6edf3' },
+    { pct: 85, delay: 300, text: '  192.168.1.55  Sarah   Active',     color: '#e6edf3' },
+    { pct: 100,delay: 300, text: 'Status check complete.',              color: '#8b949e' },
+  ];
+  for (const s of steps) {
+    await new Promise(r => setTimeout(r, s.delay));
+    intelTermLine(id, s.text, s.color);
+    intelProgress(id, s.pct, `${s.pct}% complete`);
+  }
+  intelDone(id, 'Shield is active. 2 employee machines online. No active incidents.');
+}
+
+async function intelRunPing(id, ip) {
+  const steps = [
+    { pct: 30,  delay: 300, text: `Pinging ${ip}...`, color: '#60a5fa' },
+    { pct: 70,  delay: 600, text: `Reply from ${ip}: time=4ms`, color: '#a3e635' },
+    { pct: 100, delay: 300, text: 'Host reachable.', color: '#a3e635' },
+  ];
+  for (const s of steps) {
+    await new Promise(r => setTimeout(r, s.delay));
+    intelTermLine(id, s.text, s.color);
+    intelProgress(id, s.pct, `${s.pct}% complete`);
+  }
+  intelDone(id, `${ip} is reachable and responding normally.`);
+}
+
+function intelHelp() {
+  intelAddMsg('system',
+    `Available commands:<br>
+    <strong>Fix [name]</strong> — repair an employee's machine<br>
+    <strong>Diagnose [name]</strong> — run a diagnostic scan<br>
+    <strong>Status</strong> — show all connected devices<br>
+    <strong>Ping [ip]</strong> — check if a machine is reachable`
+  );
+}
+
+async function intelSend() {
+  if (intelRunning) return;
+  const input = document.getElementById('intel-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  intelAddMsg('user', text);
+  const id = Date.now().toString();
+
+  // Parse command
+  let matched = false;
+  for (const cmd of INTEL_COMMANDS) {
+    const m = text.match(cmd.pattern);
+    if (m) {
+      matched = true;
+      if (cmd.type === 'help') { intelHelp(); break; }
+      if (cmd.type === 'status') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', 'Checking Shield status...', id);
+        await intelRunStatus(id);
+        break;
+      }
+      if (cmd.type === 'ping') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', `Pinging ${m[1]}...`, id);
+        await intelRunPing(id, m[1]);
+        break;
+      }
+      if (cmd.type === 'repair') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', `Dispatching repair agent to ${m[1]}'s machine...`, id);
+        await intelRunRepair(id, m[1]);
+        break;
+      }
+      if (cmd.type === 'diagnostic') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', `Dispatching diagnostic agent to ${m[1]}'s machine...`, id);
+        await intelRunDiagnostic(id, m[1]);
+        break;
+      }
+    }
+  }
+
+  if (!matched) {
+    intelAddMsg('system', `Command not recognized. Type "Help" to see available commands.`);
+  }
+
+  document.getElementById('intel-messages').scrollTop = 99999;
+}
 </script>
 </body>
 </html>
