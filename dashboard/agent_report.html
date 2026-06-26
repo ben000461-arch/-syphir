@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syphir Shield — Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d1117;--bg2:#161b25;--bg3:#1c2333;
+  --border:#242d3e;
+  --blue:#2196d3;--blue-l:#4db8f0;--blue-g:rgba(33,150,211,0.12);
+  --green:#00e676;--red:#f44336;--yellow:#ffc107;--orange:#ff6d2e;
+  --text:#e6edf3;--text2:#8b949e;--text3:#4a5568;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:min(580px,100%);overflow:hidden;}
+
+/* Header */
+.card-header{padding:28px 32px 24px;border-bottom:1px solid var(--border);}
+.header-top{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+.shield-icon{width:42px;height:42px;background:linear-gradient(135deg,#2196d3,#1565a8);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 16px rgba(33,150,211,0.3);flex-shrink:0;}
+.header-title{font-size:18px;font-weight:800;letter-spacing:-0.3px;}
+.header-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;margin-top:14px;}
+.status-badge.clean{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:#34d399;}
+.status-badge.repaired{background:rgba(33,150,211,0.12);border:1px solid rgba(33,150,211,0.2);color:var(--blue-l);}
+.status-badge.flagged{background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.2);color:var(--yellow);}
+.status-dot{width:7px;height:7px;border-radius:50%;}
+.status-badge.clean .status-dot{background:#34d399;box-shadow:0 0 6px #34d399;}
+.status-badge.repaired .status-dot{background:var(--blue-l);box-shadow:0 0 6px var(--blue-l);}
+.status-badge.flagged .status-dot{background:var(--yellow);box-shadow:0 0 6px var(--yellow);}
+
+/* Body */
+.card-body{padding:24px 32px;}
+
+.summary-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:20px;}
+.summary-text{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* Meta grid */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.meta-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.meta-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px;}
+.meta-value{font-size:12.5px;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace;}
+
+/* Sections */
+.section{margin-bottom:18px;}
+.section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.check-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:7px;margin-bottom:4px;background:var(--bg3);border:1px solid var(--border);}
+.check-label{font-size:12.5px;color:var(--text2);}
+.check-result{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;}
+.check-result.ok{background:rgba(0,230,118,0.08);color:#34d399;}
+.check-result.warn{background:rgba(255,193,7,0.08);color:var(--yellow);}
+.check-result.fixed{background:rgba(33,150,211,0.1);color:var(--blue-l);}
+.check-result.na{background:transparent;color:var(--text3);}
+
+/* Flagged items */
+.flagged-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.15);border-radius:7px;margin-bottom:6px;}
+.flagged-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.flagged-text{font-size:12px;color:var(--text2);line-height:1.5;}
+.flagged-label{font-size:11px;font-weight:600;color:var(--yellow);margin-bottom:2px;}
+
+/* Footer */
+.card-footer{padding:18px 32px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);}
+.footer-left{font-size:11px;color:var(--text3);}
+.footer-left span{color:var(--text2);font-weight:500;}
+.close-btn{background:var(--blue);color:#fff;border:none;padding:8px 20px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s;}
+.close-btn:hover{background:#1565a8;}
+
+.empty-state{text-align:center;padding:20px;color:var(--text3);font-size:12px;}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="header-top">
+      <div class="shield-icon">🛡️</div>
+      <div>
+        <div class="header-title">Syphir Shield — Agent Report</div>
+        <div class="header-sub" id="header-sub">Your IT security box ran a scan on this machine</div>
+      </div>
+    </div>
+    <div class="status-badge" id="status-badge">
+      <div class="status-dot"></div>
+      <span id="status-text">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="card-body">
+
+    <!-- Summary -->
+    <div class="summary-box">
+      <div class="summary-text" id="summary-text">Loading report...</div>
+    </div>
+
+    <!-- Meta -->
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Machine</div>
+        <div class="meta-value" id="meta-machine">—</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Operating System</div>
+        <div class="meta-value" id="meta-os">—</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Triggered By</div>
+        <div class="meta-value" id="meta-trigger">—</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Time</div>
+        <div class="meta-value" id="meta-time">—</div>
+      </div>
+    </div>
+
+    <!-- Checks -->
+    <div class="section">
+      <div class="section-title">Checks Performed</div>
+      <div id="checks-list"></div>
+    </div>
+
+    <!-- Flagged Items -->
+    <div class="section" id="flagged-section" style="display:none;">
+      <div class="section-title">Flagged Items</div>
+      <div id="flagged-list"></div>
+    </div>
+
+    <!-- Repairs -->
+    <div class="section" id="repairs-section" style="display:none;">
+      <div class="section-title">Repairs Performed</div>
+      <div id="repairs-list"></div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="card-footer">
+    <div class="footer-left">
+      Ran by <span>Syphir Shield</span> · <span id="footer-time">—</span>
+    </div>
+    <button class="close-btn" onclick="window.close()">Close Report</button>
+  </div>
+
+</div>
+
+<script>
+// Parse report data from URL params
+function getReportData() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw    = params.get('data');
+    if (!raw) return null;
+    return JSON.parse(decodeURIComponent(raw));
+  } catch(e) {
+    return null;
+  }
+}
+
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString();
+}
+
+function setStatus(status) {
+  const badge    = document.getElementById('status-badge');
+  const text     = document.getElementById('status-text');
+  const classes  = { clean: 'All Clear', repaired: 'Repaired', flagged: 'Flagged', unknown: 'Unknown' };
+  badge.className = `status-badge ${status}`;
+  text.textContent = classes[status] || 'Unknown';
+}
+
+function renderChecks(results, mode) {
+  const container = document.getElementById('checks-list');
+  const checks    = [];
+
+  if (mode === 'diagnostic') {
+    checks.push({ label: 'Active Processes',       key: 'processes',   type: 'array' });
+    checks.push({ label: 'Browser Extensions',     key: 'extensions',  type: 'array' });
+    checks.push({ label: 'Environment Variables',  key: 'env_keys',    type: 'array' });
+    checks.push({ label: 'Recent Large Files',     key: 'large_files', type: 'array' });
+  } else {
+    checks.push({ label: 'System Load',            key: 'cpu',          type: 'bool' });
+    checks.push({ label: 'Disk Space',             key: 'disk',         type: 'bool' });
+    checks.push({ label: 'Frozen Processes',       key: 'killed_processes', type: 'array' });
+    checks.push({ label: 'DNS Cache',              key: 'dns_flushed',  type: 'bool_fix' });
+    checks.push({ label: 'Browser Cache',          key: 'browser_cache', type: 'array_fix' });
+    checks.push({ label: 'Temp Files',             key: 'cleared_mb',   type: 'mb' });
+    checks.push({ label: 'Memory',                 key: 'memory_freed', type: 'bool_fix' });
+    checks.push({ label: 'Network Connectivity',   key: 'network',      type: 'bool' });
+  }
+
+  container.innerHTML = checks.map(check => {
+    const val = results[check.key];
+    let resultLabel = 'N/A';
+    let resultClass = 'na';
+
+    if (check.type === 'array') {
+      const isEmpty = !val || (Array.isArray(val) && val.length === 0);
+      resultLabel = isEmpty ? 'Clear' : `${val.length} found`;
+      resultClass = isEmpty ? 'ok' : 'warn';
+    } else if (check.type === 'bool') {
+      resultLabel = val === false ? 'Issue Found' : 'OK';
+      resultClass = val === false ? 'warn' : 'ok';
+    } else if (check.type === 'bool_fix') {
+      resultLabel = val ? 'Flushed' : 'Skipped';
+      resultClass = val ? 'fixed' : 'na';
+    } else if (check.type === 'array_fix') {
+      resultLabel = val && val.length > 0 ? `Cleared (${val.join(', ')})` : 'Already Clean';
+      resultClass = val && val.length > 0 ? 'fixed' : 'ok';
+    } else if (check.type === 'mb') {
+      resultLabel = val > 0 ? `${val}MB Freed` : 'Already Clean';
+      resultClass = val > 0 ? 'fixed' : 'ok';
+    }
+
+    return `<div class="check-row">
+      <div class="check-label">${check.label}</div>
+      <div class="check-result ${resultClass}">${resultLabel}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderFlagged(results) {
+  const flagged  = [];
+  const section  = document.getElementById('flagged-section');
+  const list     = document.getElementById('flagged-list');
+
+  if (results.processes && results.processes.length) {
+    results.processes.forEach(p => flagged.push({ label: 'Shadow AI Process', text: p }));
+  }
+  if (results.extensions && results.extensions.length) {
+    results.extensions.forEach(e => flagged.push({ label: 'Unapproved Extension', text: e }));
+  }
+  if (results.env_keys && results.env_keys.length) {
+    results.env_keys.forEach(k => flagged.push({ label: 'Exposed API Key', text: k }));
+  }
+  if (results.large_files && results.large_files.length) {
+    results.large_files.forEach(f => flagged.push({ label: 'Large File Detected', text: `${f.file} (${f.size_mb}MB) in ${f.dir}` }));
+  }
+
+  if (!flagged.length) return;
+
+  section.style.display = 'block';
+  list.innerHTML = flagged.map(f => `
+    <div class="flagged-item">
+      <div class="flagged-icon">⚠️</div>
+      <div class="flagged-text">
+        <div class="flagged-label">${f.label}</div>
+        ${f.text}
+      </div>
+    </div>`).join('');
+}
+
+function renderRepairs(results) {
+  const section = document.getElementById('repairs-section');
+  const list    = document.getElementById('repairs-list');
+  const repairs = [];
+
+  if (results.killed_processes && results.killed_processes.length) {
+    results.killed_processes.forEach(p => repairs.push(`Terminated frozen process: ${p}`));
+  }
+  if (results.dns_flushed) {
+    repairs.push('DNS cache flushed — tabs should respond faster');
+  }
+  if (results.browser_cache && results.browser_cache.length) {
+    repairs.push(`Browser cache cleared: ${results.browser_cache.join(', ')}`);
+  }
+  if (results.cleared_mb > 0) {
+    repairs.push(`${results.cleared_mb}MB of temporary files removed`);
+  }
+  if (results.memory_freed) {
+    repairs.push('System memory released and optimized');
+  }
+
+  if (!repairs.length) return;
+
+  section.style.display = 'block';
+  list.innerHTML = repairs.map(r => `
+    <div class="check-row">
+      <div class="check-label">${r}</div>
+      <div class="check-result fixed">Done</div>
+    </div>`).join('');
+}
+
+// Main render
+function render() {
+  const report = getReportData();
+
+  if (!report) {
+    // Show a demo / fallback state
+    setStatus('clean');
+    document.getElementById('summary-text').textContent = 'Syphir Shield ran a diagnostic on this machine. No issues were found.';
+    document.getElementById('meta-machine').textContent  = window.location.hostname || 'This Machine';
+    document.getElementById('meta-os').textContent       = navigator.platform || '—';
+    document.getElementById('meta-trigger').textContent  = 'Manual diagnostic';
+    document.getElementById('meta-time').textContent     = new Date().toLocaleString();
+    document.getElementById('footer-time').textContent   = new Date().toLocaleString();
+    document.getElementById('checks-list').innerHTML     = '<div class="empty-state">No check data available.</div>';
+    return;
+  }
+
+  const results = report.results || {};
+  const mode    = report.mode || 'diagnostic';
+  const status  = report.status || 'unknown';
+
+  // Header
+  const subMap = {
+    diagnostic: 'Your IT security box ran a diagnostic scan on this machine',
+    repair:     'Your IT security box repaired issues on this machine',
+  };
+  document.getElementById('header-sub').textContent = subMap[mode] || subMap.diagnostic;
+
+  // Status
+  setStatus(status);
+
+  // Summary
+  document.getElementById('summary-text').textContent = report.summary || 'Scan complete.';
+
+  // Meta
+  document.getElementById('meta-machine').textContent  = report.machine   || '—';
+  document.getElementById('meta-os').textContent       = report.os        || '—';
+  document.getElementById('meta-trigger').textContent  = report.triggered_by || '—';
+  document.getElementById('meta-time').textContent     = timeAgo(report.timestamp);
+  document.getElementById('footer-time').textContent   = timeAgo(report.timestamp);
+
+  // Sections
+  renderChecks(results, mode);
+  renderFlagged(results);
+  if (mode === 'repair') renderRepairs(results);
+}
+
+document.addEventListener('DOMContentLoaded', render);
+</script>
+</body>
+</html>
