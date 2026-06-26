@@ -41,7 +41,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .status-txt{font-size:11px;color:var(--text2);}
-.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;transition:margin-right 0.3s ease;}
+.main.panel-open{margin-right:400px;}
 .topbar{height:var(--top);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:100;}
 .topbar-left{display:flex;align-items:center;gap:14px;}
 .page-title{font-size:15px;font-weight:700;}
@@ -108,6 +109,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .bar:hover{opacity:0.75;}
 .bar-v{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
 .bar-d{font-size:10px;color:var(--text3);}
+/* legacy overview table */
 .tbl-hdr{display:grid;grid-template-columns:2.5fr 1.5fr 1fr 1fr 1fr 0.8fr;padding:9px 18px;background:var(--bg3);border-bottom:1px solid var(--border);}
 .th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;}
 .tbl-row{display:grid;grid-template-columns:2.5fr 1.5fr 1fr 1fr 1fr 0.8fr;padding:12px 18px;border-bottom:1px solid var(--border);align-items:center;transition:background 0.1s;}
@@ -115,6 +117,67 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .tbl-row:hover{background:var(--bg3);}
 .td{font-size:12.5px;color:var(--text);}
 .td-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+/* Element 1 incident table */
+.inc-filters{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg3);flex-wrap:wrap;}
+.inc-filter-group{display:flex;align-items:center;gap:4px;}
+.inc-filter-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;margin-right:2px;}
+.inc-filter-btn{background:transparent;border:1px solid var(--border);color:var(--text3);padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.inc-filter-btn:hover{border-color:var(--border2);color:var(--text2);}
+.inc-filter-btn.active{border-color:var(--blue);color:var(--blue-l);background:var(--blue-g);}
+.inc-filter-sep{width:1px;height:18px;background:var(--border);margin:0 6px;}
+.inc-tbl-hdr{display:grid;grid-template-columns:4px 110px 1fr 1fr 1fr 90px 80px;padding:9px 18px 9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);align-items:center;gap:0;}
+.inc-th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;}
+.inc-row{display:grid;grid-template-columns:4px 110px 1fr 1fr 1fr 90px 80px;border-bottom:1px solid var(--border);align-items:stretch;cursor:pointer;transition:background 0.1s;position:relative;}
+.inc-row:last-child{border-bottom:none;}
+.inc-row:hover{background:rgba(33,150,211,0.04);}
+.inc-row.selected{background:rgba(33,150,211,0.09);}
+.sev-bar{width:4px;align-self:stretch;flex-shrink:0;}
+.sev-bar.critical{background:#f44336;}
+.sev-bar.high{background:#ff6d2e;}
+.sev-bar.medium{background:#ffc107;}
+.sev-bar.low,.sev-bar.info{background:#4db8f0;}
+.sev-bar.resolved{background:#4a5568;}
+.inc-cell{padding:11px 10px;font-size:12.5px;color:var(--text);display:flex;align-items:center;}
+.inc-cell.sev-cell{flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding-left:14px;}
+.sev-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:3px;font-size:10.5px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:0.3px;}
+.sev-badge.critical{background:rgba(244,67,54,0.12);color:#f87171;border:1px solid rgba(244,67,54,0.25);}
+.sev-badge.high{background:rgba(255,109,46,0.12);color:#fb923c;border:1px solid rgba(255,109,46,0.25);}
+.sev-badge.medium{background:rgba(255,193,7,0.12);color:#ffc107;border:1px solid rgba(255,193,7,0.25);}
+.sev-badge.low,.sev-badge.info{background:rgba(77,184,240,0.1);color:#4db8f0;border:1px solid rgba(77,184,240,0.2);}
+.sev-badge.resolved{background:rgba(74,85,104,0.2);color:#6b7280;border:1px solid rgba(74,85,104,0.3);}
+.src-icon{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-right:6px;}
+.src-icon.browser{background:rgba(33,150,211,0.12);}
+.src-icon.network{background:rgba(0,230,118,0.1);}
+.esc-score{display:inline-flex;align-items:center;justify-content:center;width:42px;height:22px;border-radius:4px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.esc-score.crit{background:rgba(244,67,54,0.15);color:#f87171;}
+.esc-score.warn{background:rgba(255,109,46,0.15);color:#fb923c;}
+.esc-score.ok{background:rgba(0,230,118,0.1);color:#34d399;}
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:3px;font-size:10.5px;font-weight:600;}
+.status-pill.active{background:rgba(244,67,54,0.1);color:#f87171;}
+.status-pill.resolved{background:rgba(0,230,118,0.08);color:#34d399;}
+/* Side panel */
+.side-panel{position:fixed;top:0;right:-420px;width:400px;height:100vh;background:var(--bg2);border-left:1px solid var(--border);z-index:300;display:flex;flex-direction:column;transition:right 0.3s ease;overflow:hidden;}
+.side-panel.open{right:0;}
+.sp-topbar{height:var(--top);display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sp-title{font-size:13px;font-weight:700;}
+.sp-close{background:transparent;border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.sp-close:hover{border-color:var(--red);color:var(--red);}
+.sp-body{flex:1;overflow-y:auto;padding:18px;}
+.sp-sev-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);}
+.sp-sev-icon{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sp-sev-info{flex:1;}
+.sp-sev-type{font-size:13px;font-weight:700;margin-bottom:2px;}
+.sp-sev-meta{font-size:11px;color:var(--text3);}
+.sp-section{margin-bottom:18px;}
+.sp-section-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sp-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.sp-field{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:9px;}
+.sp-field-lbl{font-size:11px;color:var(--text3);flex-shrink:0;width:110px;}
+.sp-field-val{font-size:12px;color:var(--text);font-weight:500;text-align:right;word-break:break-all;}
+.sp-caught-box{background:#090c14;border:1px solid var(--border);border-radius:7px;padding:13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a3e635;line-height:1.8;max-height:160px;overflow-y:auto;word-break:break-all;}
+.sp-detections{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.sp-esc-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px;}
+.sp-esc-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
 .empty{padding:44px;text-align:center;}
 .empty-icon{font-size:30px;margin-bottom:8px;}
 .empty-msg{font-size:12px;color:var(--text3);}
@@ -151,18 +214,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:12.5px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none;transition:border-color 0.15s;}
 .inp:focus{border-color:var(--blue);}
 .inp-group{margin-bottom:12px;}
-.code{background:#090c14;border:1px solid var(--border);border-radius:7px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#a3e635;line-height:1.8;overflow-x:auto;margin-top:10px;}
-.code .c{color:var(--text3);}
-.code .k{color:#60a5fa;}
-.code .s{color:#fbbf24;}
-.ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.ai-tile{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all 0.15s;}
-.ai-tile:hover{border-color:var(--blue);box-shadow:0 0 12px var(--blue-g);}
-.ai-tile.connected{border-color:rgba(0,230,118,0.4);background:rgba(0,230,118,0.05);}
-.ai-icon{font-size:24px;margin-bottom:6px;}
-.ai-name{font-size:12px;font-weight:600;}
-.ai-status{font-size:11px;color:var(--text3);margin-top:2px;}
-.ai-tile.connected .ai-status{color:var(--green);}
 .plan-pill{display:inline-flex;align-items:center;background:var(--blue-g);border:1px solid rgba(33,150,211,0.25);color:var(--blue-l);font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;}
 .prov-row{display:grid;grid-template-columns:190px 1fr 130px 28px;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);}
 .prov-row:last-child{border-bottom:none;}
@@ -203,14 +254,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
   </div>
   <div class="sidebar-bottom">
     <div class="org-card">
-      <div class="org-name" id="org-name">Loading…</div>
+      <div class="org-name" id="org-name">Loading...</div>
       <div class="org-plan" id="org-plan">Business</div>
       <div class="org-status"><div class="status-dot"></div><div class="status-txt">Shield Active</div></div>
     </div>
   </div>
 </aside>
 
-<main class="main">
+<main class="main" id="main">
   <header class="topbar">
     <div class="topbar-left">
       <div class="page-title" id="page-title">Overview</div>
@@ -221,8 +272,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       </div>
     </div>
     <div class="topbar-right">
-      <div class="time-txt" id="last-updated">—</div>
-      <button class="btn btn-ghost" onclick="loadData()">↻ Refresh</button>
+      <div class="time-txt" id="last-updated">-</div>
+      <button class="btn btn-ghost" onclick="loadData()">Refresh</button>
     </div>
   </header>
 
@@ -259,7 +310,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       </div>
       <div class="section-hdr">
         <div><div class="section-title">Recent Incidents</div><div class="section-sub">Latest detections across your team</div></div>
-        <button class="btn btn-ghost" onclick="nav('incidents',document.querySelectorAll('.nav-item')[1])">View All →</button>
+        <button class="btn btn-ghost" onclick="nav('incidents',document.querySelectorAll('.nav-item')[1])">View All</button>
       </div>
       <div class="card">
         <div class="tbl-hdr"><div class="th">Detection</div><div class="th">User</div><div class="th">AI Tool</div><div class="th">Risk</div><div class="th">Time</div><div class="th">Action</div></div>
@@ -267,14 +318,45 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       </div>
     </div>
 
-    <!-- INCIDENTS -->
+    <!-- INCIDENTS (Element 1) -->
     <div class="page" id="page-incidents">
       <div class="section-hdr">
-        <div><div class="section-title">All Incidents</div><div class="section-sub">Complete detection history</div></div>
-        <button class="btn btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
+        <div><div class="section-title">All Incidents</div><div class="section-sub" id="inc-count-sub">Complete detection history</div></div>
+        <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
       </div>
       <div class="card">
-        <div class="tbl-hdr"><div class="th">Detection</div><div class="th">User</div><div class="th">AI Tool</div><div class="th">Risk</div><div class="th">Time</div><div class="th">Action</div></div>
+        <div class="inc-filters">
+          <span class="inc-filter-label">Source</span>
+          <div class="inc-filter-group">
+            <button class="inc-filter-btn active" onclick="setIncFilter('source','all',this)">All</button>
+            <button class="inc-filter-btn" onclick="setIncFilter('source','browser',this)">Browser</button>
+            <button class="inc-filter-btn" onclick="setIncFilter('source','network',this)">Network</button>
+          </div>
+          <div class="inc-filter-sep"></div>
+          <span class="inc-filter-label">Severity</span>
+          <div class="inc-filter-group">
+            <button class="inc-filter-btn active" onclick="setIncFilter('severity','all',this)">All</button>
+            <button class="inc-filter-btn" onclick="setIncFilter('severity','high',this)">High</button>
+            <button class="inc-filter-btn" onclick="setIncFilter('severity','medium',this)">Medium</button>
+            <button class="inc-filter-btn" onclick="setIncFilter('severity','low',this)">Low</button>
+          </div>
+          <div class="inc-filter-sep"></div>
+          <span class="inc-filter-label">Status</span>
+          <div class="inc-filter-group">
+            <button class="inc-filter-btn active" onclick="setIncFilter('status','all',this)">All</button>
+            <button class="inc-filter-btn" onclick="setIncFilter('status','active',this)">Active</button>
+            <button class="inc-filter-btn" onclick="setIncFilter('status','resolved',this)">Resolved</button>
+          </div>
+        </div>
+        <div class="inc-tbl-hdr">
+          <div></div>
+          <div class="inc-th">Severity</div>
+          <div class="inc-th">Incident Type</div>
+          <div class="inc-th">Employee</div>
+          <div class="inc-th">Source / Time</div>
+          <div class="inc-th">Esc. Score</div>
+          <div class="inc-th">Status</div>
+        </div>
         <div id="tbl-incidents"><div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div></div>
       </div>
     </div>
@@ -285,18 +367,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div><div class="section-title">Live Feed</div><div class="section-sub">Real-time detection stream</div></div>
         <div style="display:flex;gap:8px;align-items:center;"><div class="live-pill"><div class="live-dot"></div>LIVE</div><button class="btn btn-ghost" onclick="clearFeed()">Clear</button></div>
       </div>
-      <div class="card"><div id="feed-list"><div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Waiting for activity…</div></div></div></div>
+      <div class="card"><div id="feed-list"><div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Waiting for activity...</div></div></div></div>
     </div>
 
     <!-- GATEWAY -->
     <div class="page" id="page-gateway">
       <div class="section-hdr">
-        <div><div class="section-title">API Gateway</div><div class="section-sub">Connect your AI providers — Syphir scans all traffic automatically</div></div>
+        <div><div class="section-title">API Gateway</div><div class="section-sub">Connect your AI providers</div></div>
         <button class="btn btn-primary" onclick="saveProviderKeys()">Save Keys</button>
       </div>
       <div class="card">
         <div class="card-hdr">
-          <div><div class="card-title">AI Provider Keys</div><div class="card-sub">Stored locally in your browser — never sent to Syphir servers</div></div>
+          <div><div class="card-title">AI Provider Keys</div><div class="card-sub">Stored locally in your browser</div></div>
           <button class="btn btn-ghost" onclick="addProviderRow()">+ Add Provider</button>
         </div>
         <div style="display:grid;grid-template-columns:190px 1fr 130px 28px;padding:8px 18px 6px;gap:12px;">
@@ -306,15 +388,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           <div></div>
         </div>
         <div id="providers-list"></div>
-        <div style="padding:10px 18px 14px;">
-          <div id="provider-save-msg" style="font-size:11px;color:var(--green);min-height:16px;"></div>
-        </div>
+        <div style="padding:10px 18px 14px;"><div id="provider-save-msg" style="font-size:11px;color:var(--green);min-height:16px;"></div></div>
       </div>
     </div>
 
     <!-- POLICIES -->
     <div class="page" id="page-policies">
-      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects and how it responds</div></div><button class="btn btn-primary" onclick="showToast('Detection policies saved!')">Save Changes</button></div>
+      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects</div></div><button class="btn btn-primary" onclick="showToast('Detection policies saved!')">Save Changes</button></div>
       <div class="grid-2">
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">📋 Sensitive Data Types</div></div>
@@ -351,8 +431,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">🏢 Organization</div></div>
           <div class="card-body">
-            <div class="inp-group"><label class="inp-lbl">Organization Name</label><input class="inp" id="settings-org-name" value="Loading…"></div>
-            <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" id="settings-admin-email" value="" placeholder="Loading…"></div>
+            <div class="inp-group"><label class="inp-lbl">Organization Name</label><input class="inp" id="settings-org-name" value="Loading..."></div>
+            <div class="inp-group"><label class="inp-lbl">Admin Email</label><input class="inp" id="settings-admin-email" value="" placeholder="Loading..."></div>
             <div class="inp-group"><label class="inp-lbl">Dashboard Key (your login)</label><input class="inp" id="settings-license-key" readonly style="opacity:0.5;cursor:not-allowed;"></div>
             <div class="inp-group"><label class="inp-lbl">Employee Key (share with staff)</label><input class="inp" id="settings-emp-key" readonly style="opacity:0.5;cursor:not-allowed;font-family:monospace;color:#00e676;"></div>
           </div>
@@ -362,13 +442,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           <div class="card-body">
             <div class="tog-row" style="padding:0 0 12px;"><div><div class="tog-lbl">Current Plan</div><div class="tog-sub" id="settings-plan-renew">Renews May 10, 2026</div></div><div class="plan-pill" id="settings-plan">Business · $299/mo</div></div>
             <div class="tog-row" style="padding:12px 0;"><div><div class="tog-lbl">Payment Method</div><div class="tog-sub" id="settings-payment-method">No payment method on file</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="openBillingPage()">Update</button></div>
-            <button class="btn btn-ghost" id="portal-btn" style="width:100%;margin-top:14px;justify-content:center;" onclick="openBillingPage()">Manage Payments →</button>
+            <button class="btn btn-ghost" id="portal-btn" style="width:100%;margin-top:14px;justify-content:center;" onclick="openBillingPage()">Manage Payments</button>
           </div>
         </div>
         <div class="card mb-16">
           <div class="card-hdr">
             <div class="card-title">👥 Team Members</div>
-            <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="loadTeamMembers()">↻ Refresh</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="loadTeamMembers()">Refresh</button>
           </div>
           <div class="card-body">
             <div style="padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;">
@@ -389,10 +469,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
   </div>
 </main>
 
-<!-- ── TOAST ──────────────────────────────────────────────────────────────── -->
+<!-- SIDE PANEL -->
+<div class="side-panel" id="side-panel">
+  <div class="sp-topbar">
+    <div class="sp-title">Incident Detail</div>
+    <button class="sp-close" onclick="closeSidePanel()">x</button>
+  </div>
+  <div class="sp-body" id="sp-body">
+    <div class="empty"><div class="empty-icon">🔍</div><div class="empty-msg">Select an incident to inspect</div></div>
+  </div>
+</div>
+
+<!-- TOAST -->
 <div id="app-toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;display:none;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.2s;"></div>
 
-<!-- ── CONFIRM MODAL ─────────────────────────────────────────────────────── -->
+<!-- CONFIRM MODAL -->
 <div id="app-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8000;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)appConfirmCancel()">
   <div style="background:#161b25;border:1px solid #242d3e;border-radius:14px;padding:1.75rem;width:min(400px,90vw);">
     <p id="app-confirm-msg" style="color:#e6edf3;font-size:0.92rem;line-height:1.55;margin:0 0 1.5rem;"></p>
@@ -403,7 +494,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
   </div>
 </div>
 
-<!-- ── PROMPT MODAL ──────────────────────────────────────────────────────── -->
+<!-- PROMPT MODAL -->
 <div id="app-prompt-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8000;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)appPromptCancel()">
   <div style="background:#161b25;border:1px solid #242d3e;border-radius:14px;padding:1.75rem;width:min(380px,90vw);">
     <p id="app-prompt-label" style="color:#e6edf3;font-size:0.92rem;margin:0 0 0.75rem;"></p>
@@ -415,7 +506,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
   </div>
 </div>
 
-<!-- ── EDIT MEMBER MODAL ──────────────────────────────────────────────────── -->
+<!-- EDIT MEMBER MODAL -->
 <div id="edit-member-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8000;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)closeEditUser()">
   <div style="background:#161b25;border:1px solid #242d3e;border-radius:14px;padding:1.75rem;width:min(420px,90vw);position:relative;">
     <div style="margin-bottom:1.25rem;">
@@ -436,7 +527,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       </div>
       <div>
         <label style="display:block;font-size:10px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Internal Notes</label>
-        <textarea id="edit-member-notes" rows="2" style="width:100%;background:#1c2333;border:1px solid #242d3e;border-radius:7px;padding:8px 11px;font-size:13px;color:#e6edf3;font-family:'Inter',sans-serif;outline:none;resize:vertical;" placeholder="Admin-only notes about this employee…"></textarea>
+        <textarea id="edit-member-notes" rows="2" style="width:100%;background:#1c2333;border:1px solid #242d3e;border-radius:7px;padding:8px 11px;font-size:13px;color:#e6edf3;font-family:'Inter',sans-serif;outline:none;resize:vertical;" placeholder="Admin-only notes about this employee..."></textarea>
       </div>
     </div>
     <div id="edit-member-err" style="font-size:11px;color:#f44336;min-height:16px;margin-bottom:8px;"></div>
@@ -448,7 +539,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 </div>
 
 <script>
-// ── ORG CONTEXT ─────────────────────────────────────────────────────────────
 const API = 'https://syphir-api.onrender.com';
 const _SESSION_KEY = 'syphir_session', _SESSION_TTL = 8 * 60 * 60 * 1000;
 function getSession() {
@@ -470,157 +560,66 @@ const ORG_KEY = (_urlKey || _session?.key || '').toUpperCase();
 const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || _session?.org_name || 'Demo');
 if (!ORG_KEY) window.location.replace('index.html?error=session-expired');
 
-// These are placeholders — real values set after org resolves
-let ORG_ID = null;
-let ORG_NAME = ORG_NAME_PARAM;
-let ORG_PLAN = 'Business';
-let ORG_ADMIN_EMAIL = '';
-let ORG_EMP_KEY = '';
-let ORG_EXPIRES_AT = null;   // null = paying, ISO string = trial/demo
-let incidents = [];
-let dataInterval = null;
+let ORG_ID = null, ORG_NAME = ORG_NAME_PARAM, ORG_PLAN = 'Business';
+let ORG_ADMIN_EMAIL = '', ORG_EMP_KEY = '', ORG_EXPIRES_AT = null;
+let incidents = [], dataInterval = null;
+let incFilters = { source: 'all', severity: 'all', status: 'all' };
+let selectedIncidentId = null;
 
 const PLAN_PRICES = { Starter: 129, Professional: 299, Institution: 599, Demo: 0 };
 
-// ── BOOT: Resolve org then start everything ────────────────────────────────
-(async () => {
-  if (!ORG_KEY) return; // redirect already initiated
+const CODE_SHORT_LABELS = {
+  API_KEY:'API KEY',JWT_TOKEN:'JWT',DB_CREDENTIAL:'DB CRED',HARDCODED_PASSWORD:'HARDCODED PW',
+  PRIVATE_KEY:'PRIVATE KEY',OAUTH_TOKEN:'OAUTH',SQL_SENSITIVE:'SQL',INTERNAL_URL:'INT URL',
+  SENSITIVE_FUNCTION:'SENS FN',COMMENTED_CREDENTIAL:'COMMENTED CRED',CONSOLE_LOG_SECRET:'CONSOLE LOG',
+};
 
-  // ── EXPIRY / VALIDITY GATE ────────────────────────────────────────────────
+(async () => {
+  if (!ORG_KEY) return;
   try {
-    const vRes = await fetch(`${API}/validate-key`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' })
-    });
+    const vRes = await fetch(`${API}/validate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' }) });
     const vData = await vRes.json();
-    if (vData.valid) {
-      saveSession({ key: ORG_KEY, org_name: vData.org_name || ORG_NAME_PARAM, org_id: vData.org_id || '' });
-    }
-    if (_urlKey) {
-      const _np = new URLSearchParams();
-      if (params.get('payment')) _np.set('payment', params.get('payment'));
-      history.replaceState(null, '', 'app.html' + (_np.toString() ? '?' + _np.toString() : ''));
-    }
+    if (vData.valid) saveSession({ key: ORG_KEY, org_name: vData.org_name || ORG_NAME_PARAM, org_id: vData.org_id || '' });
+    if (_urlKey) { const _np = new URLSearchParams(); if (params.get('payment')) _np.set('payment', params.get('payment')); history.replaceState(null, '', 'app.html' + (_np.toString() ? '?' + _np.toString() : '')); }
     if (!vData.valid && !vData.expired) { window.location.replace('index.html?error=invalid-key'); return; }
     if (vData.expired) {
       document.body.style.cssText = 'margin:0;padding:0;overflow:hidden;';
-      document.body.innerHTML =
-        '<div style="position:fixed;inset:0;background:#0d1117;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px;z-index:9999;">' +
-          '<div style="background:#161b25;border:1px solid #242d3e;border-radius:16px;padding:48px 40px;max-width:480px;width:100%;text-align:center;">' +
-            '<div style="font-size:52px;margin-bottom:20px;">&#128274;</div>' +
-            '<h1 style="font-size:22px;font-weight:800;color:#e6edf3;margin:0 0 12px;letter-spacing:-0.3px;">Your 7-day free trial has ended</h1>' +
-            '<p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 28px;">Upgrade to keep your team\'s AI activity protected.</p>' +
-            '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">' +
-              '<button onclick="startCheckout(\'Starter\')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Starter</span><span style="color:#4db8f0;font-weight:700;">$129/mo</span></button>' +
-              '<button onclick="startCheckout(\'Professional\')" style="background:#2196d3;border:none;color:#fff;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Professional ★ Most Popular</span><span style="font-weight:700;">$299/mo</span></button>' +
-              '<button onclick="startCheckout(\'Institution\')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Institution</span><span style="color:#4db8f0;font-weight:700;">$599/mo</span></button>' +
-            '</div>' +
-            '<div id="checkout-msg" style="font-size:12px;color:#8b949e;min-height:18px;margin-bottom:12px;"></div>' +
-            '<a href="mailto:syphir26@gmail.com" style="display:block;font-size:12px;color:#4a5568;text-decoration:none;">Questions? Email syphir26@gmail.com</a>' +
-          '</div>' +
-        '</div>';
-      // Inject checkout function into the replaced page
+      document.body.innerHTML = '<div style="position:fixed;inset:0;background:#0d1117;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px;z-index:9999;"><div style="background:#161b25;border:1px solid #242d3e;border-radius:16px;padding:48px 40px;max-width:480px;width:100%;text-align:center;"><div style="font-size:52px;margin-bottom:20px;">&#128274;</div><h1 style="font-size:22px;font-weight:800;color:#e6edf3;margin:0 0 12px;">Your 7-day free trial has ended</h1><p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 28px;">Upgrade to keep your team\'s AI activity protected.</p><div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"><button onclick="startCheckout(\'Starter\')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Starter</span><span style="color:#4db8f0;font-weight:700;">$129/mo</span></button><button onclick="startCheckout(\'Professional\')" style="background:#2196d3;border:none;color:#fff;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Professional Most Popular</span><span>$299/mo</span></button><button onclick="startCheckout(\'Institution\')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Institution</span><span style="color:#4db8f0;font-weight:700;">$599/mo</span></button></div><div id="checkout-msg" style="font-size:12px;color:#8b949e;min-height:18px;margin-bottom:12px;"></div><a href="mailto:syphir26@gmail.com" style="display:block;font-size:12px;color:#4a5568;text-decoration:none;">Questions? Email syphir26@gmail.com</a></div></div>';
       window.startCheckout = async (plan) => {
-        const msg = document.getElementById('checkout-msg');
-        msg.textContent = 'Redirecting to checkout…';
-        try {
-          const r = await fetch(`${API}/create-checkout-session`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: ORG_KEY, plan })
-          });
-          const d = await r.json();
-          if (d.url) { window.location.href = d.url; }
-          else { msg.style.color='#f44336'; msg.textContent = d.error || 'Could not start checkout'; }
-        } catch(e) { msg.style.color='#f44336'; msg.textContent = 'Network error — try again'; }
+        const msg = document.getElementById('checkout-msg'); msg.textContent = 'Redirecting to checkout...';
+        try { const r = await fetch(`${API}/create-checkout-session`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: ORG_KEY, plan }) }); const d = await r.json(); if (d.url) window.location.href = d.url; else { msg.style.color='#f44336'; msg.textContent = d.error || 'Could not start checkout'; } } catch(e) { msg.style.color='#f44336'; msg.textContent = 'Network error — try again'; }
       };
       return;
     }
     ORG_EXPIRES_AT = vData.expires_at || null;
-    if (vData.days_left !== null && vData.days_left !== undefined) {
-      showTrialBanner(vData.days_left, vData.plan);
-    }
-  } catch(_) {} // network error must not block dashboard access
+    if (vData.days_left !== null && vData.days_left !== undefined) showTrialBanner(vData.days_left, vData.plan);
+  } catch(_) {}
 
-  // Show success toast if returning from Stripe checkout
-  if (params.get('payment') === 'success') {
-    history.replaceState(null, '', `app.html?key=${ORG_KEY}`);
-    setTimeout(() => showPaymentSuccess(), 800);
-  }
+  if (params.get('payment') === 'success') { history.replaceState(null, '', `app.html?key=${ORG_KEY}`); setTimeout(() => showPaymentSuccess(), 800); }
 
   try {
     const res = await fetch(`${API}/org/${ORG_KEY}`);
     if (!res.ok) throw new Error('org fetch failed');
     const org = await res.json();
-
     if (org && org.id) {
-      ORG_ID          = org.id;
-      ORG_NAME        = org.name || ORG_NAME_PARAM;
-      ORG_PLAN        = org.plan || 'Business';
-      ORG_ADMIN_EMAIL = org.admin_email || '';
-
-      // Sidebar
-      const nameEl = document.getElementById('org-name');
-      const planEl = document.getElementById('org-plan');
-      if (nameEl) nameEl.textContent = ORG_NAME;
-      if (planEl) planEl.textContent = ORG_PLAN;
-
-      // Settings — org name, email, dashboard key, plan
-      const sn  = document.getElementById('settings-org-name');
-      const sae = document.getElementById('settings-admin-email');
-      const sk  = document.getElementById('settings-license-key');
-      const sp  = document.getElementById('settings-plan');
-      if (sn)  sn.value  = ORG_NAME;
-      if (sae) sae.value = ORG_ADMIN_EMAIL;
-      if (sk)  sk.value  = ORG_KEY;
-      const planPrice = PLAN_PRICES[ORG_PLAN];
-      if (sp)  sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
+      ORG_ID = org.id; ORG_NAME = org.name || ORG_NAME_PARAM; ORG_PLAN = org.plan || 'Business'; ORG_ADMIN_EMAIL = org.admin_email || '';
+      const nameEl = document.getElementById('org-name'); const planEl = document.getElementById('org-plan');
+      if (nameEl) nameEl.textContent = ORG_NAME; if (planEl) planEl.textContent = ORG_PLAN;
+      const sn = document.getElementById('settings-org-name'); const sae = document.getElementById('settings-admin-email'); const sk = document.getElementById('settings-license-key'); const sp = document.getElementById('settings-plan');
+      if (sn) sn.value = ORG_NAME; if (sae) sae.value = ORG_ADMIN_EMAIL; if (sk) sk.value = ORG_KEY;
+      const planPrice = PLAN_PRICES[ORG_PLAN]; if (sp) sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
       const pr = document.getElementById('settings-plan-renew');
-      if (pr) {
-        if (!ORG_EXPIRES_AT) {
-          pr.textContent = 'Active subscription — renews monthly';
-          pr.style.color = 'var(--green)';
-        } else {
-          const d = new Date(ORG_EXPIRES_AT);
-          const daysLeft = Math.ceil((d - Date.now()) / 86400000);
-          pr.textContent = daysLeft > 0 ? `Trial · ${daysLeft} day${daysLeft===1?'':'s'} left` : 'Trial expired';
-          pr.style.color = daysLeft <= 2 ? 'var(--red)' : 'var(--yellow)';
-        }
-      }
-
-      // Employee key
-      try {
-        const empData = await fetch(`${API}/emp-key/${ORG_ID}`).then(r => r.json());
-        if (empData && empData.emp_key) {
-          ORG_EMP_KEY = empData.emp_key;
-          const empKeyEl = document.getElementById('settings-emp-key');
-          if (empKeyEl) empKeyEl.value = ORG_EMP_KEY;
-        }
-      } catch(e2) { console.warn('emp-key fetch failed', e2); }
-
-      // Install link
-      const il = document.getElementById('install-link');
-      if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_EMP_KEY || ORG_KEY}`;
-
-      // Gateway
-      const gu  = document.getElementById('gateway-url');
-      const goi = document.getElementById('gateway-org-id');
-      const gkd = document.getElementById('gateway-key-display');
-      if (gu)  gu.value       = `https://api.syphir.io/v1/gateway/${ORG_ID}`;
-      if (goi) goi.textContent = ORG_ID;
-      if (gkd) gkd.textContent = ORG_KEY;
+      if (pr) { if (!ORG_EXPIRES_AT) { pr.textContent = 'Active subscription — renews monthly'; pr.style.color = 'var(--green)'; } else { const d = new Date(ORG_EXPIRES_AT); const dl = Math.ceil((d - Date.now()) / 86400000); pr.textContent = dl > 0 ? `Trial · ${dl} day${dl===1?'':'s'} left` : 'Trial expired'; pr.style.color = dl <= 2 ? 'var(--red)' : 'var(--yellow)'; } }
+      try { const empData = await fetch(`${API}/emp-key/${ORG_ID}`).then(r => r.json()); if (empData && empData.emp_key) { ORG_EMP_KEY = empData.emp_key; const empKeyEl = document.getElementById('settings-emp-key'); if (empKeyEl) empKeyEl.value = ORG_EMP_KEY; } } catch(e2) {}
+      const il = document.getElementById('install-link'); if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_EMP_KEY || ORG_KEY}`;
     }
   } catch(e) {
-    // API offline — fill what we can from URL params
-    console.warn('org resolve failed, using URL params', e);
-    ORG_ID = null;  // stays null — loadData() guards on !ORG_ID
+    console.warn('org resolve failed', e); ORG_ID = null;
     document.getElementById('org-name').textContent = ORG_NAME;
-    const sk = document.getElementById('settings-license-key');
-    if (sk) sk.value = ORG_KEY;
-    const il = document.getElementById('install-link');
-    if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_KEY}`;
+    const sk = document.getElementById('settings-license-key'); if (sk) sk.value = ORG_KEY;
+    const il = document.getElementById('install-link'); if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_KEY}`;
   }
 
-  // FIX: Only start polling AFTER ORG_ID is resolved
   await loadData();
   loadTeamMembers();
   renderProviders();
@@ -628,99 +627,47 @@ const PLAN_PRICES = { Starter: 129, Professional: 299, Institution: 599, Demo: 0
 })();
 
 function showTrialBanner(daysLeft, plan) {
-  const isPaying = ['Starter','Professional','Institution','Pro'].includes(plan);
-  if (isPaying) return;
+  if (['Starter','Professional','Institution','Pro'].includes(plan)) return;
   if (document.getElementById('trial-banner')) return;
   const color = daysLeft <= 2 ? '#f44336' : daysLeft <= 4 ? '#ff8c42' : '#2196d3';
   const banner = document.createElement('div');
   banner.id = 'trial-banner';
   banner.style.cssText = 'position:fixed;bottom:0;left:220px;right:0;z-index:999;background:' + color + ';color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Inter,sans-serif;font-size:13px;font-weight:500;';
   const daysText = daysLeft === 1 ? '1 day' : daysLeft + ' days';
-  banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong> — upgrade to keep your data protected.</span><button onclick="startBannerCheckout()" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;border:none;cursor:pointer;font-family:Inter,sans-serif;margin-left:16px;flex-shrink:0;">Upgrade Now</button>';
+  banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong></span><button onclick="startBannerCheckout()" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;border:none;cursor:pointer;font-family:Inter,sans-serif;margin-left:16px;">Upgrade Now</button>';
   document.body.appendChild(banner);
 }
 
 function showPaymentSuccess() {
   const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:#00e676;color:#000;padding:14px 20px;border-radius:10px;font-size:13px;font-weight:700;font-family:Inter,sans-serif;box-shadow:0 4px 20px rgba(0,230,118,0.4);animation:fadeUp 0.3s ease;';
-  el.textContent = '✓ Payment successful — your plan is now active!';
+  el.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:#00e676;color:#000;padding:14px 20px;border-radius:10px;font-size:13px;font-weight:700;font-family:Inter,sans-serif;box-shadow:0 4px 20px rgba(0,230,118,0.4);';
+  el.textContent = 'Payment successful — your plan is now active!';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 6000);
 }
 
-function openBillingPage() {
-  window.open('billing.html?key=' + encodeURIComponent(ORG_KEY), '_blank');
-}
-
-async function openPortal() {
-  const btn = document.getElementById('portal-btn');
-  if (btn) { btn.textContent = 'Opening Stripe…'; btn.disabled = true; }
-  try {
-    const r = await fetch(`${API}/create-portal-session`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: ORG_KEY })
-    });
-    const d = await r.json();
-    if (d.url) { window.location.href = d.url; }
-    else { showToast(d.error || 'Could not open billing portal', 'error'); }
-  } catch(e) { showToast('Network error — try again', 'error'); }
-  finally { if (btn) { btn.textContent = 'Manage Payments →'; btn.disabled = false; } }
-}
-
-function startBannerCheckout() {
-  window.open('https://syphir.vercel.app/pricing.html' + (ORG_KEY ? '?key=' + ORG_KEY : ''), '_blank');
-}
+function openBillingPage() { window.open('billing.html?key=' + encodeURIComponent(ORG_KEY), '_blank'); }
+function startBannerCheckout() { window.open('https://syphir.vercel.app/pricing.html' + (ORG_KEY ? '?key=' + ORG_KEY : ''), '_blank'); }
 
 async function refreshSettingsBilling() {
   if (!ORG_KEY) return;
   try {
-    const r = await fetch(`${API}/validate-key`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' })
-    });
+    const r = await fetch(`${API}/validate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: ORG_KEY, context: 'dashboard' }) });
     const vData = await r.json();
     if (!vData.valid) return;
-    if (vData.plan) ORG_PLAN = vData.plan;
-    ORG_EXPIRES_AT = vData.expires_at || null;
-    const sp = document.getElementById('settings-plan');
-    const pr = document.getElementById('settings-plan-renew');
-    const planPrice = PLAN_PRICES[ORG_PLAN];
-    if (sp) sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
-    if (pr) {
-      if (!ORG_EXPIRES_AT) {
-        pr.textContent = 'Active subscription — renews monthly';
-        pr.style.color = 'var(--green)';
-      } else {
-        const d = new Date(ORG_EXPIRES_AT);
-        const daysLeft = Math.ceil((d - Date.now()) / 86400000);
-        pr.textContent = daysLeft > 0 ? `Trial · ${daysLeft} day${daysLeft===1?'':'s'} left` : 'Trial expired';
-        pr.style.color = daysLeft <= 2 ? 'var(--red)' : 'var(--yellow)';
-      }
-    }
-    const planEl = document.getElementById('org-plan');
-    if (planEl) planEl.textContent = ORG_PLAN;
+    if (vData.plan) ORG_PLAN = vData.plan; ORG_EXPIRES_AT = vData.expires_at || null;
+    const sp = document.getElementById('settings-plan'); const pr = document.getElementById('settings-plan-renew');
+    const planPrice = PLAN_PRICES[ORG_PLAN]; if (sp) sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
+    if (pr) { if (!ORG_EXPIRES_AT) { pr.textContent = 'Active subscription — renews monthly'; pr.style.color = 'var(--green)'; } else { const d = new Date(ORG_EXPIRES_AT); const dl = Math.ceil((d - Date.now()) / 86400000); pr.textContent = dl > 0 ? `Trial · ${dl} day${dl===1?'':'s'} left` : 'Trial expired'; pr.style.color = dl <= 2 ? 'var(--red)' : 'var(--yellow)'; } }
+    const planEl = document.getElementById('org-plan'); if (planEl) planEl.textContent = ORG_PLAN;
   } catch(_) {}
-  // Load payment method separately — non-fatal, only available for paying orgs
   try {
     const br = await fetch(`${API}/billing/${ORG_KEY}`);
-    if (br.ok) {
-      const bd = await br.json();
-      const pm = document.getElementById('settings-payment-method');
-      if (pm) {
-        if (bd.payment_method?.last4) {
-          const brand = bd.payment_method.brand.charAt(0).toUpperCase() + bd.payment_method.brand.slice(1);
-          pm.textContent = `${brand} •••• ${bd.payment_method.last4}`;
-        } else {
-          pm.textContent = 'No payment method on file';
-        }
-      }
-    }
+    if (br.ok) { const bd = await br.json(); const pm = document.getElementById('settings-payment-method'); if (pm && bd.payment_method?.last4) { const brand = bd.payment_method.brand.charAt(0).toUpperCase() + bd.payment_method.brand.slice(1); pm.textContent = `${brand} .... ${bd.payment_method.last4}`; } }
   } catch(_) {}
 }
 
-// ── NAV ────────────────────────────────────────────────────────────────────
 const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings'};
-
 function nav(page, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -729,6 +676,7 @@ function nav(page, el) {
   document.getElementById('page-title').textContent = TITLES[page] || page;
   const f = document.getElementById('topbar-filters');
   f.style.display = ['overview','incidents'].includes(page) ? 'flex' : 'none';
+  if (page !== 'incidents') closeSidePanel();
   if (['overview','incidents','live'].includes(page)) loadData();
   if (page === 'settings') { loadTeamMembers(); refreshSettingsBilling(); }
   if (page === 'gateway') renderProviders();
@@ -740,7 +688,13 @@ function setFilter(f, el) {
   loadData();
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
+function setIncFilter(type, value, el) {
+  incFilters[type] = value;
+  el.closest('.inc-filter-group').querySelectorAll('.inc-filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderIncidentTable();
+}
+
 function timeAgo(iso) {
   const s = (Date.now() - new Date(iso)) / 1000;
   if (s < 60) return 'just now';
@@ -754,457 +708,313 @@ function rBadge(r) {
   return `<span class="badge b-${r}">${m[r]||''} ${r}</span>`;
 }
 
-const CODE_SHORT_LABELS = {
-  API_KEY:              'API KEY',
-  JWT_TOKEN:            'JWT',
-  DB_CREDENTIAL:        'DB CRED',
-  HARDCODED_PASSWORD:   'HARDCODED PW',
-  PRIVATE_KEY:          'PRIVATE KEY',
-  OAUTH_TOKEN:          'OAUTH',
-  SQL_SENSITIVE:        'SQL',
-  INTERNAL_URL:         'INT URL',
-  SENSITIVE_FUNCTION:   'SENS FN',
-  COMMENTED_CREDENTIAL: 'COMMENTED CRED',
-  CONSOLE_LOG_SECRET:   'CONSOLE LOG',
-};
-
 function detectionBadge(d) {
-  if (d.isCode) {
-    const short = CODE_SHORT_LABELS[d.type] || (d.type||'').replace(/_/g,' ');
-    const title = d.label || short;
-    return `<span class="badge b-code" title="${title}">${short}</span>`;
-  }
-  const lbl = d.label || d.entity_type || 'PII';
-  return `<span style="font-size:12px;color:var(--text);">${lbl}</span>`;
+  if (d.isCode) { const short = CODE_SHORT_LABELS[d.type] || (d.type||'').replace(/_/g,' '); return `<span class="badge b-code" title="${d.label||short}">${short}</span>`; }
+  return `<span style="font-size:12px;color:var(--text);">${d.label || d.entity_type || 'PII'}</span>`;
 }
 
-function renderRows(list) {
-  if (!list.length) return `<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div>`;
-  return list.map(i => `
-    <div class="tbl-row">
-      <div class="td">
-        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${(i.detections||[]).map(d=>detectionBadge(d)).join('')||'<span style="font-size:12px;">PII Detected</span>'}</div>
-        <div class="td-sub">${i.org_name||ORG_NAME}</div>
+function riskToSev(risk) { return {high:'high',medium:'medium',low:'low',critical:'critical',info:'info',resolved:'resolved'}[risk] || 'low'; }
+
+function calcEscScore(inc) {
+  if (inc.escalation_score !== undefined) return inc.escalation_score;
+  return {critical:92,high:75,medium:45,low:22,info:10}[inc.risk_level] || 20;
+}
+
+function escScoreClass(s) { return s >= 80 ? 'crit' : s >= 50 ? 'warn' : 'ok'; }
+
+function getSource(inc) {
+  if (inc.source) return inc.source;
+  if (inc.ai_tool && inc.ai_tool.toLowerCase().includes('network')) return 'network';
+  return 'browser';
+}
+
+function sourceIcon(src) {
+  if (src === 'network') return '<div class="src-icon network" title="Syphir Shield">🛡</div>';
+  return '<div class="src-icon browser" title="Chrome Extension">🌐</div>';
+}
+
+function getFilteredIncidents() {
+  return incidents.filter(inc => {
+    const src = getSource(inc);
+    const sev = inc.risk_level || 'low';
+    const status = inc.resolved ? 'resolved' : 'active';
+    if (incFilters.source !== 'all' && src !== incFilters.source) return false;
+    if (incFilters.severity !== 'all' && sev !== incFilters.severity) return false;
+    if (incFilters.status !== 'all' && status !== incFilters.status) return false;
+    return true;
+  });
+}
+
+function renderIncidentTable() {
+  const filtered = getFilteredIncidents();
+  const container = document.getElementById('tbl-incidents');
+  if (!container) return;
+  const sub = document.getElementById('inc-count-sub');
+  if (sub) sub.textContent = `${filtered.length} incident${filtered.length !== 1 ? 's' : ''} · newest first`;
+  if (!filtered.length) { container.innerHTML = '<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents match the current filters</div></div>'; return; }
+  const sorted = [...filtered].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  container.innerHTML = sorted.map(inc => {
+    const sev = riskToSev(inc.risk_level);
+    const src = getSource(inc);
+    const score = calcEscScore(inc);
+    const sc = escScoreClass(score);
+    const status = inc.resolved ? 'resolved' : 'active';
+    const detLabels = (inc.detections || []).slice(0,3).map(d => d.isCode ? (CODE_SHORT_LABELS[d.type] || d.type) : (d.label || d.entity_type || 'PII')).join(', ') || 'PII Detected';
+    const isSelected = inc.id === selectedIncidentId;
+    return `<div class="inc-row${isSelected?' selected':''}" onclick="openSidePanel('${inc.id}')" data-id="${inc.id}">
+      <div class="sev-bar ${sev}"></div>
+      <div class="inc-cell sev-cell"><span class="sev-badge ${sev}">${sev.toUpperCase()}</span></div>
+      <div class="inc-cell" style="flex-direction:column;align-items:flex-start;gap:2px;"><span style="font-size:12.5px;font-weight:600;">${detLabels}</span><span style="font-size:11px;color:var(--text3);">${inc.ai_tool||'AI Tool'}</span></div>
+      <div class="inc-cell"><span style="font-size:12px;">${inc.user_email||'—'}</span></div>
+      <div class="inc-cell" style="gap:7px;">${sourceIcon(src)}<span style="font-size:11px;color:var(--text3);">${timeAgo(inc.timestamp)}</span></div>
+      <div class="inc-cell"><span class="esc-score ${sc}">${score}</span></div>
+      <div class="inc-cell"><span class="status-pill ${status}">${status==='resolved'?'Resolved':'Active'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function openSidePanel(incId) {
+  const inc = incidents.find(i => i.id === incId);
+  if (!inc) return;
+  selectedIncidentId = incId;
+  document.querySelectorAll('.inc-row').forEach(r => r.classList.toggle('selected', r.dataset.id === incId));
+  const sev = riskToSev(inc.risk_level);
+  const src = getSource(inc);
+  const score = calcEscScore(inc);
+  const sc = escScoreClass(score);
+  const scoreColor = sc === 'crit' ? '#f87171' : sc === 'warn' ? '#fb923c' : '#34d399';
+  const sevCfg = {critical:{bg:'rgba(244,67,54,0.12)',color:'#f87171',icon:'🔴'},high:{bg:'rgba(255,109,46,0.12)',color:'#fb923c',icon:'🟠'},medium:{bg:'rgba(255,193,7,0.12)',color:'#ffc107',icon:'🟡'},low:{bg:'rgba(77,184,240,0.1)',color:'#4db8f0',icon:'🔵'},info:{bg:'rgba(77,184,240,0.1)',color:'#4db8f0',icon:'🔵'},resolved:{bg:'rgba(74,85,104,0.15)',color:'#6b7280',icon:'✅'}};
+  const scfg = sevCfg[sev] || sevCfg.low;
+  const detBadges = (inc.detections||[]).map(d=>detectionBadge(d)).join('') || '<span style="color:var(--text3);">No detail</span>';
+  let caughtHTML = '';
+  if (inc.detections && inc.detections.length) {
+    caughtHTML = inc.detections.slice(0,6).map(d => {
+      const type = d.isCode ? (CODE_SHORT_LABELS[d.type]||d.type) : (d.entity_type||'PII');
+      const val = d.value ? `<span style="color:#fbbf24;">"${String(d.value).slice(0,60)}${d.value.length>60?'...':''}"</span>` : '';
+      const line = d.line_number ? ` <span style="color:var(--text3);">line ${d.line_number}</span>` : '';
+      return `<span style="color:#60a5fa;">[${type}]</span> ${val}${line}`;
+    }).join('<br>');
+  } else { caughtHTML = '<span style="color:var(--text3);">No raw data available</span>'; }
+  const timeStr = inc.timestamp ? new Date(inc.timestamp).toLocaleString() : '—';
+  const statusStr = inc.resolved ? '<span style="color:#34d399;font-weight:600;">Resolved</span>' : '<span style="color:#f87171;font-weight:600;">Active</span>';
+  document.getElementById('sp-body').innerHTML = `
+    <div class="sp-sev-row">
+      <div class="sp-sev-icon" style="background:${scfg.bg};">${scfg.icon}</div>
+      <div class="sp-sev-info"><div class="sp-sev-type" style="color:${scfg.color};">${sev.toUpperCase()} RISK</div><div class="sp-sev-meta">${inc.ai_tool||'AI Tool'} · ${src==='network'?'Shield Network':'Browser Extension'}</div></div>
+      <span class="sev-badge ${sev}" style="margin-left:auto;flex-shrink:0;">${sev.toUpperCase()}</span>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Escalation Score</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--text2);">Risk priority level</span><span style="font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${scoreColor};">${score}</span></div>
+      <div class="sp-esc-track"><div class="sp-esc-fill" style="width:${score}%;background:${scoreColor};"></div></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">What Was Caught</div>
+      <div class="sp-detections">${detBadges}</div>
+      <div class="sp-caught-box">${caughtHTML}</div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Incident Details</div>
+      <div class="sp-field"><span class="sp-field-lbl">Employee</span><span class="sp-field-val">${inc.user_email||'—'}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">Source</span><span class="sp-field-val">${src==='network'?'Syphir Shield':'Chrome Extension'}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">AI Tool</span><span class="sp-field-val">${inc.ai_tool||'—'}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">Detected</span><span class="sp-field-val" style="font-size:11px;">${timeStr}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">Status</span><span class="sp-field-val">${statusStr}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">Incident ID</span><span class="sp-field-val" style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${inc.id}</span></div>
+    </div>
+    <div class="sp-section">
+      <div class="sp-section-title">Actions</div>
+      <div style="display:grid;gap:6px;">
+        ${!inc.resolved?`<button onclick="resolveSidePanel('${inc.id}')" style="width:100%;padding:9px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:#34d399;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Mark Resolved</button>`:''}
+        <button onclick="showToast('Employee notification coming in next release','info')" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Warn Employee</button>
+        <button onclick="showToast('Escalation sent to admin','info')" style="width:100%;padding:9px;background:rgba(244,67,54,0.08);border:1px solid rgba(244,67,54,0.2);color:#f87171;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Escalate to HR</button>
       </div>
-      <div class="td">${i.user_email||'—'}</div>
-      <div class="td"><span class="badge b-tool">${i.ai_tool||'AI Tool'}</span></div>
-      <div class="td">${rBadge(i.risk_level||'low')}</div>
-      <div class="td td-sub">${timeAgo(i.timestamp)}</div>
-      <div class="td"><button class="res-btn ${i.resolved?'done':''}" id="r-${i.id}" onclick="resolve('${i.id}')">${i.resolved?'✓ Done':'Resolve'}</button></div>
-    </div>`).join('');
+    </div>`;
+  document.getElementById('side-panel').classList.add('open');
+  document.getElementById('main').classList.add('panel-open');
 }
 
-// ── CHARTS ─────────────────────────────────────────────────────────────────
+function closeSidePanel() {
+  selectedIncidentId = null;
+  document.getElementById('side-panel').classList.remove('open');
+  document.getElementById('main').classList.remove('panel-open');
+  document.querySelectorAll('.inc-row').forEach(r => r.classList.remove('selected'));
+}
+
+async function resolveSidePanel(id) {
+  try {
+    await fetch(`${API}/incidents/${id}/resolve`, {method:'PATCH'});
+    showToast('Incident resolved');
+    await loadData();
+    openSidePanel(id);
+  } catch(e) { showToast('Failed to resolve', 'error'); }
+}
+
 function drawDonut(high, med, low, res) {
   const canvas = document.getElementById('donutChart');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const cx=60, cy=60, r=46, lw=14;
+  const ctx = canvas.getContext('2d'), cx=60, cy=60, r=46, lw=14;
   const total = high+med+low+res;
   ctx.clearRect(0,0,120,120);
-  if (!total) {
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.strokeStyle='#242d3e'; ctx.lineWidth=lw; ctx.stroke(); return;
-  }
+  if (!total) { ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle='#242d3e'; ctx.lineWidth=lw; ctx.stroke(); return; }
   const segs=[{v:high,c:'#f87171'},{v:med,c:'#fb923c'},{v:low,c:'#fbbf24'},{v:res,c:'#34d399'}].filter(s=>s.v>0);
   let a = -Math.PI/2;
-  segs.forEach(s => {
-    const sw = (s.v/total)*Math.PI*2;
-    ctx.beginPath(); ctx.arc(cx,cy,r,a,a+sw);
-    ctx.strokeStyle=s.c; ctx.lineWidth=lw; ctx.lineCap='butt'; ctx.stroke();
-    a += sw;
-  });
+  segs.forEach(s => { const sw=(s.v/total)*Math.PI*2; ctx.beginPath(); ctx.arc(cx,cy,r,a,a+sw); ctx.strokeStyle=s.c; ctx.lineWidth=lw; ctx.lineCap='butt'; ctx.stroke(); a+=sw; });
 }
 
 function drawBars(inc) {
   const c = document.getElementById('bar-chart');
   if (!c) return;
   const days = [];
-  for (let i=6; i>=0; i--) {
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const key = d.toISOString().split('T')[0];
-    const lbl = ['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
-    const count = inc.filter(x => x.timestamp && x.timestamp.startsWith(key)).length;
-    days.push({lbl, count});
-  }
-  const max = Math.max(...days.map(d=>d.count), 1);
-  c.innerHTML = days.map(d => {
-    const h = Math.max((d.count/max)*80, d.count>0?4:0);
-    const col = d.count>2?'#f87171':d.count>0?'#4db8f0':'#242d3e';
-    return `<div class="bar-col"><div class="bar-v">${d.count||''}</div><div class="bar" style="height:${h}px;background:${col};"></div><div class="bar-d">${d.lbl}</div></div>`;
-  }).join('');
+  for (let i=6; i>=0; i--) { const d=new Date(); d.setDate(d.getDate()-i); const key=d.toISOString().split('T')[0]; const lbl=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()]; const count=inc.filter(x=>x.timestamp&&x.timestamp.startsWith(key)).length; days.push({lbl,count}); }
+  const max = Math.max(...days.map(d=>d.count),1);
+  c.innerHTML = days.map(d => { const h=Math.max((d.count/max)*80,d.count>0?4:0); const col=d.count>2?'#f87171':d.count>0?'#4db8f0':'#242d3e'; return `<div class="bar-col"><div class="bar-v">${d.count||''}</div><div class="bar" style="height:${h}px;background:${col};"></div><div class="bar-d">${d.lbl}</div></div>`; }).join('');
 }
 
-// ── DATA ───────────────────────────────────────────────────────────────────
-async function loadData() {
-  // FIX: Guard — don't fetch until ORG_ID is resolved
-  if (!ORG_ID) return;
+function renderRows(list) {
+  if (!list.length) return '<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div>';
+  return list.map(i => `<div class="tbl-row"><div class="td"><div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${(i.detections||[]).map(d=>detectionBadge(d)).join('')||'<span style="font-size:12px;">PII Detected</span>'}</div><div class="td-sub">${i.org_name||ORG_NAME}</div></div><div class="td">${i.user_email||'—'}</div><div class="td"><span class="badge b-tool">${i.ai_tool||'AI Tool'}</span></div><div class="td">${rBadge(i.risk_level||'low')}</div><div class="td td-sub">${timeAgo(i.timestamp)}</div><div class="td"><button class="res-btn ${i.resolved?'done':''}" id="r-${i.id}" onclick="resolve('${i.id}')">${i.resolved?'Done':'Resolve'}</button></div></div>`).join('');
+}
 
+async function loadData() {
+  if (!ORG_ID) return;
   try {
-    const [iR, sR] = await Promise.all([
-      fetch(`${API}/incidents/${ORG_ID}`),
-      fetch(`${API}/stats/${ORG_ID}`)
-    ]);
+    const [iR, sR] = await Promise.all([fetch(`${API}/incidents/${ORG_ID}`), fetch(`${API}/stats/${ORG_ID}`)]);
     const iD = await iR.json(), sD = await sR.json();
     incidents = iD.incidents || [];
-    const h=sD.high_risk||0, m=sD.medium_risk||0, l=sD.low_risk||0, res=sD.resolved||0, tot=sD.total_incidents||0;
-    document.getElementById('s-total').textContent = tot;
-    document.getElementById('s-high').textContent = h;
-    document.getElementById('s-medium').textContent = m;
-    document.getElementById('s-resolved').textContent = res;
-    document.getElementById('donut-total').textContent = tot;
-    const pct = v => tot>0 ? '('+Math.round(v/tot*100)+'%)' : '(0%)';
-    document.getElementById('leg-high').textContent = h; document.getElementById('leg-high-pct').textContent = pct(h);
-    document.getElementById('leg-med').textContent = m;  document.getElementById('leg-med-pct').textContent = pct(m);
-    document.getElementById('leg-low').textContent = l;  document.getElementById('leg-low-pct').textContent = pct(l);
-    document.getElementById('leg-res').textContent = res; document.getElementById('leg-res-pct').textContent = pct(res);
-    drawDonut(h,m,l,res);
-    drawBars(incidents);
-    const un = sD.unresolved || 0;
-    const badge = document.getElementById('nav-badge');
-    badge.style.display = un>0 ? 'block' : 'none';
-    badge.textContent = un;
-    const rows = renderRows(incidents);
-    document.getElementById('tbl-overview').innerHTML = rows;
-    document.getElementById('tbl-incidents').innerHTML = rows;
-    if (incidents.length) {
-      document.getElementById('feed-list').innerHTML = incidents.slice(0,20).map(i=>`
-        <div class="feed-item">
-          <div class="feed-dot fd-${i.risk_level}">${i.risk_level==='high'?'🔴':i.risk_level==='medium'?'🟠':'🟡'}</div>
-          <div class="feed-body"><div class="feed-title" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${(i.detections||[]).slice(0,4).map(d=>detectionBadge(d)).join('')||'<span>PII</span>'}<span style="color:var(--text3);font-size:11px;"> detected</span></div><div class="feed-detail">${i.user_email||'—'} → ${i.ai_tool||'AI'}</div></div>
-          <div class="feed-time">${timeAgo(i.timestamp)}</div>
-        </div>`).join('');
-    }
-    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
-  } catch(e) {
-    document.getElementById('last-updated').textContent = 'API offline';
-  }
+    const h=sD.high_risk||0,m=sD.medium_risk||0,l=sD.low_risk||0,res=sD.resolved||0,tot=sD.total_incidents||0;
+    document.getElementById('s-total').textContent=tot; document.getElementById('s-high').textContent=h; document.getElementById('s-medium').textContent=m; document.getElementById('s-resolved').textContent=res; document.getElementById('donut-total').textContent=tot;
+    const pct=v=>tot>0?'('+Math.round(v/tot*100)+'%)':'(0%)';
+    document.getElementById('leg-high').textContent=h; document.getElementById('leg-high-pct').textContent=pct(h);
+    document.getElementById('leg-med').textContent=m; document.getElementById('leg-med-pct').textContent=pct(m);
+    document.getElementById('leg-low').textContent=l; document.getElementById('leg-low-pct').textContent=pct(l);
+    document.getElementById('leg-res').textContent=res; document.getElementById('leg-res-pct').textContent=pct(res);
+    drawDonut(h,m,l,res); drawBars(incidents);
+    const un=sD.unresolved||0; const badge=document.getElementById('nav-badge'); badge.style.display=un>0?'block':'none'; badge.textContent=un;
+    document.getElementById('tbl-overview').innerHTML=renderRows(incidents);
+    renderIncidentTable();
+    if (incidents.length) { document.getElementById('feed-list').innerHTML=incidents.slice(0,20).map(i=>`<div class="feed-item"><div class="feed-dot fd-${i.risk_level}">${i.risk_level==='high'?'🔴':i.risk_level==='medium'?'🟠':'🟡'}</div><div class="feed-body"><div class="feed-title" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${(i.detections||[]).slice(0,4).map(d=>detectionBadge(d)).join('')||'<span>PII</span>'}<span style="color:var(--text3);font-size:11px;"> detected</span></div><div class="feed-detail">${i.user_email||'—'} to ${i.ai_tool||'AI'}</div></div><div class="feed-time">${timeAgo(i.timestamp)}</div></div>`).join(''); }
+    document.getElementById('last-updated').textContent=new Date().toLocaleTimeString();
+  } catch(e) { document.getElementById('last-updated').textContent='API offline'; }
 }
 
-// ── SETTINGS SAVE ──────────────────────────────────────────────────────────
 async function saveSettings() {
-  // FIX: Actually save org name + email to API instead of just alert()
-  const newName  = document.getElementById('settings-org-name').value.trim();
-  const newEmail = document.getElementById('settings-admin-email').value.trim();
-  if (!newName) { showToast('Organization name cannot be empty', 'error'); return; }
+  const newName=document.getElementById('settings-org-name').value.trim(); const newEmail=document.getElementById('settings-admin-email').value.trim();
+  if (!newName) { showToast('Organization name cannot be empty','error'); return; }
   try {
-    const res = await fetch(`${API}/org/${ORG_ID}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName, admin_email: newEmail })
-    });
-    if (res.ok) {
-      ORG_NAME = newName;
-      ORG_ADMIN_EMAIL = newEmail;
-      document.getElementById('org-name').textContent = ORG_NAME;
-      showToast('✓ Settings saved!');
-    } else {
-      showToast('Failed to save — API returned an error', 'error');
-    }
-  } catch(e) {
-    ORG_NAME = newName;
-    document.getElementById('org-name').textContent = ORG_NAME;
-    showToast('✓ Saved locally (API offline)');
-  }
+    const res=await fetch(`${API}/org/${ORG_ID}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:newName,admin_email:newEmail})});
+    if (res.ok) { ORG_NAME=newName; ORG_ADMIN_EMAIL=newEmail; document.getElementById('org-name').textContent=ORG_NAME; showToast('Settings saved!'); }
+    else showToast('Failed to save','error');
+  } catch(e) { ORG_NAME=newName; document.getElementById('org-name').textContent=ORG_NAME; showToast('Saved locally (API offline)'); }
 }
 
-// ── TEAM ───────────────────────────────────────────────────────────────────
 function lastSeenLabel(iso) {
   if (!iso) return '—';
-  const s = (Date.now() - new Date(iso)) / 1000;
-  if (s < 60) return 'just now';
-  if (s < 3600) return Math.floor(s/60) + 'm ago';
-  if (s < 86400) return Math.floor(s/3600) + 'h ago';
-  if (s < 86400*7) return Math.floor(s/86400) + 'd ago';
-  return new Date(iso).toLocaleDateString();
+  const s=(Date.now()-new Date(iso))/1000;
+  if (s<60) return 'just now'; if (s<3600) return Math.floor(s/60)+'m ago'; if (s<86400) return Math.floor(s/3600)+'h ago';
+  if (s<86400*7) return Math.floor(s/86400)+'d ago'; return new Date(iso).toLocaleDateString();
 }
 
 let _memberMap = {};
-
 async function loadTeamMembers() {
   if (!ORG_ID) return;
-  const list = document.getElementById('team-members-list');
-  if (!list) return;
+  const list=document.getElementById('team-members-list'); if (!list) return;
   try {
-    const res = await fetch(`${API}/team/${ORG_ID}`);
-    const data = await res.json();
-    const members = (data.users || []).filter(u => u.status !== 'removed');
-    const adminEmail = ORG_ADMIN_EMAIL || ORG_NAME + ' Admin';
-
-    _memberMap = {};
-
-    const hdr = `<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
-      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Member</div>
-      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Role</div>
-      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Last Seen</div>
-      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Actions</div>
-    </div>`;
-
-    const adminRow = `<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;">
-      <div><div style="font-size:12.5px;font-weight:600;">${adminEmail}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Dashboard Admin</div></div>
-      <div><span style="font-size:10.5px;font-weight:600;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:2px 7px;border-radius:4px;">Admin</span></div>
-      <div style="font-size:11px;color:var(--green);font-weight:500;">● Active</div>
-      <div></div>
-    </div>`;
-
-    if (!members.length) {
-      list.innerHTML = hdr + adminRow + `<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px;">No employees yet — share the install link above.</div>`;
-      return;
-    }
-
-    const rows = members.map(u => {
-      _memberMap[u.id] = u;
-      const isActive = u.status === 'active';
-      const statusColor = isActive ? 'var(--green)' : 'var(--yellow)';
-      const statusLabel = isActive ? '● Active' : '● Invited';
-      const displayName = u.name ? `<div style="font-size:12.5px;font-weight:600;">${u.name}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">${u.email}</div>` : `<div style="font-size:12.5px;font-weight:600;">${u.email}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">${u.role||'Member'}</div>`;
-      return `<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;">
-        <div>${displayName}</div>
-        <div><span style="font-size:10.5px;font-weight:600;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;">${u.role||'Member'}</span></div>
-        <div style="font-size:11px;color:${statusColor};font-weight:500;">${statusLabel}<div style="font-size:10px;color:var(--text3);font-weight:400;margin-top:1px;">${lastSeenLabel(u.last_seen)}</div></div>
-        <div style="display:flex;gap:4px;">
-          <button onclick="openEditUser('${u.id}')" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;" title="Edit">✏</button>
-          <button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;" title="Remove">✕</button>
-        </div>
-      </div>`;
+    const res=await fetch(`${API}/team/${ORG_ID}`); const data=await res.json();
+    const members=(data.users||[]).filter(u=>u.status!=='removed'); const adminEmail=ORG_ADMIN_EMAIL||ORG_NAME+' Admin';
+    _memberMap={};
+    const hdr=`<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Member</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Role</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Last Seen</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Actions</div></div>`;
+    const adminRow=`<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;"><div><div style="font-size:12.5px;font-weight:600;">${adminEmail}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">Dashboard Admin</div></div><div><span style="font-size:10.5px;font-weight:600;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:2px 7px;border-radius:4px;">Admin</span></div><div style="font-size:11px;color:var(--green);font-weight:500;">Active</div><div></div></div>`;
+    if (!members.length) { list.innerHTML=hdr+adminRow+'<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px;">No employees yet</div>'; return; }
+    const rows=members.map(u=>{
+      _memberMap[u.id]=u;
+      const isActive=u.status==='active'; const sc=isActive?'var(--green)':'var(--yellow)'; const sl=isActive?'Active':'Invited';
+      const dn=u.name?`<div style="font-size:12.5px;font-weight:600;">${u.name}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">${u.email}</div>`:`<div style="font-size:12.5px;font-weight:600;">${u.email}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">${u.role||'Member'}</div>`;
+      return `<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;"><div>${dn}</div><div><span style="font-size:10.5px;font-weight:600;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;">${u.role||'Member'}</span></div><div style="font-size:11px;color:${sc};font-weight:500;">${sl}<div style="font-size:10px;color:var(--text3);font-weight:400;margin-top:1px;">${lastSeenLabel(u.last_seen)}</div></div><div style="display:flex;gap:4px;"><button onclick="openEditUser('${u.id}')" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;" title="Edit">Edit</button><button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;" title="Remove">X</button></div></div>`;
     }).join('');
-
-    list.innerHTML = hdr + adminRow + rows;
-  } catch(e) {
-    list.innerHTML = `<div style="padding:12px 0;color:var(--text3);font-size:12px;">Could not load members.</div>`;
-  }
+    list.innerHTML=hdr+adminRow+rows;
+  } catch(e) { list.innerHTML='<div style="padding:12px 0;color:var(--text3);font-size:12px;">Could not load members.</div>'; }
 }
 
-async function removeUser(id) {
-  const ok = await appConfirm('Remove this team member?');
-  if (!ok) return;
-  try { await fetch(`${API}/team/${id}/remove`, {method:'PATCH'}); loadTeamMembers(); } catch(e){}
-}
+async function removeUser(id) { const ok=await appConfirm('Remove this team member?'); if (!ok) return; try { await fetch(`${API}/team/${id}/remove`,{method:'PATCH'}); loadTeamMembers(); } catch(e){} }
 
-let _editUserId = null;
-
+let _editUserId=null;
 function openEditUser(id) {
-  const u = _memberMap[id];
-  if (!u) return;
-  _editUserId = id;
-  document.getElementById('edit-member-email').textContent = u.email;
-  document.getElementById('edit-member-name').value  = u.name  || '';
-  document.getElementById('edit-member-role').value  = u.role  || 'Member';
-  document.getElementById('edit-member-notes').value = u.notes || '';
-  document.getElementById('edit-member-err').textContent = '';
-  document.getElementById('edit-member-save').textContent = 'Save Changes';
-  document.getElementById('edit-member-save').disabled = false;
-  document.getElementById('edit-member-modal').style.display = 'flex';
+  const u=_memberMap[id]; if (!u) return; _editUserId=id;
+  document.getElementById('edit-member-email').textContent=u.email; document.getElementById('edit-member-name').value=u.name||''; document.getElementById('edit-member-role').value=u.role||'Member'; document.getElementById('edit-member-notes').value=u.notes||''; document.getElementById('edit-member-err').textContent=''; document.getElementById('edit-member-save').textContent='Save Changes'; document.getElementById('edit-member-save').disabled=false;
+  document.getElementById('edit-member-modal').style.display='flex';
 }
-
-function closeEditUser() {
-  document.getElementById('edit-member-modal').style.display = 'none';
-  _editUserId = null;
-}
-
+function closeEditUser() { document.getElementById('edit-member-modal').style.display='none'; _editUserId=null; }
 async function saveUserEdit() {
   if (!_editUserId) return;
-  const name  = document.getElementById('edit-member-name').value.trim();
-  const role  = document.getElementById('edit-member-role').value;
-  const notes = document.getElementById('edit-member-notes').value.trim();
-  const errEl = document.getElementById('edit-member-err');
-  const btn   = document.getElementById('edit-member-save');
-  btn.textContent = 'Saving…'; btn.disabled = true;
+  const name=document.getElementById('edit-member-name').value.trim(); const role=document.getElementById('edit-member-role').value; const notes=document.getElementById('edit-member-notes').value.trim();
+  const errEl=document.getElementById('edit-member-err'); const btn=document.getElementById('edit-member-save'); btn.textContent='Saving...'; btn.disabled=true;
   try {
-    const res = await fetch(`${API}/team/${_editUserId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, role, notes }),
-    });
-    const d = await res.json();
-    if (!res.ok || !d.success) {
-      errEl.textContent = d.message || 'Save failed — try again.';
-      btn.textContent = 'Save Changes'; btn.disabled = false;
-      return;
-    }
-    closeEditUser();
-    loadTeamMembers();
-    showToast('✓ Team member updated');
-  } catch(e) {
-    errEl.textContent = 'Network error — try again.';
-    btn.textContent = 'Save Changes'; btn.disabled = false;
-  }
+    const res=await fetch(`${API}/team/${_editUserId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,role,notes})}); const d=await res.json();
+    if (!res.ok||!d.success) { errEl.textContent=d.message||'Save failed'; btn.textContent='Save Changes'; btn.disabled=false; return; }
+    closeEditUser(); loadTeamMembers(); showToast('Team member updated');
+  } catch(e) { errEl.textContent='Network error'; btn.textContent='Save Changes'; btn.disabled=false; }
 }
 
 async function resolve(id) {
-  try {
-    await fetch(`${API}/incidents/${id}/resolve`, {method:'PATCH'});
-    const b = document.getElementById('r-'+id);
-    if (b) { b.textContent='✓ Done'; b.classList.add('done'); }
-    loadData();
-  } catch(e){}
+  try { await fetch(`${API}/incidents/${id}/resolve`,{method:'PATCH'}); const b=document.getElementById('r-'+id); if (b){b.textContent='Done';b.classList.add('done');} loadData(); } catch(e){}
 }
 
-// ── TOAST / CONFIRM / PROMPT ───────────────────────────────────────────────
-let _toastTimer = null;
-function showToast(msg, type = 'success') {
-  const el = document.getElementById('app-toast');
-  if (!el) return;
-  const styles = { success: { bg:'#00e676', color:'#000' }, error: { bg:'#f44336', color:'#fff' }, info: { bg:'#2196d3', color:'#fff' } };
-  const s = styles[type] || styles.success;
-  el.textContent = msg;
-  el.style.background = s.bg;
-  el.style.color = s.color;
-  el.style.display = 'block';
-  el.style.opacity = '1';
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 200); }, 3000);
+let _toastTimer=null;
+function showToast(msg,type='success') {
+  const el=document.getElementById('app-toast'); if (!el) return;
+  const styles={success:{bg:'#00e676',color:'#000'},error:{bg:'#f44336',color:'#fff'},info:{bg:'#2196d3',color:'#fff'}};
+  const s=styles[type]||styles.success; el.textContent=msg; el.style.background=s.bg; el.style.color=s.color; el.style.display='block'; el.style.opacity='1';
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>{el.style.opacity='0';setTimeout(()=>{el.style.display='none';},200);},3000);
 }
 
-let _confirmResolve = null;
+let _confirmResolve=null;
 function appConfirm(msg) {
-  return new Promise(resolve => {
-    _confirmResolve = resolve;
-    document.getElementById('app-confirm-msg').textContent = msg;
-    const modal = document.getElementById('app-confirm-modal');
-    modal.style.display = 'flex';
-    document.getElementById('app-confirm-ok').onclick = () => { modal.style.display = 'none'; resolve(true); };
-  });
+  return new Promise(resolve=>{ _confirmResolve=resolve; document.getElementById('app-confirm-msg').textContent=msg; const modal=document.getElementById('app-confirm-modal'); modal.style.display='flex'; document.getElementById('app-confirm-ok').onclick=()=>{modal.style.display='none';resolve(true);}; });
 }
-function appConfirmCancel() {
-  document.getElementById('app-confirm-modal').style.display = 'none';
-  if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
-}
+function appConfirmCancel() { document.getElementById('app-confirm-modal').style.display='none'; if (_confirmResolve){_confirmResolve(false);_confirmResolve=null;} }
 
-let _promptResolve = null;
-function appPrompt(msg, placeholder = '') {
-  return new Promise(resolve => {
-    _promptResolve = resolve;
-    document.getElementById('app-prompt-label').textContent = msg;
-    const inp = document.getElementById('app-prompt-input');
-    inp.value = '';
-    inp.placeholder = placeholder;
-    const modal = document.getElementById('app-prompt-modal');
-    modal.style.display = 'flex';
-    setTimeout(() => inp.focus(), 50);
-    inp.onkeydown = e => { if (e.key === 'Enter') { modal.style.display = 'none'; resolve(inp.value.trim()); } };
-    document.getElementById('app-prompt-ok').onclick = () => { modal.style.display = 'none'; resolve(inp.value.trim()); };
+let _promptResolve=null;
+function appPrompt(msg,placeholder='') {
+  return new Promise(resolve=>{
+    _promptResolve=resolve; document.getElementById('app-prompt-label').textContent=msg;
+    const inp=document.getElementById('app-prompt-input'); inp.value=''; inp.placeholder=placeholder;
+    const modal=document.getElementById('app-prompt-modal'); modal.style.display='flex'; setTimeout(()=>inp.focus(),50);
+    inp.onkeydown=e=>{if(e.key==='Enter'){modal.style.display='none';resolve(inp.value.trim());}};
+    document.getElementById('app-prompt-ok').onclick=()=>{modal.style.display='none';resolve(inp.value.trim());};
   });
 }
-function appPromptCancel() {
-  document.getElementById('app-prompt-modal').style.display = 'none';
-  if (_promptResolve) { _promptResolve(null); _promptResolve = null; }
-}
+function appPromptCancel() { document.getElementById('app-prompt-modal').style.display='none'; if (_promptResolve){_promptResolve(null);_promptResolve=null;} }
 
 function exportCSV() {
-  if (!incidents.length) { showToast('No incidents to export', 'info'); return; }
-  const h = ['ID','User','AI Tool','Risk','Detections','Time','Resolved'];
-  const r = incidents.map(i => [i.id, i.user_email, i.ai_tool, i.risk_level, (i.detections||[]).map(d=>d.label||d.entity_type).join('|'), i.timestamp, i.resolved]);
-  const csv = [h,...r].map(x=>x.join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download = `syphir-${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
+  if (!incidents.length){showToast('No incidents to export','info');return;}
+  const h=['ID','User','AI Tool','Risk','Detections','Time','Resolved'];
+  const r=incidents.map(i=>[i.id,i.user_email,i.ai_tool,i.risk_level,(i.detections||[]).map(d=>d.label||d.entity_type).join('|'),i.timestamp,i.resolved]);
+  const csv=[h,...r].map(x=>x.join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`syphir-${new Date().toISOString().split('T')[0]}.csv`; a.click();
 }
 
 function copyInstallLink() {
-  const link = document.getElementById('install-link').value;
-  if (!link) return;
-  navigator.clipboard.writeText(link).then(() => {
-    const msg = document.getElementById('copy-link-msg');
-    msg.style.color='var(--green)'; msg.textContent='✓ Link copied!';
-    setTimeout(() => msg.textContent='', 3000);
-  });
+  const link=document.getElementById('install-link').value; if (!link) return;
+  navigator.clipboard.writeText(link).then(()=>{ const msg=document.getElementById('copy-link-msg'); msg.style.color='var(--green)'; msg.textContent='Link copied!'; setTimeout(()=>msg.textContent='',3000); });
 }
 
 function clearFeed() { document.getElementById('feed-list').innerHTML='<div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Feed cleared</div></div>'; }
 
-// ── AI PROVIDER KEYS ────────────────────────────────────────────────────────
-const DEFAULT_PROVIDERS = [
-  { id:'openai',     name:'OpenAI / ChatGPT',   icon:'🟢', placeholder:'sk-...' },
-  { id:'anthropic',  name:'Anthropic / Claude', icon:'🔴', placeholder:'sk-ant-...' },
-  { id:'gemini',     name:'Google Gemini',      icon:'🔵', placeholder:'AIza...' },
-  { id:'groq',       name:'Groq',               icon:'⚡', placeholder:'gsk_...' },
-  { id:'copilot',    name:'Microsoft Copilot',  icon:'🪟', placeholder:'API key...' },
-  { id:'perplexity', name:'Perplexity',         icon:'🔮', placeholder:'pplx-...' },
-];
-const PROVIDER_STORAGE_KEY = 'syphir_provider_keys_' + ORG_KEY;
-
-function loadProviderKeys() {
-  try { return JSON.parse(localStorage.getItem(PROVIDER_STORAGE_KEY) || '{}'); } catch(_) { return {}; }
+const DEFAULT_PROVIDERS=[{id:'openai',name:'OpenAI / ChatGPT',icon:'🟢',placeholder:'sk-...'},{id:'anthropic',name:'Anthropic / Claude',icon:'🔴',placeholder:'sk-ant-...'},{id:'gemini',name:'Google Gemini',icon:'🔵',placeholder:'AIza...'},{id:'groq',name:'Groq',icon:'⚡',placeholder:'gsk_...'},{id:'copilot',name:'Microsoft Copilot',icon:'🪟',placeholder:'API key...'},{id:'perplexity',name:'Perplexity',icon:'🔮',placeholder:'pplx-...'}];
+const PROVIDER_STORAGE_KEY='syphir_provider_keys_'+ORG_KEY;
+function loadProviderKeys(){try{return JSON.parse(localStorage.getItem(PROVIDER_STORAGE_KEY)||'{}')}catch(_){return{}}}
+function renderProviders(){
+  const saved=loadProviderKeys(); const list=document.getElementById('providers-list'); if (!list) return;
+  const customIds=Object.keys(saved).filter(id=>!DEFAULT_PROVIDERS.find(p=>p.id===id));
+  const all=[...DEFAULT_PROVIDERS,...customIds.map(id=>({id,name:saved[id].name||id,icon:'🔧',placeholder:'API key...',custom:true}))];
+  list.innerHTML=all.map(p=>{const val=saved[p.id]?.key||'';const connected=val.length>0;return `<div class="prov-row" data-id="${p.id}"><div class="prov-name"><span class="prov-icon">${p.icon}</span>${p.name}</div><div class="prov-key-wrap"><input type="password" class="inp prov-key-inp" placeholder="${p.placeholder}" value="${val}" autocomplete="off" oninput="updateProviderStatus(this)"><button class="prov-vis" onclick="toggleKeyVis(this)" tabindex="-1">Show</button></div><div class="prov-status"><div class="prov-dot ${connected?'on':''}"></div><span class="prov-status-txt">${connected?'Connected':'Not connected'}</span></div><button class="prov-del" onclick="removeProviderRow(this,'${p.id}')" title="Remove">X</button></div>`;}).join('');
 }
-
-function renderProviders() {
-  const saved = loadProviderKeys();
-  const list = document.getElementById('providers-list');
-  if (!list) return;
-
-  // Build rows: default providers first, then any custom saved ones
-  const customIds = Object.keys(saved).filter(id => !DEFAULT_PROVIDERS.find(p => p.id === id));
-  const allProviders = [
-    ...DEFAULT_PROVIDERS,
-    ...customIds.map(id => ({ id, name: saved[id].name || id, icon: '🔧', placeholder: 'API key...', custom: true }))
-  ];
-
-  list.innerHTML = allProviders.map(p => {
-    const val = saved[p.id]?.key || '';
-    const connected = val.length > 0;
-    return `<div class="prov-row" data-id="${p.id}">
-      <div class="prov-name"><span class="prov-icon">${p.icon}</span>${p.name}</div>
-      <div class="prov-key-wrap">
-        <input type="password" class="inp prov-key-inp" placeholder="${p.placeholder}" value="${val}" autocomplete="off" oninput="updateProviderStatus(this)">
-        <button class="prov-vis" onclick="toggleKeyVis(this)" tabindex="-1">👁</button>
-      </div>
-      <div class="prov-status">
-        <div class="prov-dot ${connected?'on':''}"></div>
-        <span class="prov-status-txt">${connected?'Connected':'Not connected'}</span>
-      </div>
-      <button class="prov-del" onclick="removeProviderRow(this,'${p.id}')" title="Remove">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function updateProviderStatus(input) {
-  const row = input.closest('.prov-row');
-  const dot  = row.querySelector('.prov-dot');
-  const txt  = row.querySelector('.prov-status-txt');
-  const hasKey = input.value.trim().length > 0;
-  dot.classList.toggle('on', hasKey);
-  txt.textContent = hasKey ? 'Connected' : 'Not connected';
-}
-
-function toggleKeyVis(btn) {
-  const inp = btn.previousElementSibling;
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
-}
-
-function removeProviderRow(btn, id) {
-  const saved = loadProviderKeys();
-  delete saved[id];
-  localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify(saved));
-  renderProviders();
-}
-
-async function addProviderRow() {
-  const name = await appPrompt('Provider name (e.g. "Mistral"):', 'Mistral');
-  if (!name || !name.trim()) return;
-  const id = name.trim().toLowerCase().replace(/\s+/g, '_');
-  const saved = loadProviderKeys();
-  if (!saved[id]) saved[id] = { name: name.trim(), key: '' };
-  localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify(saved));
-  renderProviders();
-}
-
-function saveProviderKeys() {
-  const rows = document.querySelectorAll('#providers-list .prov-row');
-  const data = {};
-  rows.forEach(row => {
-    const id   = row.dataset.id;
-    const key  = row.querySelector('.prov-key-inp').value.trim();
-    const name = row.querySelector('.prov-name').textContent.trim();
-    if (id) data[id] = { key, name };
-  });
-  localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify(data));
-  const msg = document.getElementById('provider-save-msg');
-  if (msg) { msg.textContent = '✓ Keys saved locally'; setTimeout(() => msg.textContent='', 3000); }
-  renderProviders();
-}
+function updateProviderStatus(input){const row=input.closest('.prov-row');const dot=row.querySelector('.prov-dot');const txt=row.querySelector('.prov-status-txt');const hasKey=input.value.trim().length>0;dot.classList.toggle('on',hasKey);txt.textContent=hasKey?'Connected':'Not connected';}
+function toggleKeyVis(btn){const inp=btn.previousElementSibling;inp.type=inp.type==='password'?'text':'password';btn.textContent=inp.type==='password'?'Show':'Hide';}
+function removeProviderRow(btn,id){const saved=loadProviderKeys();delete saved[id];localStorage.setItem(PROVIDER_STORAGE_KEY,JSON.stringify(saved));renderProviders();}
+async function addProviderRow(){const name=await appPrompt('Provider name (e.g. "Mistral"):','Mistral');if(!name||!name.trim())return;const id=name.trim().toLowerCase().replace(/\s+/g,'_');const saved=loadProviderKeys();if(!saved[id])saved[id]={name:name.trim(),key:''};localStorage.setItem(PROVIDER_STORAGE_KEY,JSON.stringify(saved));renderProviders();}
+function saveProviderKeys(){const rows=document.querySelectorAll('#providers-list .prov-row');const data={};rows.forEach(row=>{const id=row.dataset.id;const key=row.querySelector('.prov-key-inp').value.trim();const name=row.querySelector('.prov-name').textContent.trim();if(id)data[id]={key,name};});localStorage.setItem(PROVIDER_STORAGE_KEY,JSON.stringify(data));const msg=document.getElementById('provider-save-msg');if(msg){msg.textContent='Keys saved locally';setTimeout(()=>msg.textContent='',3000);}renderProviders();}
 </script>
 </body>
 </html>
