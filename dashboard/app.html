@@ -1410,8 +1410,8 @@ async function intelSend() {
         intelRunning = true;
         document.getElementById('intel-send-btn').disabled = true;
         document.getElementById('intel-input').disabled    = true;
-        intelAddMsg('system', `Dispatching repair agent to ${m[1]}'s machine...`, id);
-        await intelRunRepair(id, m[1]);
+        intelAddMsg('system', `Dispatching diagnostic agent to ${m[1]}'s machine...`, id);
+        await intelRunDiagnostic(id, m[1]);
         break;
       }
       if (cmd.type === 'diagnostic') {
