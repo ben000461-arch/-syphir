@@ -711,7 +711,7 @@ function showTrialBanner(daysLeft, plan) {
   banner.id = 'trial-banner';
   banner.style.cssText = 'position:fixed;bottom:0;left:220px;right:0;z-index:999;background:' + color + ';color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Inter,sans-serif;font-size:13px;font-weight:500;';
   const daysText = daysLeft === 1 ? '1 day' : daysLeft + ' days';
-  banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong></span><button onclick="startBannerCheckout()" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;border:none;cursor:pointer;font-family:Inter,sans-serif;margin-left:16px;">Upgrade Now</button>';
+  banner.innerHTML = '<span>Your free trial expires in <strong>' + daysText + '</strong></span><div style="display:flex;align-items:center;gap:8px;margin-left:16px;flex-shrink:0;"><button onclick="startBannerCheckout()" style="background:#fff;color:' + color + ';padding:5px 14px;border-radius:5px;font-weight:700;font-size:12px;border:none;cursor:pointer;font-family:Inter,sans-serif;">Upgrade Now</button><button onclick="this.closest(\'#trial-banner\').remove()" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;opacity:0.7;padding:0 2px;" title="Dismiss">×</button></div>';
   document.body.appendChild(banner);
 }
 
