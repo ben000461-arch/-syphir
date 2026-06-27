@@ -1095,6 +1095,7 @@ function nav(page, el) {
   if (page === 'settings') { loadTeamMembers(); refreshSettingsBilling(); }
   if (page === 'gateway') renderProviders();
   if (page === 'intel') intelCheckSavedDevice();
+  if (page === 'network' && !window._nsSeeded) { window._nsSeeded=true; setTimeout(networkSeedDemo,300); }
 }
 
 function setFilter(f, el) {
@@ -1919,6 +1920,9 @@ function networkIngestThreat(threat) {
   if (document.getElementById('page-network').style.display !== 'none') {
     networkRefresh();
   }
+  // Live update workbench if open
+  const wb = document.getElementById('ns-tool-workbench');
+  if (wb && wb.style.display !== 'none') setTimeout(wbPaint, 50);
 }
 
 function _isLAN(ip) {
@@ -2569,16 +2573,8 @@ function wbTooltip(e, ip) {
   tip.style.display='';
 }
 
-// Update workbench live when new threats come in
-const _origNetworkIngest = networkIngestThreat;
-networkIngestThreat = function(threat) {
-  _origNetworkIngest(threat);
-  // Live update workbench if it's open
-  const wb = document.getElementById('ns-tool-workbench');
-  if (wb && wb.style.display !== 'none') {
-    setTimeout(wbPaint, 50);
-  }
-};
+// Live update workbench when new threats come in — handled inside networkIngestThreat
+function networkReleaseDevice(ip) {
   delete NS_ISOLATED[ip];
   const badge = document.getElementById('badge-network');
   const count = Object.keys(NS_ISOLATED).length;
@@ -2623,16 +2619,8 @@ function _timeStr(d) {
   return new Date(d).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 
-// Hook into nav to seed demo on first visit
-const _origNav = nav;
+// Network security demo seeding handled in nav() directly
 window._nsSeeded = false;
-nav = function(page, el) {
-  _origNav(page, el);
-  if (page === 'network' && !window._nsSeeded) {
-    window._nsSeeded = true;
-    setTimeout(networkSeedDemo, 300);
-  }
-};
 </script>
 </body>
 </html>
