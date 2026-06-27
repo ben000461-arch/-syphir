@@ -270,7 +270,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .intel-input:focus{border-color:var(--blue);}
 .intel-send{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0;transition:background 0.15s;}
 .intel-send:hover{background:var(--blue-d);}
-/* ── NETWORK SECURITY ─────────────────────────────────────────────── */
+/* ── NS TABS ──────────────────────────────────────────────────────── */
+.ns-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:12px;font-weight:600;font-family:'Inter',sans-serif;padding:13px 18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.ns-tab:hover{color:var(--text2);background:rgba(255,255,255,0.02);}
+.ns-tab.active{color:var(--blue-l);border-bottom-color:var(--blue);background:rgba(33,150,211,0.05);}
+
+/* ── PROCESS TREE SVG nodes ───────────────────────────────────────── */
+.pt-node{cursor:pointer;}
+.pt-node-box{rx:6;ry:6;transition:filter 0.15s;}
+.pt-node:hover .pt-node-box{filter:brightness(1.3);}
+.pt-connector{stroke:var(--border2);stroke-width:1.5;fill:none;}
+.pt-connector.active{stroke:#f44336;}
+
+/* ── TIMELINE SVG ─────────────────────────────────────────────────── */
+.tl-node{cursor:pointer;}
+.tl-link{stroke-width:1.5;fill:none;opacity:0.6;}
+.tl-label{font-family:'Inter',sans-serif;font-size:10px;fill:var(--text2);pointer-events:none;}
+</style>
 .ns-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
 .ns-grid-full{margin-bottom:16px;}
 .threat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
@@ -604,30 +620,77 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div id="ns-threat-feed"><div class="threat-empty">Monitoring network — no threats detected yet</div></div>
       </div>
 
-      <!-- Attack timeline -->
-      <div class="threat-card ns-grid-full" id="ns-timeline-card">
-        <div class="threat-card-hdr">
-          <div>
-            <div class="threat-card-title">⟶ Attack Timeline</div>
-            <div class="threat-card-sub">Full event chain per device — from first detection to isolation</div>
+      <!-- Analysis toolbar — Process Tree + Events Timeline tabs -->
+      <div class="threat-card ns-grid-full" id="ns-analysis-card">
+        <div class="threat-card-hdr" style="padding:0;">
+          <!-- Tab bar -->
+          <div style="display:flex;align-items:stretch;border-bottom:1px solid var(--border);width:100%;">
+            <button class="ns-tab active" id="ns-tab-ptree" onclick="nsTab('ptree')">
+              <span style="font-size:12px;">⬡</span> Process Tree
+            </button>
+            <button class="ns-tab" id="ns-tab-timeline" onclick="nsTab('timeline')">
+              <span style="font-size:12px;">⟶</span> Events Timeline
+            </button>
+            <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding:0 14px;gap:8px;">
+              <div style="display:flex;gap:4px;" id="ns-device-tabs-bar"></div>
+              <button class="btn btn-ghost" style="font-size:10px;padding:3px 9px;" onclick="nsZoomReset()">Reset View</button>
+            </div>
           </div>
-          <div style="display:flex;gap:6px;" id="ns-timeline-device-tabs"></div>
         </div>
-        <div class="timeline-wrap" id="ns-timeline-wrap">
-          <div class="threat-empty">No active threat timelines</div>
-        </div>
-      </div>
 
-      <!-- Process tree -->
-      <div class="threat-card ns-grid-full" id="ns-ptree-card">
-        <div class="threat-card-hdr">
-          <div>
-            <div class="threat-card-title">❧ Attack Process Tree</div>
-            <div class="threat-card-sub">How the threat chain unfolded — signature → action → response</div>
+        <!-- Process Tree view (CrowdStrike horizontal node graph) -->
+        <div id="ns-ptree-view" style="position:relative;">
+          <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">Legend</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:50%;background:#f44336;box-shadow:0 0 6px #f44336;"></div>Detection — critical
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:50%;background:#ff6d2e;box-shadow:0 0 5px #ff6d2e;"></div>Detection — high
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:50%;background:#ffc107;box-shadow:0 0 4px #ffc107;"></div>Detection — medium
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--border2);"></div>Process / event
+            </div>
+            <div style="margin-left:auto;font-size:11px;color:var(--text3);" id="ns-ptree-device-label">Select a device above</div>
+          </div>
+          <!-- Horizontal scrollable canvas -->
+          <div style="overflow-x:auto;overflow-y:auto;min-height:300px;max-height:480px;position:relative;" id="ns-ptree-scroll">
+            <svg id="ns-ptree-svg" style="min-width:100%;display:block;" height="300"></svg>
+          </div>
+          <!-- Detail side panel -->
+          <div id="ns-ptree-detail" style="display:none;position:absolute;right:0;top:0;bottom:0;width:320px;background:var(--bg2);border-left:1px solid var(--border);padding:18px;overflow-y:auto;z-index:10;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <div style="font-size:13px;font-weight:700;color:var(--text);" id="ns-detail-title">Node detail</div>
+              <button onclick="document.getElementById('ns-ptree-detail').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;">×</button>
+            </div>
+            <div id="ns-detail-body"></div>
           </div>
         </div>
-        <div class="ptree-wrap" id="ns-ptree-wrap">
-          <div class="threat-empty">Select a device from the timeline to view its process tree</div>
+
+        <!-- Events Timeline view (CrowdStrike relationship graph) -->
+        <div id="ns-timeline-view" style="display:none;position:relative;">
+          <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">Relationship Graph</div>
+            <div style="font-size:11px;color:var(--text2);">Drag nodes · Scroll to zoom · Click to inspect</div>
+            <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);">
+                <div style="width:24px;height:2px;background:#f44336;"></div>C2 / Isolate
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);">
+                <div style="width:24px;height:2px;background:#ffc107;"></div>Warn / Block
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);">
+                <div style="width:24px;height:2px;background:var(--border2);"></div>Watch
+              </div>
+            </div>
+          </div>
+          <div style="position:relative;height:460px;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,rgba(33,150,211,0.03) 0%,transparent 70%);" id="ns-timeline-canvas">
+            <svg id="ns-timeline-svg" width="100%" height="100%"></svg>
+            <div id="ns-timeline-tooltip" style="display:none;position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;pointer-events:none;z-index:20;max-width:240px;"></div>
+          </div>
         </div>
       </div>
 
@@ -1859,127 +1922,409 @@ function renderThreatFeed() {
   }).join('');
 }
 
-function renderTimeline(ip) {
-  nsSelectedDevice = ip;
-  const events = NS_TIMELINES[ip] || [];
-  const wrap   = document.getElementById('ns-timeline-wrap');
-
-  // Device tabs
-  const tabs = document.getElementById('ns-timeline-device-tabs');
-  tabs.innerHTML = Object.keys(NS_TIMELINES).map(tip => `
-    <button onclick="renderTimeline('${tip}')" style="
-      background:${tip===ip?'var(--blue-g)':'transparent'};
-      border:1px solid ${tip===ip?'rgba(33,150,211,0.4)':'var(--border)'};
-      color:${tip===ip?'var(--blue-l)':'var(--text2)'};
-      font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;
-      padding:3px 9px;border-radius:5px;cursor:pointer;">
-      ${tip}${NS_ISOLATED[tip]?' 🔴':''}
-    </button>
-  `).join('');
-
-  if (!events.length) { wrap.innerHTML = '<div class="threat-empty">No events for this device</div>'; return; }
-
-  const eventsHtml = events.map((e, i) => {
-    const dotClass = e.risk === 'critical' ? 'critical' : e.risk === 'high' ? 'high' : e.score >= 40 ? 'medium' : 'watch';
-    const icon     = e.response === 'isolate_and_alert' ? '✕' :
-                     e.response === 'block_and_alert'   ? '⊗' :
-                     e.response === 'alert'             ? '!' : '·';
-    const connector = i < events.length - 1 ? `<div class="timeline-connector ${e.risk==='critical'||e.risk==='high'?'active':''}"></div>` : '';
-    return `
-      <div class="timeline-event" onclick="renderProcessTree('${ip}', ${i})" title="${e.detail}">
-        <div class="timeline-dot ${dotClass}">${icon}</div>
-        <div class="timeline-label">${e.name.split(' ').slice(0,2).join(' ')}</div>
-        <div class="timeline-time">${_timeStr(e.time)}</div>
-      </div>
-      ${connector}
-    `;
-  }).join('');
-
-  wrap.innerHTML = `
-    <div class="timeline-device-label">${ip} — ${events.length} events</div>
-    <div class="timeline-track">
-      <div class="timeline-line"></div>
-      <div class="timeline-events">${eventsHtml}</div>
-    </div>
-  `;
-
-  // Auto-render process tree for this device
-  renderProcessTree(ip, events.length - 1);
-}
-
-function renderProcessTree(ip, eventIdx) {
-  const events = NS_TIMELINES[ip] || [];
-  const wrap   = document.getElementById('ns-ptree-wrap');
-  if (!events.length) return;
-
-  // Build tree: DNS query → IDS detection → Confidence score → Response → Agent
-  const rows = [];
-
-  // Root: the network connection
-  rows.push({ level: 0, icon: '🌐', name: ip, detail: 'Source device', badge: null, flagged: false });
-
-  events.forEach((e, i) => {
-    const flagged = e.response === 'isolate_and_alert' || e.response === 'block_and_alert';
-    const warn    = e.response === 'alert';
-    // Detection event
-    rows.push({
-      level: 1, icon: '🔍', name: e.sig, detail: e.name,
-      badge: e.risk.toUpperCase(), badgeType: e.risk === 'critical' ? 'red' : e.risk === 'high' ? 'yellow' : 'blue',
-      flagged, warn
-    });
-    // Confidence score
-    rows.push({
-      level: 2, icon: '⚖', name: `Score: ${e.score}/100`,
-      detail: `→ ${e.response.replace(/_/g,' ')}`,
-      badge: null, flagged, warn
-    });
-    // Response
-    if (flagged) {
-      rows.push({
-        level: 2, icon: e.response === 'isolate_and_alert' ? '🔴' : '⊗',
-        name: e.response === 'isolate_and_alert' ? 'Device Isolated' : 'IP Blocked',
-        detail: _timeStr(e.time),
-        badge: 'ACTIVE', badgeType: 'red',
-        flagged: true, warn: false
-      });
-      if (e.response === 'isolate_and_alert') {
-        rows.push({
-          level: 3, icon: '📋', name: NS_ISOLATED[ip]?.case_id || 'Case opened',
-          detail: 'Under investigation',
-          badge: 'CASE', badgeType: 'blue',
-          flagged: false, warn: false
-        });
-      }
-    }
-  });
-
-  wrap.innerHTML = rows.map(r => {
-    const indent = '  '.repeat(r.level);
-    const lines  = r.level > 0 ? `<div class="ptree-indent">${r.level > 1 ? '<div class="ptree-vline"></div>' : ''}<div class="ptree-hline"></div></div>` : '';
-    const badge  = r.badge ? `<span class="ptree-badge ${r.badgeType||'blue'}">${r.badge}</span>` : '';
-    return `
-      <div class="ptree-node" style="padding-left:${r.level*20}px;">
-        ${r.level > 0 ? lines : ''}
-        <div class="ptree-item ${r.flagged?'flagged':r.warn?'warn':''}">
-          <span class="ptree-icon">${r.icon}</span>
-          <span class="ptree-name">${r.name}</span>
-          ${badge}
-          <span class="ptree-detail">${r.detail}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
 function networkViewDevice(ip) {
   nav('network', document.querySelector('.nav-item[onclick*="network"]'));
-  setTimeout(() => { if (NS_TIMELINES[ip]) renderTimeline(ip); }, 100);
+  setTimeout(() => { nsSelectDevice(ip); }, 300);
 }
 
 function networkViewCase(ip) {
-  renderTimeline(ip);
-  renderProcessTree(ip, (NS_TIMELINES[ip]||[]).length - 1);
-  document.getElementById('ns-timeline-card').scrollIntoView({ behavior: 'smooth' });
+  nsSelectDevice(ip);
+  document.getElementById('ns-analysis-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Tab switcher ──────────────────────────────────────────────────────────────
+function nsTab(which) {
+  document.getElementById('ns-tab-ptree').classList.toggle('active',    which==='ptree');
+  document.getElementById('ns-tab-timeline').classList.toggle('active', which==='timeline');
+  document.getElementById('ns-ptree-view').style.display    = which==='ptree'    ? '' : 'none';
+  document.getElementById('ns-timeline-view').style.display = which==='timeline' ? '' : 'none';
+  if (nsSelectedDevice) {
+    if (which==='ptree')    nsPaintProcessTree(nsSelectedDevice);
+    if (which==='timeline') nsPaintTimeline();
+  }
+}
+
+function nsZoomReset() {
+  if (nsSelectedDevice) { nsPaintProcessTree(nsSelectedDevice); nsPaintTimeline(); }
+}
+
+// ── Device tab bar ────────────────────────────────────────────────────────────
+function nsUpdateDeviceTabs() {
+  const bar = document.getElementById('ns-device-tabs-bar');
+  bar.innerHTML = Object.keys(NS_TIMELINES).map(ip => `
+    <button onclick="nsSelectDevice('${ip}')" style="
+      background:${ip===nsSelectedDevice?'var(--blue-g)':'transparent'};
+      border:1px solid ${ip===nsSelectedDevice?'rgba(33,150,211,0.4)':'var(--border)'};
+      color:${ip===nsSelectedDevice?'var(--blue-l)':'var(--text3)'};
+      font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;
+      padding:3px 9px;border-radius:5px;cursor:pointer;white-space:nowrap;">
+      ${ip}${NS_ISOLATED[ip]?' 🔴':''}
+    </button>
+  `).join('');
+}
+
+function nsSelectDevice(ip) {
+  nsSelectedDevice = ip;
+  nsUpdateDeviceTabs();
+  nsPaintProcessTree(ip);
+  nsPaintTimeline();
+}
+
+// ── PROCESS TREE (CrowdStrike horizontal node graph) ──────────────────────────
+function nsPaintProcessTree(ip) {
+  const svg    = document.getElementById('ns-ptree-svg');
+  const events = NS_TIMELINES[ip] || [];
+  document.getElementById('ns-ptree-device-label').textContent = `${ip} — ${events.length} events`;
+
+  if (!events.length) {
+    svg.innerHTML = `<text x="50%" y="150" text-anchor="middle" fill="#4a5568" font-family="Inter" font-size="13">No events for this device</text>`;
+    return;
+  }
+
+  // Build nodes: root device + each event as a child node
+  const NODE_W   = 130;
+  const NODE_H   = 52;
+  const HGAP     = 60;
+  const VGAP     = 18;
+  const MARGIN   = 20;
+  const LEVELS   = buildPTreeLevels(ip, events);
+
+  // Calculate total width and height
+  const maxPerLevel = Math.max(...LEVELS.map(l => l.length));
+  const svgW = MARGIN * 2 + LEVELS.length * (NODE_W + HGAP) - HGAP;
+  const svgH = Math.max(300, MARGIN * 2 + maxPerLevel * (NODE_H + VGAP) + 40);
+  svg.setAttribute('width', svgW);
+  svg.setAttribute('height', svgH);
+
+  let html = `<defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2d3a50"/>
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#f44336"/>
+    </marker>
+  </defs>`;
+
+  // Position each node
+  const positions = {};
+  LEVELS.forEach((level, li) => {
+    const x = MARGIN + li * (NODE_W + HGAP);
+    const totalH = level.length * (NODE_H + VGAP) - VGAP;
+    const startY = (svgH - totalH) / 2;
+    level.forEach((node, ni) => {
+      positions[node.id] = { x, y: startY + ni * (NODE_H + VGAP), node };
+    });
+  });
+
+  // Draw connectors first
+  LEVELS.forEach((level, li) => {
+    if (li === 0) return;
+    level.forEach(node => {
+      if (node.parentId !== undefined && positions[node.parentId]) {
+        const from = positions[node.parentId];
+        const to   = positions[node.id];
+        const fx   = from.x + NODE_W;
+        const fy   = from.y + NODE_H / 2;
+        const tx   = to.x;
+        const ty   = to.y + NODE_H / 2;
+        const mx   = (fx + tx) / 2;
+        const isRed = node.node.risk === 'critical' || node.node.response === 'isolate_and_alert';
+        html += `<path d="M${fx},${fy} C${mx},${fy} ${mx},${ty} ${tx},${ty}"
+          class="pt-connector${isRed?' active':''}"
+          stroke="${isRed?'#f44336':'#2d3a50'}"
+          marker-end="url(#${isRed?'arrowhead-red':'arrowhead'})"
+          stroke-dasharray="${isRed?'':'4,3'}"/>`;
+      }
+    });
+  });
+
+  // Draw nodes
+  Object.entries(positions).forEach(([id, {x, y, node}]) => {
+    const fill    = node.type === 'device' ? '#1c2a3a' :
+                    node.risk === 'critical' ? 'rgba(244,67,54,0.15)' :
+                    node.risk === 'high'     ? 'rgba(255,109,46,0.12)' :
+                    node.risk === 'medium'   ? 'rgba(255,193,7,0.1)'   : 'var(--bg3)';
+    const border  = node.type === 'device' ? '#2196d3' :
+                    node.risk === 'critical' ? '#f44336' :
+                    node.risk === 'high'     ? '#ff6d2e' :
+                    node.risk === 'medium'   ? '#ffc107' : '#2d3a50';
+    const dotCol  = node.type === 'device' ? '#2196d3' :
+                    node.risk === 'critical' ? '#f44336' :
+                    node.risk === 'high'     ? '#ff6d2e' :
+                    node.risk === 'medium'   ? '#ffc107' : '#4a5568';
+    const label1  = node.type === 'device' ? ip : (node.sig || '');
+    const label2  = node.type === 'device' ? 'Source Device' : (node.name || '').slice(0, 18);
+    const label3  = node.type === 'response' ? node.responseLabel || '' :
+                    node.score !== undefined  ? `Score: ${node.score}/100` : '';
+
+    const nodeData = JSON.stringify({...node, ip}).replace(/"/g,'&quot;');
+    html += `
+      <g class="pt-node" onclick="nsPTreeNodeClick(${id})" data-node="${nodeData}">
+        <rect class="pt-node-box" x="${x}" y="${y}" width="${NODE_W}" height="${NODE_H}"
+          rx="6" ry="6" fill="${fill}" stroke="${border}" stroke-width="1.5"/>
+        ${node.type !== 'device' ? `<circle cx="${x+12}" cy="${y+14}" r="4" fill="${dotCol}"/>` : ''}
+        <text x="${x + (node.type==='device'?10:22)}" y="${y+17}"
+          font-family="JetBrains Mono,monospace" font-size="10" font-weight="700"
+          fill="${border}">${label1}</text>
+        <text x="${x+10}" y="${y+31}"
+          font-family="Inter,sans-serif" font-size="11" font-weight="600"
+          fill="#e6edf3">${label2}</text>
+        ${label3 ? `<text x="${x+10}" y="${y+44}"
+          font-family="Inter,sans-serif" font-size="10"
+          fill="#8b949e">${label3}</text>` : ''}
+      </g>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+function buildPTreeLevels(ip, events) {
+  // Level 0: root device node
+  const root = { id: 0, type: 'device', risk: 'none' };
+  // Level 1: detection events
+  // Level 2: confidence + response
+  const level0 = [root];
+  const level1 = events.map((e, i) => ({
+    id: i+1, parentId: 0, type: 'detection',
+    sig: e.sig, name: e.name, risk: e.risk,
+    detail: e.detail, score: e.score, response: e.response,
+    time: e.time,
+  }));
+  const level2 = events.map((e, i) => ({
+    id: 100+i, parentId: i+1, type: 'response',
+    sig: '', name: e.response === 'isolate_and_alert' ? 'Device Isolated' :
+                   e.response === 'block_and_alert'   ? 'IP Blocked' :
+                   e.response === 'alert'             ? 'Admin Alerted' : 'Watching',
+    risk: e.risk, response: e.response,
+    responseLabel: `${_timeStr(e.time)}`,
+    score: undefined,
+  }));
+  return [level0, level1, level2];
+}
+
+let _ptreeNodes = {};
+function nsPTreeNodeClick(id) {
+  // Find node data from SVG
+  const g = document.querySelector(`[onclick="nsPTreeNodeClick(${id})"]`);
+  if (!g) return;
+  const data = JSON.parse(g.getAttribute('data-node').replace(/&quot;/g,'"'));
+  const panel = document.getElementById('ns-ptree-detail');
+  const body  = document.getElementById('ns-detail-body');
+  document.getElementById('ns-detail-title').textContent = data.name || data.ip || 'Node Detail';
+  body.innerHTML = `
+    <div style="display:grid;gap:10px;">
+      ${data.sig ? `<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Signature</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:${data.risk==='critical'?'#f44336':data.risk==='high'?'#ff6d2e':'#ffc107'}">${data.sig}</div></div>` : ''}
+      ${data.risk ? `<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Risk Level</div><div style="font-size:12px;font-weight:700;color:${data.risk==='critical'?'#f44336':data.risk==='high'?'#ff6d2e':'#ffc107'}">${data.risk.toUpperCase()}</div></div>` : ''}
+      ${data.score !== undefined ? `<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Confidence Score</div><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;height:4px;background:var(--border);border-radius:2px;"><div style="width:${data.score}%;height:100%;background:${data.score>=80?'#f44336':data.score>=65?'#ff6d2e':'#ffc107'};border-radius:2px;"></div></div><div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${data.score>=80?'#f44336':data.score>=65?'#ff6d2e':'#ffc107'}">${data.score}/100</div></div></div>` : ''}
+      ${data.detail ? `<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Detail</div><div style="font-size:12px;color:var(--text2);line-height:1.5">${data.detail}</div></div>` : ''}
+      ${data.response ? `<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Response</div><div style="font-size:12px;font-weight:700;color:${data.response==='isolate_and_alert'?'#f44336':data.response==='block_and_alert'?'#ff6d2e':'#ffc107'}">${data.response.replace(/_/g,' ').toUpperCase()}</div></div>` : ''}
+      ${data.time ? `<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Time</div><div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text2)">${_timeStr(data.time)}</div></div>` : ''}
+      ${NS_ISOLATED[data.ip] ? `<div style="background:rgba(244,67,54,0.08);border:1px solid rgba(244,67,54,0.2);border-radius:8px;padding:10px 12px;"><div style="font-size:11px;font-weight:700;color:#f44336;margin-bottom:4px;">🔴 Device Isolated</div><div style="font-size:11px;color:var(--text2);">${NS_ISOLATED[data.ip]?.case_id||''}</div><button class="btn-release" style="margin-top:8px;width:100%;" onclick="networkReleaseDevice('${data.ip}')">Release Device</button></div>` : ''}
+    </div>`;
+  panel.style.display = '';
+}
+
+// ── EVENTS TIMELINE (CrowdStrike relationship graph) ──────────────────────────
+let _tlDrag = null, _tlOffset = {x:0,y:0}, _tlNodes = [], _tlLinks = [];
+
+function nsPaintTimeline() {
+  const svg    = document.getElementById('ns-timeline-svg');
+  const canvas = document.getElementById('ns-timeline-canvas');
+  const W      = canvas.offsetWidth  || 800;
+  const H      = canvas.offsetHeight || 460;
+
+  // Build graph from all threat data
+  const nodes = [];
+  const links = [];
+  const seen  = {};
+
+  // Add device nodes
+  Object.keys(NS_TIMELINES).forEach((ip, i) => {
+    const isIso = !!NS_ISOLATED[ip];
+    nodes.push({
+      id: `dev_${ip}`, type: 'device', label: ip,
+      x: 120 + (i % 3) * 180 + Math.random()*40,
+      y: 80  + Math.floor(i / 3) * 160 + Math.random()*40,
+      risk: isIso ? 'critical' : 'none', isolated: isIso,
+    });
+  });
+
+  // Add signature nodes and links
+  const sigGroups = {};
+  Object.entries(NS_TIMELINES).forEach(([ip, events]) => {
+    events.forEach(e => {
+      if (!sigGroups[e.sig]) {
+        sigGroups[e.sig] = {
+          id: `sig_${e.sig}`, type: 'signature', label: e.sig,
+          sublabel: e.name.split(' ').slice(0,3).join(' '),
+          x: 300 + Math.random() * (W - 400),
+          y: 80  + Math.random() * (H - 160),
+          risk: e.risk,
+        };
+        nodes.push(sigGroups[e.sig]);
+      }
+      links.push({
+        source: `dev_${ip}`, target: `sig_${e.sig}`,
+        risk: e.risk, response: e.response,
+      });
+    });
+  });
+
+  // Add response nodes
+  const respNodes = {
+    'isolate_and_alert': { id:'resp_isolate', type:'response', label:'ISOLATED', x: W-100, y: H/4,     risk:'critical' },
+    'block_and_alert':   { id:'resp_block',   type:'response', label:'BLOCKED',  x: W-100, y: H/2,     risk:'high' },
+    'alert':             { id:'resp_alert',   type:'response', label:'ALERTED',  x: W-100, y: H*3/4,   risk:'medium' },
+  };
+  const usedResp = new Set(Object.values(NS_TIMELINES).flat().map(e=>e.response));
+  Object.entries(respNodes).forEach(([resp, node]) => {
+    if (usedResp.has(resp)) {
+      nodes.push(node);
+      Object.entries(NS_TIMELINES).flat().forEach(([,events]) => {});
+      // Link signatures to their response
+      Object.entries(sigGroups).forEach(([sig, sn]) => {
+        const allEvents = Object.values(NS_TIMELINES).flat();
+        const match = allEvents.find(e => e.sig === sig && e.response === resp);
+        if (match) links.push({ source: sn.id, target: node.id, risk: match.risk, response: resp });
+      });
+    }
+  });
+
+  _tlNodes = nodes;
+  _tlLinks = links;
+  _renderTimeline(W, H);
+}
+
+function _renderTimeline(W, H) {
+  const svg = document.getElementById('ns-timeline-svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const linkColor = r => r==='isolate_and_alert'?'#f44336':r==='block_and_alert'?'#ff6d2e':r==='alert'?'#ffc107':'#2d3a50';
+
+  // Build node lookup
+  const byId = {};
+  _tlNodes.forEach(n => byId[n.id] = n);
+
+  let html = `<defs>
+    <filter id="glow-red"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-orange"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  // Links
+  _tlLinks.forEach((lk,i) => {
+    const s = byId[lk.source], t = byId[lk.target];
+    if (!s || !t) return;
+    const col = linkColor(lk.response);
+    html += `<line class="tl-link" x1="${s.x}" y1="${s.y}" x2="${t.x}" y2="${t.y}" stroke="${col}" id="tllink${i}"/>`;
+  });
+
+  // Nodes
+  _tlNodes.forEach((n,i) => {
+    const r     = n.type==='device' ? 24 : n.type==='signature' ? 18 : 14;
+    const fill  = n.type==='device'
+      ? (n.isolated ? 'rgba(244,67,54,0.2)' : 'rgba(33,150,211,0.15)')
+      : n.risk==='critical' ? 'rgba(244,67,54,0.15)'
+      : n.risk==='high'     ? 'rgba(255,109,46,0.12)'
+      : n.risk==='medium'   ? 'rgba(255,193,7,0.1)'   : 'rgba(45,58,80,0.6)';
+    const stroke = n.type==='device'
+      ? (n.isolated ? '#f44336' : '#2196d3')
+      : n.risk==='critical' ? '#f44336'
+      : n.risk==='high'     ? '#ff6d2e'
+      : n.risk==='medium'   ? '#ffc107' : '#4a5568';
+    const filter = (n.risk==='critical'||n.isolated) ? 'filter="url(#glow-red)"' :
+                   n.risk==='high' ? 'filter="url(#glow-orange)"' : '';
+    const icon   = n.type==='device' ? '⬡' : n.type==='response' ? (n.label==='ISOLATED'?'✕':n.label==='BLOCKED'?'⊗':'!') : '';
+
+    html += `
+      <g class="tl-node" id="tlnode${i}" data-nodeid="${n.id}"
+        onmousedown="tlDragStart(event,'${n.id}')"
+        onmouseenter="tlTooltip(event,'${n.id}')"
+        onmouseleave="tlTooltipHide()">
+        <circle cx="${n.x}" cy="${n.y}" r="${r+4}" fill="${fill}" opacity="0.4"/>
+        <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" ${filter}/>
+        ${icon ? `<text x="${n.x}" y="${n.y+4}" text-anchor="middle" font-size="${n.type==='device'?14:11}" fill="${stroke}" font-family="sans-serif">${icon}</text>` : ''}
+        <text class="tl-label" x="${n.x}" y="${n.y + r + 13}" text-anchor="middle" font-weight="700" fill="${stroke}">${n.label||''}</text>
+        ${n.sublabel ? `<text class="tl-label" x="${n.x}" y="${n.y + r + 24}" text-anchor="middle" fill="#4a5568">${n.sublabel}</text>` : ''}
+      </g>`;
+  });
+
+  svg.innerHTML = html;
+
+  // Drag support
+  svg.onmousemove = e => {
+    if (!_tlDrag) return;
+    const rect = svg.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const nx = (e.clientX - rect.left) * scaleX - _tlOffset.x;
+    const ny = (e.clientY - rect.top)  * scaleY - _tlOffset.y;
+    const node = _tlNodes.find(n => n.id === _tlDrag);
+    if (!node) return;
+    node.x = nx; node.y = ny;
+    // Update node position
+    const g = svg.querySelector(`[data-nodeid="${_tlDrag}"]`);
+    if (g) {
+      g.querySelectorAll('circle').forEach(c => { c.setAttribute('cx', nx); c.setAttribute('cy', ny); });
+      g.querySelectorAll('text').forEach((t,i) => { t.setAttribute('x', nx); });
+      g.querySelectorAll('text').forEach((t,ti) => {
+        const r = _tlNodes.find(n=>n.id===_tlDrag);
+        const baseR = node.type==='device'?24:node.type==='signature'?18:14;
+        if (ti===0) t.setAttribute('y', ny + baseR + 13);
+        if (ti===1) t.setAttribute('y', ny + baseR + 24);
+        t.setAttribute('y', ti===0 ? ny + (node.type==='device'?4:4) : ny + (node.type==='device'?24:18) + 13 + ti*11);
+      });
+      // Reposition icon text
+      const iconTxt = g.querySelector('text:first-of-type');
+      if (iconTxt) { iconTxt.setAttribute('x', nx); iconTxt.setAttribute('y', ny+4); }
+    }
+    // Update connected links
+    _tlLinks.forEach((lk, i) => {
+      const line = svg.getElementById(`tllink${i}`);
+      if (!line) return;
+      const s = _tlNodes.find(n=>n.id===lk.source);
+      const t = _tlNodes.find(n=>n.id===lk.target);
+      if (s && t) { line.setAttribute('x1',s.x); line.setAttribute('y1',s.y); line.setAttribute('x2',t.x); line.setAttribute('y2',t.y); }
+    });
+  };
+  svg.onmouseup = () => { _tlDrag = null; };
+}
+
+function tlDragStart(e, nodeId) {
+  _tlDrag = nodeId;
+  const node = _tlNodes.find(n => n.id === nodeId);
+  const svg  = document.getElementById('ns-timeline-svg');
+  const rect = svg.getBoundingClientRect();
+  const W    = svg.getAttribute('viewBox')?.split(' ')[2] || 800;
+  const H    = svg.getAttribute('viewBox')?.split(' ')[3] || 460;
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  if (node) {
+    _tlOffset.x = (e.clientX - rect.left) * scaleX - node.x;
+    _tlOffset.y = (e.clientY - rect.top)  * scaleY - node.y;
+  }
+  e.preventDefault();
+}
+
+function tlTooltip(e, nodeId) {
+  const node = _tlNodes.find(n => n.id === nodeId);
+  if (!node) return;
+  const tip = document.getElementById('ns-timeline-tooltip');
+  tip.innerHTML = `
+    <div style="font-weight:700;color:var(--text);margin-bottom:6px;">${node.label}</div>
+    ${node.sublabel ? `<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">${node.sublabel}</div>` : ''}
+    <div style="font-size:11px;color:var(--text3);">Type: ${node.type}</div>
+    ${node.risk && node.risk!=='none' ? `<div style="font-size:11px;color:${node.risk==='critical'?'#f44336':node.risk==='high'?'#ff6d2e':'#ffc107'};">Risk: ${node.risk.toUpperCase()}</div>` : ''}
+    ${node.isolated ? `<div style="font-size:11px;font-weight:700;color:#f44336;margin-top:4px;">🔴 ISOLATED</div>` : ''}
+  `;
+  const canvas = document.getElementById('ns-timeline-canvas');
+  const rect   = canvas.getBoundingClientRect();
+  tip.style.left    = `${e.clientX - rect.left + 12}px`;
+  tip.style.top     = `${e.clientY - rect.top  + 12}px`;
+  tip.style.display = '';
+}
+
+function tlTooltipHide() {
+  document.getElementById('ns-timeline-tooltip').style.display = 'none';
 }
 
 function networkReleaseDevice(ip) {
