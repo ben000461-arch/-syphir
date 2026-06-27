@@ -270,7 +270,93 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .intel-input:focus{border-color:var(--blue);}
 .intel-send{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0;transition:background 0.15s;}
 .intel-send:hover{background:var(--blue-d);}
-.intel-send:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;}
+/* ── NETWORK SECURITY ─────────────────────────────────────────────── */
+.ns-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.ns-grid-full{margin-bottom:16px;}
+.threat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.threat-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.threat-card-title{font-size:13px;font-weight:700;color:var(--text);}
+.threat-card-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.threat-empty{padding:28px;text-align:center;color:var(--text3);font-size:12px;}
+
+/* Device status rows */
+.device-row{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);}
+.device-row:last-child{border-bottom:none;}
+.device-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.device-status-dot.isolated{background:#f44336;box-shadow:0 0 8px #f44336;}
+.device-status-dot.blocked{background:#ff6d2e;box-shadow:0 0 8px #ff6d2e;}
+.device-status-dot.warn{background:#ffc107;box-shadow:0 0 6px #ffc107;}
+.device-status-dot.clean{background:#00e676;box-shadow:0 0 6px #00e676;}
+.device-ip{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);font-weight:600;min-width:120px;}
+.device-info{flex:1;min-width:0;}
+.device-reason{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.device-case{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.device-actions{display:flex;gap:6px;flex-shrink:0;}
+.btn-release{background:transparent;border:1px solid var(--green);color:var(--green);font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.btn-release:hover{background:rgba(0,230,118,0.1);}
+.btn-investigate{background:transparent;border:1px solid var(--blue);color:var(--blue-l);font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.btn-investigate:hover{background:var(--blue-g);}
+
+/* Threat feed */
+.threat-feed-row{display:flex;align-items:flex-start;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);}
+.threat-feed-row:last-child{border-bottom:none;}
+.threat-sig-badge{font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:1px;}
+.threat-sig-badge.critical{background:rgba(244,67,54,0.15);color:#f44336;border:1px solid rgba(244,67,54,0.3);}
+.threat-sig-badge.high{background:rgba(255,109,46,0.15);color:#ff6d2e;border:1px solid rgba(255,109,46,0.3);}
+.threat-sig-badge.medium{background:rgba(255,193,7,0.12);color:#ffc107;border:1px solid rgba(255,193,7,0.25);}
+.threat-feed-body{flex:1;min-width:0;}
+.threat-feed-name{font-size:12px;font-weight:600;color:var(--text);}
+.threat-feed-detail{font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.threat-feed-meta{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.threat-feed-ip{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);}
+.threat-feed-time{font-size:10px;color:var(--text3);}
+.threat-response-pill{font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;}
+.threat-response-pill.isolate{background:rgba(244,67,54,0.15);color:#f87171;}
+.threat-response-pill.block{background:rgba(255,109,46,0.12);color:#fb923c;}
+.threat-response-pill.warn{background:rgba(255,193,7,0.1);color:#fbbf24;}
+.threat-response-pill.watch{background:rgba(139,148,158,0.1);color:#8b949e;}
+
+/* Attack timeline */
+.timeline-wrap{padding:16px 18px;overflow-x:auto;}
+.timeline-device-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;}
+.timeline-track{position:relative;margin-bottom:20px;}
+.timeline-line{position:absolute;top:10px;left:0;right:0;height:2px;background:var(--border2);}
+.timeline-events{display:flex;gap:0;position:relative;min-width:600px;}
+.timeline-event{position:relative;display:flex;flex-direction:column;align-items:center;min-width:80px;cursor:pointer;}
+.timeline-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--bg2);z-index:1;position:relative;transition:transform 0.15s;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
+.timeline-dot.critical{background:#f44336;box-shadow:0 0 10px rgba(244,67,54,0.5);}
+.timeline-dot.high{background:#ff6d2e;box-shadow:0 0 8px rgba(255,109,46,0.4);}
+.timeline-dot.medium{background:#ffc107;box-shadow:0 0 6px rgba(255,193,7,0.3);}
+.timeline-dot.watch{background:var(--border2);}
+.timeline-event:hover .timeline-dot{transform:scale(1.3);}
+.timeline-label{font-size:9px;color:var(--text3);margin-top:6px;text-align:center;max-width:72px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.timeline-time{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.timeline-connector{flex:1;height:2px;background:var(--border2);align-self:flex-start;margin-top:9px;}
+.timeline-connector.active{background:var(--red);}
+
+/* Process tree */
+.ptree-wrap{padding:16px 18px;overflow-x:auto;}
+.ptree-node{display:flex;align-items:flex-start;gap:0;margin-bottom:4px;}
+.ptree-indent{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0;}
+.ptree-vline{width:1px;background:var(--border2);flex:1;min-height:16px;}
+.ptree-hline{width:16px;height:1px;background:var(--border2);margin-top:10px;}
+.ptree-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all 0.15s;margin-bottom:2px;min-width:280px;}
+.ptree-item:hover{border-color:var(--border2);background:var(--bg2);}
+.ptree-item.flagged{border-color:rgba(244,67,54,0.3);background:rgba(244,67,54,0.05);}
+.ptree-item.warn{border-color:rgba(255,193,7,0.25);background:rgba(255,193,7,0.05);}
+.ptree-icon{font-size:12px;width:16px;text-align:center;flex-shrink:0;}
+.ptree-name{font-size:12px;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace;}
+.ptree-detail{font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap;}
+.ptree-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0;}
+.ptree-badge.red{background:rgba(244,67,54,0.15);color:#f44336;}
+.ptree-badge.yellow{background:rgba(255,193,7,0.12);color:#ffc107;}
+.ptree-badge.blue{background:rgba(33,150,211,0.12);color:#4db8f0;}
+
+/* Confidence meter */
+.conf-meter{display:flex;align-items:center;gap:8px;}
+.conf-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.conf-bar{height:100%;border-radius:2px;transition:width 0.4s;}
+.conf-val{font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;min-width:36px;text-align:right;}
 </style>
 </head>
 <body>
@@ -285,6 +371,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
     <div class="nav-item active" onclick="nav('overview',this)"><span class="nav-icon">▦</span>Overview</div>
     <div class="nav-item" onclick="nav('incidents',this)"><span class="nav-icon">⚠</span>Incidents<span class="nav-badge" id="nav-badge">0</span></div>
     <div class="nav-item" onclick="nav('live',this)"><span class="nav-icon">◉</span>Live Feed</div>
+    <div class="nav-item" onclick="nav('network',this)"><span class="nav-icon">⬡</span>Network Security<span id="badge-network" style="margin-left:auto;background:#f44336;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;display:none;">0</span></div>
     <div class="nav-item" onclick="nav('intel',this)"><span class="nav-icon">⌘</span>Intel<span id="intel-shield-pill" style="margin-left:auto;font-size:9px;font-weight:700;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:1px 5px;border-radius:3px;display:none;">SHIELD</span></div>
   </div>
   <div class="nav-section">
@@ -445,6 +532,105 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div style="display:flex;gap:8px;align-items:center;"><div class="live-pill"><div class="live-dot"></div>LIVE</div><button class="btn btn-ghost" onclick="clearFeed()">Clear</button></div>
       </div>
       <div class="card"><div id="feed-list"><div class="empty"><div class="empty-icon">📡</div><div class="empty-msg">Waiting for activity...</div></div></div></div>
+    </div>
+
+    <!-- NETWORK SECURITY -->
+    <div class="page" id="page-network">
+      <div class="section-hdr">
+        <div><div class="section-title">Network Security</div><div class="section-sub">Active threats, isolated devices, and attack timelines</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="networkRefresh()">Refresh</button>
+          <button class="btn btn-ghost" style="border-color:rgba(244,67,54,0.3);color:#f87171;" onclick="networkClearAll()">Clear Resolved</button>
+        </div>
+      </div>
+
+      <!-- Top stats -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;" id="ns-stats-row">
+        <div style="background:var(--bg2);border:1px solid rgba(244,67,54,0.25);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Isolated</div>
+          <div style="font-size:26px;font-weight:800;color:#f44336;" id="ns-isolated-count">0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Devices cut off</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid rgba(255,109,46,0.2);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Blocked IPs</div>
+          <div style="font-size:26px;font-weight:800;color:#ff6d2e;" id="ns-blocked-count">0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">External attackers</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid rgba(33,150,211,0.2);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Open Cases</div>
+          <div style="font-size:26px;font-weight:800;color:var(--blue-l);" id="ns-cases-count">0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Under investigation</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Threats Today</div>
+          <div style="font-size:26px;font-weight:800;color:var(--text);" id="ns-threats-count">0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">All signatures fired</div>
+        </div>
+      </div>
+
+      <div class="ns-grid">
+        <!-- Isolated Devices -->
+        <div class="threat-card">
+          <div class="threat-card-hdr">
+            <div>
+              <div class="threat-card-title" style="color:#f87171;">⬡ Isolated Devices</div>
+              <div class="threat-card-sub">Cut off from network — Shield connection preserved</div>
+            </div>
+          </div>
+          <div id="ns-isolated-list"><div class="threat-empty">No devices currently isolated</div></div>
+        </div>
+
+        <!-- Blocked IPs -->
+        <div class="threat-card">
+          <div class="threat-card-hdr">
+            <div>
+              <div class="threat-card-title" style="color:#fb923c;">⊗ Blocked External IPs</div>
+              <div class="threat-card-sub">Inbound traffic dropped — auto-expires in 60min</div>
+            </div>
+          </div>
+          <div id="ns-blocked-list"><div class="threat-empty">No IPs currently blocked</div></div>
+        </div>
+      </div>
+
+      <!-- Live threat feed -->
+      <div class="threat-card ns-grid-full">
+        <div class="threat-card-hdr">
+          <div>
+            <div class="threat-card-title">⚡ Threat Detection Feed</div>
+            <div class="threat-card-sub">Real-time IDS events — confidence-scored before action</div>
+          </div>
+          <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+        </div>
+        <div id="ns-threat-feed"><div class="threat-empty">Monitoring network — no threats detected yet</div></div>
+      </div>
+
+      <!-- Attack timeline -->
+      <div class="threat-card ns-grid-full" id="ns-timeline-card">
+        <div class="threat-card-hdr">
+          <div>
+            <div class="threat-card-title">⟶ Attack Timeline</div>
+            <div class="threat-card-sub">Full event chain per device — from first detection to isolation</div>
+          </div>
+          <div style="display:flex;gap:6px;" id="ns-timeline-device-tabs"></div>
+        </div>
+        <div class="timeline-wrap" id="ns-timeline-wrap">
+          <div class="threat-empty">No active threat timelines</div>
+        </div>
+      </div>
+
+      <!-- Process tree -->
+      <div class="threat-card ns-grid-full" id="ns-ptree-card">
+        <div class="threat-card-hdr">
+          <div>
+            <div class="threat-card-title">❧ Attack Process Tree</div>
+            <div class="threat-card-sub">How the threat chain unfolded — signature → action → response</div>
+          </div>
+        </div>
+        <div class="ptree-wrap" id="ns-ptree-wrap">
+          <div class="threat-empty">Select a device from the timeline to view its process tree</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- GATEWAY -->
@@ -1514,6 +1700,343 @@ async function intelSend() {
 
   document.getElementById('intel-messages').scrollTop = 99999;
 }
+
+// ── NETWORK SECURITY ──────────────────────────────────────────────────────────
+
+const NS_THREAT_FEED  = [];   // live threat events
+const NS_TIMELINES    = {};   // ip -> [{time, name, sig, risk, response, score}]
+const NS_ISOLATED     = {};   // ip -> {reason, sig, case_id, time}
+const NS_BLOCKED      = {};   // ip -> {reason, sig, time}
+let   nsSelectedDevice = null;
+
+function networkRefresh() {
+  renderNetworkStats();
+  renderIsolated();
+  renderBlocked();
+  renderThreatFeed();
+  if (nsSelectedDevice) renderTimeline(nsSelectedDevice);
+}
+
+function networkClearAll() {
+  NS_THREAT_FEED.length = 0;
+  renderThreatFeed();
+  showToast('Resolved threats cleared');
+}
+
+// Called by the live feed / simulation to inject threat events
+function networkIngestThreat(threat) {
+  const entry = {
+    id:       Date.now() + Math.random(),
+    time:     new Date(),
+    name:     threat.name     || 'Unknown Threat',
+    sig:      threat.sig      || 'AS000',
+    risk:     threat.risk     || 'medium',
+    src_ip:   threat.src_ip   || '0.0.0.0',
+    detail:   threat.detail   || '',
+    response: threat.response || 'watch',
+    score:    threat.score    || 0,
+  };
+
+  NS_THREAT_FEED.unshift(entry);
+  if (NS_THREAT_FEED.length > 100) NS_THREAT_FEED.pop();
+
+  // Build timeline per device
+  if (!NS_TIMELINES[entry.src_ip]) NS_TIMELINES[entry.src_ip] = [];
+  NS_TIMELINES[entry.src_ip].push(entry);
+
+  // Track isolated / blocked
+  if (entry.response === 'isolate_and_alert') {
+    NS_ISOLATED[entry.src_ip] = {
+      reason:  entry.detail,
+      sig:     entry.sig,
+      case_id: `CASE-${new Date().toISOString().replace(/[-T:.Z]/g,'').slice(0,14)}-${entry.src_ip.replace(/\./g,'')}`,
+      time:    entry.time,
+    };
+    // Update badge
+    const badge = document.getElementById('badge-network');
+    if (badge) { badge.textContent = Object.keys(NS_ISOLATED).length; badge.style.display = ''; }
+  }
+  if (entry.response === 'block_and_alert' && !_isLAN(entry.src_ip)) {
+    NS_BLOCKED[entry.src_ip] = {
+      reason: entry.detail,
+      sig:    entry.sig,
+      time:   entry.time,
+    };
+  }
+
+  // Re-render if on network page
+  if (document.getElementById('page-network').style.display !== 'none') {
+    networkRefresh();
+  }
+}
+
+function _isLAN(ip) {
+  return ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.');
+}
+
+function renderNetworkStats() {
+  const isolated = Object.keys(NS_ISOLATED).length;
+  const blocked  = Object.keys(NS_BLOCKED).length;
+  const cases    = Object.values(NS_ISOLATED).filter(v => v.case_id).length;
+  const threats  = NS_THREAT_FEED.length;
+  document.getElementById('ns-isolated-count').textContent = isolated;
+  document.getElementById('ns-blocked-count').textContent  = blocked;
+  document.getElementById('ns-cases-count').textContent    = cases;
+  document.getElementById('ns-threats-count').textContent  = threats;
+}
+
+function renderIsolated() {
+  const el = document.getElementById('ns-isolated-list');
+  const entries = Object.entries(NS_ISOLATED);
+  if (!entries.length) { el.innerHTML = '<div class="threat-empty">No devices currently isolated</div>'; return; }
+  el.innerHTML = entries.map(([ip, info]) => `
+    <div class="device-row">
+      <div class="device-status-dot isolated"></div>
+      <div class="device-ip">${ip}</div>
+      <div class="device-info">
+        <div class="device-reason">${info.reason || 'Security threat detected'}</div>
+        <div class="device-case">${info.case_id || ''} · ${_relTime(info.time)}</div>
+      </div>
+      <div class="device-actions">
+        <button class="btn-investigate" onclick="networkViewCase('${ip}')">Investigate</button>
+        <button class="btn-release" onclick="networkReleaseDevice('${ip}')">Release</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBlocked() {
+  const el = document.getElementById('ns-blocked-list');
+  const entries = Object.entries(NS_BLOCKED);
+  if (!entries.length) { el.innerHTML = '<div class="threat-empty">No IPs currently blocked</div>'; return; }
+  el.innerHTML = entries.map(([ip, info]) => `
+    <div class="device-row">
+      <div class="device-status-dot blocked"></div>
+      <div class="device-ip">${ip}</div>
+      <div class="device-info">
+        <div class="device-reason">${info.reason || ''}</div>
+        <div class="device-case">${info.sig} · ${_relTime(info.time)} · expires 60min</div>
+      </div>
+      <div class="device-actions">
+        <button class="btn-release" onclick="networkUnblockIP('${ip}')">Unblock</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderThreatFeed() {
+  const el = document.getElementById('ns-threat-feed');
+  if (!NS_THREAT_FEED.length) { el.innerHTML = '<div class="threat-empty">Monitoring network — no threats detected yet</div>'; return; }
+  el.innerHTML = NS_THREAT_FEED.slice(0, 30).map(e => {
+    const rClass = e.risk === 'critical' ? 'critical' : e.risk === 'high' ? 'high' : 'medium';
+    const respClass = e.response === 'isolate_and_alert' ? 'isolate' :
+                      e.response === 'block_and_alert'   ? 'block'   :
+                      e.response === 'alert'             ? 'warn'    : 'watch';
+    const respLabel = e.response === 'isolate_and_alert' ? 'ISOLATED' :
+                      e.response === 'block_and_alert'   ? 'BLOCKED'  :
+                      e.response === 'alert'             ? 'WARNED'   : 'WATCH';
+    const confColor = e.score >= 80 ? '#f44336' : e.score >= 65 ? '#ff6d2e' : e.score >= 40 ? '#ffc107' : '#8b949e';
+    return `
+      <div class="threat-feed-row" onclick="networkViewDevice('${e.src_ip}')">
+        <div class="threat-sig-badge ${rClass}">${e.sig}</div>
+        <div class="threat-feed-body">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="threat-feed-name">${e.name}</div>
+            <div class="threat-response-pill ${respClass}">${respLabel}</div>
+          </div>
+          <div class="threat-feed-detail">${e.detail}</div>
+          <div class="threat-feed-meta">
+            <div class="threat-feed-ip">${e.src_ip}</div>
+            <div class="threat-feed-time">${_relTime(e.time)}</div>
+            <div class="conf-meter" style="flex:1;max-width:120px;">
+              <div class="conf-bar-wrap"><div class="conf-bar" style="width:${e.score}%;background:${confColor};"></div></div>
+              <div class="conf-val" style="color:${confColor};">${e.score}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTimeline(ip) {
+  nsSelectedDevice = ip;
+  const events = NS_TIMELINES[ip] || [];
+  const wrap   = document.getElementById('ns-timeline-wrap');
+
+  // Device tabs
+  const tabs = document.getElementById('ns-timeline-device-tabs');
+  tabs.innerHTML = Object.keys(NS_TIMELINES).map(tip => `
+    <button onclick="renderTimeline('${tip}')" style="
+      background:${tip===ip?'var(--blue-g)':'transparent'};
+      border:1px solid ${tip===ip?'rgba(33,150,211,0.4)':'var(--border)'};
+      color:${tip===ip?'var(--blue-l)':'var(--text2)'};
+      font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;
+      padding:3px 9px;border-radius:5px;cursor:pointer;">
+      ${tip}${NS_ISOLATED[tip]?' 🔴':''}
+    </button>
+  `).join('');
+
+  if (!events.length) { wrap.innerHTML = '<div class="threat-empty">No events for this device</div>'; return; }
+
+  const eventsHtml = events.map((e, i) => {
+    const dotClass = e.risk === 'critical' ? 'critical' : e.risk === 'high' ? 'high' : e.score >= 40 ? 'medium' : 'watch';
+    const icon     = e.response === 'isolate_and_alert' ? '✕' :
+                     e.response === 'block_and_alert'   ? '⊗' :
+                     e.response === 'alert'             ? '!' : '·';
+    const connector = i < events.length - 1 ? `<div class="timeline-connector ${e.risk==='critical'||e.risk==='high'?'active':''}"></div>` : '';
+    return `
+      <div class="timeline-event" onclick="renderProcessTree('${ip}', ${i})" title="${e.detail}">
+        <div class="timeline-dot ${dotClass}">${icon}</div>
+        <div class="timeline-label">${e.name.split(' ').slice(0,2).join(' ')}</div>
+        <div class="timeline-time">${_timeStr(e.time)}</div>
+      </div>
+      ${connector}
+    `;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="timeline-device-label">${ip} — ${events.length} events</div>
+    <div class="timeline-track">
+      <div class="timeline-line"></div>
+      <div class="timeline-events">${eventsHtml}</div>
+    </div>
+  `;
+
+  // Auto-render process tree for this device
+  renderProcessTree(ip, events.length - 1);
+}
+
+function renderProcessTree(ip, eventIdx) {
+  const events = NS_TIMELINES[ip] || [];
+  const wrap   = document.getElementById('ns-ptree-wrap');
+  if (!events.length) return;
+
+  // Build tree: DNS query → IDS detection → Confidence score → Response → Agent
+  const rows = [];
+
+  // Root: the network connection
+  rows.push({ level: 0, icon: '🌐', name: ip, detail: 'Source device', badge: null, flagged: false });
+
+  events.forEach((e, i) => {
+    const flagged = e.response === 'isolate_and_alert' || e.response === 'block_and_alert';
+    const warn    = e.response === 'alert';
+    // Detection event
+    rows.push({
+      level: 1, icon: '🔍', name: e.sig, detail: e.name,
+      badge: e.risk.toUpperCase(), badgeType: e.risk === 'critical' ? 'red' : e.risk === 'high' ? 'yellow' : 'blue',
+      flagged, warn
+    });
+    // Confidence score
+    rows.push({
+      level: 2, icon: '⚖', name: `Score: ${e.score}/100`,
+      detail: `→ ${e.response.replace(/_/g,' ')}`,
+      badge: null, flagged, warn
+    });
+    // Response
+    if (flagged) {
+      rows.push({
+        level: 2, icon: e.response === 'isolate_and_alert' ? '🔴' : '⊗',
+        name: e.response === 'isolate_and_alert' ? 'Device Isolated' : 'IP Blocked',
+        detail: _timeStr(e.time),
+        badge: 'ACTIVE', badgeType: 'red',
+        flagged: true, warn: false
+      });
+      if (e.response === 'isolate_and_alert') {
+        rows.push({
+          level: 3, icon: '📋', name: NS_ISOLATED[ip]?.case_id || 'Case opened',
+          detail: 'Under investigation',
+          badge: 'CASE', badgeType: 'blue',
+          flagged: false, warn: false
+        });
+      }
+    }
+  });
+
+  wrap.innerHTML = rows.map(r => {
+    const indent = '  '.repeat(r.level);
+    const lines  = r.level > 0 ? `<div class="ptree-indent">${r.level > 1 ? '<div class="ptree-vline"></div>' : ''}<div class="ptree-hline"></div></div>` : '';
+    const badge  = r.badge ? `<span class="ptree-badge ${r.badgeType||'blue'}">${r.badge}</span>` : '';
+    return `
+      <div class="ptree-node" style="padding-left:${r.level*20}px;">
+        ${r.level > 0 ? lines : ''}
+        <div class="ptree-item ${r.flagged?'flagged':r.warn?'warn':''}">
+          <span class="ptree-icon">${r.icon}</span>
+          <span class="ptree-name">${r.name}</span>
+          ${badge}
+          <span class="ptree-detail">${r.detail}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function networkViewDevice(ip) {
+  nav('network', document.querySelector('.nav-item[onclick*="network"]'));
+  setTimeout(() => { if (NS_TIMELINES[ip]) renderTimeline(ip); }, 100);
+}
+
+function networkViewCase(ip) {
+  renderTimeline(ip);
+  renderProcessTree(ip, (NS_TIMELINES[ip]||[]).length - 1);
+  document.getElementById('ns-timeline-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function networkReleaseDevice(ip) {
+  delete NS_ISOLATED[ip];
+  const badge = document.getElementById('badge-network');
+  const count = Object.keys(NS_ISOLATED).length;
+  if (badge) { badge.textContent = count; if (!count) badge.style.display = 'none'; }
+  networkRefresh();
+  showToast(`${ip} released from isolation`);
+}
+
+function networkUnblockIP(ip) {
+  delete NS_BLOCKED[ip];
+  networkRefresh();
+  showToast(`${ip} unblocked`);
+}
+
+// Seed with demo data when on network page
+function networkSeedDemo() {
+  const demo = [
+    { sig:'AS012', name:'C2 domain connection',      risk:'critical', src_ip:'192.168.1.42', detail:'Connected to ngrok.io — known C2 tunnel', response:'isolate_and_alert', score:100 },
+    { sig:'AS012', name:'Connection to known C2',    risk:'medium',   src_ip:'192.168.1.71', detail:'Connected to pastebin.com — C2 config hosting', response:'isolate_and_alert', score:100 },
+    { sig:'AS003', name:'Brute force — SSH',         risk:'critical', src_ip:'203.0.113.5',  detail:'8 SSH attempts in 60s', response:'block_and_alert', score:75 },
+    { sig:'AS001', name:'Port scan — horizontal',    risk:'high',     src_ip:'192.168.1.63', detail:'Scanned 10 unique IPs in 60s', response:'alert', score:50 },
+    { sig:'AS009', name:'Bulk outbound exfiltration',risk:'high',     src_ip:'192.168.1.42', detail:'7.4MB sent outbound in 60s', response:'alert', score:35 },
+    { sig:'AS001', name:'Port scan — horizontal',    risk:'high',     src_ip:'192.168.1.55', detail:'Scanned 10 unique IPs in 60s', response:'alert', score:50 },
+  ];
+  let delay = 0;
+  demo.forEach(d => {
+    setTimeout(() => networkIngestThreat(d), delay);
+    delay += 200;
+  });
+}
+
+function _relTime(d) {
+  if (!d) return '';
+  const s = Math.floor((Date.now() - new Date(d)) / 1000);
+  if (s < 60)  return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+}
+
+function _timeStr(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// Hook into nav to seed demo on first visit
+const _origNav = nav;
+window._nsSeeded = false;
+nav = function(page, el) {
+  _origNav(page, el);
+  if (page === 'network' && !window._nsSeeded) {
+    window._nsSeeded = true;
+    setTimeout(networkSeedDemo, 300);
+  }
+};
 </script>
 </body>
 </html>
