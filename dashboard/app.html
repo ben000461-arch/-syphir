@@ -554,6 +554,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
     <!-- NETWORK SECURITY -->
     <div class="page" id="page-network">
+      <!-- Top toolbar -->
+      <div style="display:flex;align-items:center;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);margin:-20px -22px 20px;padding:0 22px;height:42px;">
+        <div style="font-size:12px;font-weight:700;color:var(--blue-l);padding:0 14px 0 0;border-right:1px solid var(--border);margin-right:14px;">Network Security</div>
+        <button onclick="nsOpenTool('workbench')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+          ⬡ Workbench
+        </button>
+        <button onclick="nsOpenTool('ptree')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+          ⬡ Process Tree
+        </button>
+        <button onclick="nsOpenTool('timeline')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+          ⟶ Events Timeline
+        </button>
+      </div>
       <div class="section-hdr">
         <div><div class="section-title">Network Security</div><div class="section-sub">Active threats, isolated devices, and attack timelines</div></div>
         <div style="display:flex;gap:8px;">
@@ -718,6 +731,50 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
             <button onclick="document.getElementById('tl-detail-panel').style.display='none'" style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:18px;line-height:1;">×</button>
           </div>
           <div id="tl-detail-body" style="padding:16px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKBENCH — full page overlay -->
+    <div id="ns-tool-workbench" style="display:none;position:fixed;inset:0;background:#0a0f1a;z-index:100;flex-direction:column;">
+      <!-- Toolbar -->
+      <div style="display:flex;align-items:center;background:#0f1623;border-bottom:1px solid #1e2a3a;height:42px;flex-shrink:0;">
+        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid #1e2a3a;color:#4a5568;font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">
+          ← Network Security
+        </button>
+        <div style="display:flex;align-items:center;gap:0;height:100%;">
+          <div style="font-size:11px;font-weight:700;color:#e6edf3;padding:0 16px;border-right:1px solid #1e2a3a;border-bottom:2px solid #2196d3;height:100%;display:flex;align-items:center;">Workbench</div>
+          <div onclick="nsToolSwitch('ptree')" style="font-size:11px;font-weight:600;color:#4a5568;padding:0 14px;border-right:1px solid #1e2a3a;height:100%;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">Process Tree</div>
+          <div onclick="nsToolSwitch('timeline')" style="font-size:11px;font-weight:600;color:#4a5568;padding:0 14px;border-right:1px solid #1e2a3a;height:100%;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">Events Timeline</div>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;gap:12px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4a5568;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676;"></div>Clean
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4a5568;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#ffc107;"></div>Warning
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4a5568;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#f44336;box-shadow:0 0 6px #f44336;"></div>Threat
+          </div>
+          <button onclick="wbCenter()" style="background:none;border:1px solid #1e2a3a;color:#4a5568;font-size:10px;padding:3px 10px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">
+            ⬡ Center
+          </button>
+        </div>
+      </div>
+      <!-- Canvas + right panel -->
+      <div style="display:flex;flex:1;overflow:hidden;">
+        <div style="flex:1;position:relative;overflow:hidden;" id="wb-canvas-wrap">
+          <svg id="wb-svg" style="position:absolute;inset:0;width:100%;height:100%;"></svg>
+          <div id="wb-tooltip" style="display:none;position:absolute;background:#0f1623;border:1px solid #1e2a3a;border-radius:8px;padding:10px 13px;font-size:12px;pointer-events:none;z-index:20;max-width:220px;color:#e6edf3;"></div>
+        </div>
+        <!-- Right device detail panel -->
+        <div id="wb-detail-panel" style="display:none;width:320px;background:#0f1623;border-left:1px solid #1e2a3a;overflow-y:auto;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #1e2a3a;">
+            <div id="wb-detail-title" style="font-size:13px;font-weight:700;color:#e6edf3;font-family:'JetBrains Mono',monospace;"></div>
+            <button onclick="document.getElementById('wb-detail-panel').style.display='none'" style="background:none;border:none;color:#4a5568;cursor:pointer;font-size:18px;line-height:1;">×</button>
+          </div>
+          <div id="wb-detail-body" style="padding:16px;"></div>
         </div>
       </div>
     </div>
@@ -1021,6 +1078,11 @@ async function refreshSettingsBilling() {
 
 const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings',intel:'Intel'};
 function nav(page, el) {
+  // Close any full-page tool overlays first
+  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench'].forEach(id => {
+    const el2 = document.getElementById(id);
+    if (el2) el2.style.display = 'none';
+  });
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
@@ -1960,15 +2022,22 @@ function networkViewCase(ip) {
 
 // ── TOOL OPEN/CLOSE ───────────────────────────────────────────────────────────
 function nsOpenTool(which) {
-  document.getElementById('ns-tool-ptree').style.display    = which==='ptree'    ? 'flex' : 'none';
-  document.getElementById('ns-tool-timeline').style.display = which==='timeline' ? 'flex' : 'none';
-  if (which==='ptree')    { ptUpdateDeviceTabs(); if (nsSelectedDevice) ptPaint(nsSelectedDevice); else ptPaintEmpty(); }
-  if (which==='timeline') { tlUpdateDeviceTabs(); tlPaint(); }
+  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const toolId = which==='ptree' ? 'ns-tool-ptree' : which==='timeline' ? 'ns-tool-timeline' : 'ns-tool-workbench';
+  document.getElementById(toolId).style.display = 'flex';
+  if (which==='ptree')     { ptUpdateDeviceTabs(); if (nsSelectedDevice) ptPaint(nsSelectedDevice); else ptPaintEmpty(); }
+  if (which==='timeline')  { tlUpdateDeviceTabs(); tlPaint(); }
+  if (which==='workbench') { setTimeout(wbPaint, 100); }
 }
 
 function nsCloseTool() {
-  document.getElementById('ns-tool-ptree').style.display    = 'none';
-  document.getElementById('ns-tool-timeline').style.display = 'none';
+  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 }
 
 function nsToolSwitch(which) { nsCloseTool(); nsOpenTool(which); }
@@ -2274,7 +2343,242 @@ function nsPaintTimeline(){}
 function nsPTreeNodeClick(){}
 function tlTooltipHide(){const t=document.getElementById('ns-timeline-tooltip');if(t)t.style.display='none';}
 function tlDragStart(){}
-function networkReleaseDevice(ip) {
+// ── WORKBENCH ─────────────────────────────────────────────────────────────────
+let _wb = { pan:{x:0,y:0}, drag:null, ox:0, oy:0, devices:{} };
+
+function wbPaint() {
+  const wrap = document.getElementById('wb-canvas-wrap');
+  const svg  = document.getElementById('wb-svg');
+  if (!wrap||!svg) return;
+  const W = wrap.offsetWidth||1200, H = wrap.offsetHeight||600;
+  const CX = W/2, CY = H/2;
+
+  // Known devices from timelines + any new ones from incidents
+  const deviceMap = {};
+  // Add from timelines
+  Object.keys(NS_TIMELINES).forEach(ip => {
+    const events = NS_TIMELINES[ip]||[];
+    const worst  = events.reduce((acc,e) => {
+      const score = e.risk==='critical'?4:e.risk==='high'?3:e.risk==='medium'?2:1;
+      return score>acc.score?{risk:e.risk,score,sig:e.sig}:acc;
+    },{score:0,risk:'clean',sig:''});
+    deviceMap[ip] = { ip, events, risk:worst.risk, sig:worst.sig, isolated:!!NS_ISOLATED[ip] };
+  });
+  // Also add simulated office devices for demo
+  const demoDevices = [
+    {ip:'192.168.1.10',name:'Reception-PC',   risk:'clean'},
+    {ip:'192.168.1.20',name:'Server-01',      risk:'clean'},
+    {ip:'192.168.1.30',name:'Printer',        risk:'clean'},
+  ];
+  demoDevices.forEach(d => { if (!deviceMap[d.ip]) deviceMap[d.ip]={...d,events:[],isolated:false}; });
+
+  const devices = Object.values(deviceMap);
+  const N = devices.length;
+
+  // Position devices in a ring around the center Shield box
+  const RING_R = Math.min(W,H) * 0.32;
+  devices.forEach((d,i) => {
+    const angle = (2*Math.PI/N)*i - Math.PI/2;
+    d.x = CX + RING_R*Math.cos(angle);
+    d.y = CY + RING_R*Math.sin(angle);
+  });
+
+  const riskColor = r => r==='critical'?'#f44336':r==='high'?'#ff6d2e':r==='medium'?'#ffc107':'#00e676';
+  const riskGlow  = r => r==='critical'?'0 0 16px #f44336':r==='high'?'0 0 12px #ff6d2e':r==='medium'?'0 0 8px #ffc107':'0 0 8px #00e676';
+
+  let html = `<defs>
+    <radialGradient id="wbbg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#1a2840" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0a0f1a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="wb-glow-r"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="wb-glow-g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="wb-glow-c"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#wbbg)"/>
+  <!-- Grid lines for ambience -->
+  ${Array.from({length:20},(_,i)=>`<line x1="${i*(W/20)}" y1="0" x2="${i*(W/20)}" y2="${H}" stroke="#1e2a3a" stroke-width="0.5" opacity="0.4"/>`).join('')}
+  ${Array.from({length:12},(_,i)=>`<line x1="0" y1="${i*(H/12)}" x2="${W}" y2="${i*(H/12)}" stroke="#1e2a3a" stroke-width="0.5" opacity="0.4"/>`).join('')}
+  <!-- Concentric rings around shield -->
+  <circle cx="${CX}" cy="${CY}" r="${RING_R}" fill="none" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="4,6" opacity="0.5"/>
+  <circle cx="${CX}" cy="${CY}" r="${RING_R*0.5}" fill="none" stroke="#1e2a3a" stroke-width="0.5" opacity="0.3"/>`;
+
+  // Connection lines from Shield to each device
+  devices.forEach(d => {
+    const col = d.isolated?'#f44336':d.risk==='critical'?'#f44336':d.risk==='high'?'#ff6d2e':d.risk==='medium'?'#ffc107':'#1e2a3a';
+    const dash = d.risk==='clean'?'4,8':'';
+    html += `<line x1="${CX}" y1="${CY}" x2="${d.x}" y2="${d.y}" stroke="${col}" stroke-width="${d.isolated||d.risk==='critical'?1.5:1}" opacity="${d.risk==='clean'?0.3:0.6}" stroke-dasharray="${dash}"/>`;
+    // Threat branch dot on the line
+    if (d.risk!=='clean') {
+      const mx = CX+(d.x-CX)*0.65, my = CY+(d.y-CY)*0.65;
+      html += `<circle cx="${mx}" cy="${my}" r="4" fill="${col}" opacity="0.8"/>`;
+    }
+    // Attack signature label on line if threat
+    if (d.sig) {
+      const lx = CX+(d.x-CX)*0.5, ly = CY+(d.y-CY)*0.5;
+      html += `<text x="${lx}" y="${ly-6}" text-anchor="middle" font-size="9" fill="${col}" font-family="JetBrains Mono,monospace" opacity="0.7">${d.sig}</text>`;
+    }
+  });
+
+  // Center node — Syphir Shield Box
+  html += `
+    <g onclick="wbClickShield()" style="cursor:pointer;">
+      <!-- Outer glow ring -->
+      <circle cx="${CX}" cy="${CY}" r="42" fill="none" stroke="#2196d3" stroke-width="1.5" opacity="0.3" filter="url(#wb-glow-c)"/>
+      <circle cx="${CX}" cy="${CY}" r="36" fill="#0d1829" stroke="#2196d3" stroke-width="2"/>
+      <!-- Box icon -->
+      <rect x="${CX-14}" y="${CY-10}" width="28" height="20" rx="3" fill="none" stroke="#2196d3" stroke-width="1.5"/>
+      <line x1="${CX-14}" y1="${CY}" x2="${CX+14}" y2="${CY}" stroke="#2196d3" stroke-width="1"/>
+      <circle cx="${CX}" cy="${CY-5}" r="2" fill="#2196d3"/>
+      <text x="${CX}" y="${CY+30}" text-anchor="middle" font-size="10" font-weight="700" fill="#2196d3" font-family="JetBrains Mono,monospace">SHIELD</text>
+      <text x="${CX}" y="${CY+42}" text-anchor="middle" font-size="9" fill="#4a5568" font-family="Inter,sans-serif">Syphir Box</text>
+    </g>`;
+
+  // Device nodes
+  devices.forEach((d,i) => {
+    const col   = riskColor(d.risk);
+    const glow  = d.risk==='critical'||d.isolated ? 'filter="url(#wb-glow-r)"' : d.risk==='clean' ? 'filter="url(#wb-glow-g)"' : '';
+    const isAttack = d.risk==='critical'||d.isolated;
+
+    // Computer icon SVG
+    html += `
+      <g onclick="wbClickDevice('${d.ip}')" onmouseenter="wbTooltip(event,'${d.ip}')" onmouseleave="document.getElementById('wb-tooltip').style.display='none'" style="cursor:pointer;">
+        <!-- Status glow -->
+        <circle cx="${d.x}" cy="${d.y}" r="26" fill="${col}12" stroke="${col}" stroke-width="1.5" ${glow} opacity="${d.risk==='clean'?0.5:0.9}"/>
+        ${d.isolated?`<circle cx="${d.x}" cy="${d.y}" r="32" fill="none" stroke="#f44336" stroke-width="1" opacity="0.4" stroke-dasharray="3,4"/>`:``}
+        <!-- Computer monitor icon -->
+        <rect x="${d.x-13}" y="${d.y-10}" width="26" height="16" rx="2" fill="${col}15" stroke="${col}" stroke-width="1.5"/>
+        <rect x="${d.x-8}" y="${d.y+6}" width="16" height="3" rx="1" fill="${col}" opacity="0.6"/>
+        <rect x="${d.x-5}" y="${d.y+9}" width="10" height="2" rx="1" fill="${col}" opacity="0.4"/>
+        <!-- Screen content indicator -->
+        <rect x="${d.x-10}" y="${d.y-8}" width="20" height="12" rx="1" fill="${col}20"/>
+        ${isAttack?`
+          <!-- Skull for active attack -->
+          <text x="${d.x}" y="${d.y-1}" text-anchor="middle" font-size="10" fill="#f44336" font-family="sans-serif">☠</text>
+        `:`
+          <rect x="${d.x-7}" y="${d.y-6}" width="14" height="1.5" rx="1" fill="${col}" opacity="0.4"/>
+          <rect x="${d.x-7}" y="${d.y-3}" width="10" height="1.5" rx="1" fill="${col}" opacity="0.3"/>
+        `}
+        <!-- Status dot -->
+        <circle cx="${d.x+16}" cy="${d.y-16}" r="5" fill="${col}" ${glow}/>
+        <!-- IP label -->
+        <text x="${d.x}" y="${d.y+26}" text-anchor="middle" font-size="10" font-weight="700" fill="${col}" font-family="JetBrains Mono,monospace">${d.ip}</text>
+        <text x="${d.x}" y="${d.y+38}" text-anchor="middle" font-size="9" fill="#4a5568" font-family="Inter,sans-serif">${d.name||d.ip.split('.').pop()===d.ip?d.ip:'Host'}</text>
+        ${d.events.length?`<text x="${d.x}" y="${d.y+50}" text-anchor="middle" font-size="9" fill="${col}" font-family="Inter,sans-serif">${d.events.length} event${d.events.length>1?'s':''}</text>`:''}
+      </g>`;
+  });
+
+  svg.innerHTML = html;
+  _wb.devices = deviceMap;
+
+  // Start live pulse animation for threat nodes
+  wbAnimatePulse();
+}
+
+function wbAnimatePulse() {
+  // Pulse the threat connection lines
+  const svg = document.getElementById('wb-svg');
+  if (!svg) return;
+  let opacity = 0.6;
+  let dir = -1;
+  const interval = setInterval(() => {
+    if (!document.getElementById('ns-tool-workbench') ||
+        document.getElementById('ns-tool-workbench').style.display==='none') {
+      clearInterval(interval); return;
+    }
+    opacity += dir * 0.05;
+    if (opacity <= 0.2) dir = 1;
+    if (opacity >= 0.8) dir = -1;
+    svg.querySelectorAll('line[stroke="#f44336"],line[stroke="#ff6d2e"]').forEach(l => {
+      l.setAttribute('opacity', opacity);
+    });
+  }, 80);
+}
+
+function wbCenter() { wbPaint(); }
+
+function wbClickShield() {
+  const panel = document.getElementById('wb-detail-panel');
+  document.getElementById('wb-detail-title').textContent = 'Syphir Shield';
+  document.getElementById('wb-detail-title').style.color = '#2196d3';
+  document.getElementById('wb-detail-body').innerHTML = `
+    <div style="display:grid;gap:14px;color:#e6edf3;">
+      <div style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);border-radius:8px;padding:12px;">
+        <div style="font-size:12px;font-weight:700;color:#4db8f0;">Shield Box</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:3px;">Network security appliance</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676;"></div>
+          <div style="font-size:11px;color:#00e676;font-weight:600;">Online — monitoring active</div>
+        </div>
+      </div>
+      <div><div style="font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Network Status</div>
+        <div style="font-size:12px;color:#e6edf3;">Devices monitored: <span style="color:#4db8f0;font-weight:700;">${Object.keys(_wb.devices).length}</span></div>
+        <div style="font-size:12px;color:#e6edf3;margin-top:4px;">Active threats: <span style="color:#f44336;font-weight:700;">${Object.values(NS_ISOLATED).length}</span></div>
+        <div style="font-size:12px;color:#e6edf3;margin-top:4px;">Total incidents: <span style="color:#ffc107;font-weight:700;">${Object.values(NS_TIMELINES).flat().length}</span></div>
+      </div>
+    </div>`;
+  panel.style.display = '';
+}
+
+function wbClickDevice(ip) {
+  const d   = _wb.devices[ip]; if (!d) return;
+  const col = d.risk==='critical'?'#f44336':d.risk==='high'?'#ff6d2e':d.risk==='medium'?'#ffc107':'#00e676';
+  document.getElementById('wb-detail-title').textContent = ip;
+  document.getElementById('wb-detail-title').style.color = col;
+  document.getElementById('wb-detail-body').innerHTML = `
+    <div style="display:grid;gap:14px;color:#e6edf3;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid #1e2a3a;border-radius:8px;padding:12px;">
+        <div style="font-size:12px;font-weight:700;color:${col};">${d.name||ip}</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:3px;">Network device</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:${col};box-shadow:0 0 6px ${col};"></div>
+          <div style="font-size:11px;font-weight:600;color:${col};">${d.isolated?'ISOLATED':d.risk==='clean'?'Clean':'Risk: '+d.risk.toUpperCase()}</div>
+        </div>
+      </div>
+      ${d.events.length?`
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Detections (${d.events.length})</div>
+          ${d.events.slice(0,6).map(e=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1e2a3a;">
+            <div style="width:6px;height:6px;border-radius:50%;background:${e.risk==='critical'?'#f44336':e.risk==='high'?'#ff6d2e':'#ffc107'};flex-shrink:0;"></div>
+            <div><div style="font-size:11px;font-weight:600;">${e.sig} — ${e.name}</div><div style="font-size:10px;color:#4a5568;">${_timeStr(e.time)}</div></div>
+          </div>`).join('')}
+        </div>
+        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('ptree'),50)" style="background:rgba(33,150,211,0.1);border:1px solid rgba(33,150,211,0.3);color:#4db8f0;font-size:11px;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">
+          View Process Tree →
+        </button>
+      `:'<div style="font-size:11px;color:#4a5568;text-align:center;padding:20px 0;">No incidents detected on this device</div>'}
+      ${d.isolated?`<button class="btn-release" style="width:100%;padding:8px;font-size:12px;" onclick="networkReleaseDevice('${ip}');setTimeout(wbPaint,100)">Release Device</button>`:''}
+    </div>`;
+  document.getElementById('wb-detail-panel').style.display = '';
+}
+
+function wbTooltip(e, ip) {
+  const d   = _wb.devices[ip]; if (!d) return;
+  const col = d.risk==='critical'?'#f44336':d.risk==='high'?'#ff6d2e':d.risk==='medium'?'#ffc107':'#00e676';
+  const tip = document.getElementById('wb-tooltip');
+  tip.innerHTML = `
+    <div style="font-weight:700;color:#e6edf3;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">${ip}</div>
+    <div style="font-size:11px;color:#8b949e;margin-bottom:4px;">${d.name||'Network device'}</div>
+    <div style="font-size:11px;font-weight:700;color:${col};">${d.isolated?'🔴 ISOLATED':d.risk==='clean'?'🟢 Clean':'⚠ '+d.risk.toUpperCase()}</div>
+    ${d.events.length?`<div style="font-size:10px;color:#8b949e;margin-top:4px;">${d.events.length} incident${d.events.length>1?'s':''} detected</div>`:''}
+    ${d.sig?`<div style="font-size:10px;color:${col};margin-top:2px;">Last: ${d.sig}</div>`:''}
+  `;
+  const r = document.getElementById('wb-canvas-wrap').getBoundingClientRect();
+  tip.style.left=`${e.clientX-r.left+14}px`;
+  tip.style.top=`${e.clientY-r.top+14}px`;
+  tip.style.display='';
+}
+
+// Update workbench live when new threats come in
+const _origNetworkIngest = networkIngestThreat;
+networkIngestThreat = function(threat) {
+  _origNetworkIngest(threat);
+  // Live update workbench if it's open
+  const wb = document.getElementById('ns-tool-workbench');
+  if (wb && wb.style.display !== 'none') {
+    setTimeout(wbPaint, 50);
+  }
+};
   delete NS_ISOLATED[ip];
   const badge = document.getElementById('badge-network');
   const count = Object.keys(NS_ISOLATED).length;
