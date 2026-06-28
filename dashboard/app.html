@@ -1983,7 +1983,7 @@ function nsOpenTool(which) {
   document.getElementById(toolId).style.display = 'flex';
   if (which==='ptree')     { _ptFilter='all'; ptBuildIncidentList(); ptPaintEmpty(); }
   if (which==='timeline')  { tlUpdateDeviceTabs(); tlPaint(); }
-  if (which==='workbench') { setTimeout(wbPaint, 100); }
+  if (which==='workbench') { wbStartPolling(); setTimeout(wbPaint, 100); }
 }
 
 function nsCloseTool() {
@@ -1991,6 +1991,7 @@ function nsCloseTool() {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
+  wbStopPolling();
 }
 
 function nsToolSwitch(which) { nsCloseTool(); nsOpenTool(which); }
@@ -2456,6 +2457,34 @@ function tlDragStart(){}
 // ── WORKBENCH ─────────────────────────────────────────────────────────────────
 let _wb = { pan:{x:0,y:0}, drag:null, ox:0, oy:0, devices:{} };
 
+// ── Live device data from Shield ──────────────────────────────────────────────
+let _wbLiveDevices = null;   // null = not fetched yet, [] = fetched but empty
+let _wbPollTimer   = null;
+
+async function wbFetchLiveDevices() {
+  try {
+    const r = await fetch(`${API}/shield/devices?key=${ORG_KEY}`);
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.devices && data.devices.length) {
+      _wbLiveDevices = data.devices;
+      // Repaint if workbench is open
+      const wb = document.getElementById('ns-tool-workbench');
+      if (wb && wb.style.display !== 'none') wbPaint();
+    }
+  } catch(_) {}
+}
+
+function wbStartPolling() {
+  if (_wbPollTimer) clearInterval(_wbPollTimer);
+  wbFetchLiveDevices();
+  _wbPollTimer = setInterval(wbFetchLiveDevices, 15000); // every 15s
+}
+
+function wbStopPolling() {
+  if (_wbPollTimer) { clearInterval(_wbPollTimer); _wbPollTimer = null; }
+}
+
 function wbPaint() {
   const wrap = document.getElementById('wb-canvas-wrap');
   const svg  = document.getElementById('wb-svg');
@@ -2465,22 +2494,43 @@ function wbPaint() {
 
   // Known devices from timelines + any new ones from incidents
   const deviceMap = {};
-  // Add from timelines
-  Object.keys(NS_TIMELINES).forEach(ip => {
-    const events = NS_TIMELINES[ip]||[];
-    const worst  = events.reduce((acc,e) => {
-      const score = e.risk==='critical'?4:e.risk==='high'?3:e.risk==='medium'?2:1;
-      return score>acc.score?{risk:e.risk,score,sig:e.sig}:acc;
-    },{score:0,risk:'clean',sig:''});
-    deviceMap[ip] = { ip, events, risk:worst.risk, sig:worst.sig, isolated:!!NS_ISOLATED[ip] };
-  });
-  // Also add simulated office devices for demo
-  const demoDevices = [
-    {ip:'192.168.1.10',name:'Reception-PC',   risk:'clean'},
-    {ip:'192.168.1.20',name:'Server-01',      risk:'clean'},
-    {ip:'192.168.1.30',name:'Printer',        risk:'clean'},
-  ];
-  demoDevices.forEach(d => { if (!deviceMap[d.ip]) deviceMap[d.ip]={...d,events:[],isolated:false}; });
+
+  // If we have live data from the Shield scanner, use it
+  if (_wbLiveDevices && _wbLiveDevices.length) {
+    _wbLiveDevices.forEach(d => {
+      const ip     = d.ip;
+      const events = NS_TIMELINES[ip] || [];
+      const worst  = events.reduce((acc,e) => {
+        const s = e.risk==='critical'?4:e.risk==='high'?3:e.risk==='medium'?2:1;
+        return s>acc.score?{risk:e.risk,score:s,sig:e.sig}:acc;
+      },{score:0,risk:d.status==='up'?'clean':'away',sig:''});
+      deviceMap[ip] = {
+        ip,
+        name:        d.hostname || d.device_type || ip,
+        vendor:      d.vendor,
+        device_type: d.device_type,
+        location:    d.location,
+        events,
+        risk:        worst.risk,
+        sig:         worst.sig,
+        isolated:    !!NS_ISOLATED[ip],
+        status:      d.status,
+        last_seen:   d.last_seen,
+      };
+    });
+  } else {
+    // Fallback: use simulation data from NS_TIMELINES + demo devices
+    Object.keys(NS_TIMELINES).forEach(ip => {
+      const events = NS_TIMELINES[ip]||[];
+      const worst  = events.reduce((acc,e) => {
+        const s = e.risk==='critical'?4:e.risk==='high'?3:e.risk==='medium'?2:1;
+        return s>acc.score?{risk:e.risk,score:s,sig:e.sig}:acc;
+      },{score:0,risk:'clean',sig:''});
+      deviceMap[ip] = { ip, events, risk:worst.risk, sig:worst.sig, isolated:!!NS_ISOLATED[ip], status:'up' };
+    });
+    [{ip:'192.168.1.10',name:'Reception-PC',risk:'clean'},{ip:'192.168.1.20',name:'Server-01',risk:'clean'},{ip:'192.168.1.30',name:'Printer',risk:'clean'}]
+      .forEach(d => { if (!deviceMap[d.ip]) deviceMap[d.ip]={...d,events:[],isolated:false,status:'up'}; });
+  }
 
   const devices = Object.values(deviceMap);
   const N = devices.length;
@@ -2573,8 +2623,10 @@ function wbPaint() {
         <circle cx="${d.x+16}" cy="${d.y-16}" r="5" fill="${col}" ${glow}/>
         <!-- IP label -->
         <text x="${d.x}" y="${d.y+26}" text-anchor="middle" font-size="10" font-weight="700" fill="${col}" font-family="JetBrains Mono,monospace">${d.ip}</text>
-        <text x="${d.x}" y="${d.y+38}" text-anchor="middle" font-size="9" fill="#4a5568" font-family="Inter,sans-serif">${d.name||d.ip.split('.').pop()===d.ip?d.ip:'Host'}</text>
-        ${d.events.length?`<text x="${d.x}" y="${d.y+50}" text-anchor="middle" font-size="9" fill="${col}" font-family="Inter,sans-serif">${d.events.length} event${d.events.length>1?'s':''}</text>`:''}
+        <text x="${d.x}" y="${d.y+38}" text-anchor="middle" font-size="9" fill="#4a5568" font-family="Inter,sans-serif">${d.device_type||d.name||'Device'}</text>
+        ${d.location&&d.location!=='Network'?`<text x="${d.x}" y="${d.y+50}" text-anchor="middle" font-size="9" fill="#2d3a50" font-family="Inter,sans-serif">${d.location}</text>`:''}
+        ${d.events&&d.events.length?`<text x="${d.x}" y="${d.y+(d.location&&d.location!=='Network'?62:50)}" text-anchor="middle" font-size="9" fill="${col}" font-family="Inter,sans-serif">${d.events.length} event${d.events.length>1?'s':''}</text>`:''}
+        ${d.status==='away'?`<text x="${d.x}" y="${d.y+62}" text-anchor="middle" font-size="9" fill="#2d3a50" font-family="Inter,sans-serif">away</text>`:''}
       </g>`;
   });
 
@@ -2864,10 +2916,12 @@ function wbTooltip(e, ip) {
   const tip = document.getElementById('wb-tooltip');
   tip.innerHTML = `
     <div style="font-weight:700;color:#e6edf3;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">${ip}</div>
-    <div style="font-size:11px;color:#8b949e;margin-bottom:4px;">${d.name||'Network device'}</div>
+    <div style="font-size:11px;color:#8b949e;margin-bottom:2px;">${d.device_type||d.name||'Network device'} · ${d.vendor||''}</div>
+    ${d.location&&d.location!=='Network'?`<div style="font-size:11px;color:#4a5568;margin-bottom:4px;">📍 ${d.location}</div>`:''}
     <div style="font-size:11px;font-weight:700;color:${col};">${d.isolated?'🔴 ISOLATED':d.risk==='clean'?'🟢 Clean':'⚠ '+d.risk.toUpperCase()}</div>
-    ${d.events.length?`<div style="font-size:10px;color:#8b949e;margin-top:4px;">${d.events.length} incident${d.events.length>1?'s':''} detected</div>`:''}
-    ${d.sig?`<div style="font-size:10px;color:${col};margin-top:2px;">Last: ${d.sig}</div>`:''}
+    ${d.events&&d.events.length?`<div style="font-size:10px;color:#8b949e;margin-top:4px;">${d.events.length} incident${d.events.length>1?'s':''} detected</div>`:''}
+    ${d.last_seen?`<div style="font-size:10px;color:#2d3a50;margin-top:3px;">Last seen: ${_relTime(new Date(d.last_seen))}</div>`:''}
+    ${d.sig?`<div style="font-size:10px;color:${col};margin-top:2px;">Last sig: ${d.sig}</div>`:''}
   `;
   const r = document.getElementById('wb-canvas-wrap').getBoundingClientRect();
   tip.style.left=`${e.clientX-r.left+14}px`;
