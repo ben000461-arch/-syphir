@@ -372,6 +372,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .conf-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
 .conf-bar{height:100%;border-radius:2px;transition:width 0.4s;}
 .conf-val{font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;min-width:36px;text-align:right;}
+.pt-filter-btn{background:transparent;border:1px solid var(--border);color:var(--text3);font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.pt-filter-btn:hover{color:var(--text2);border-color:var(--border2);}
+.active-filter{background:var(--blue-g)!important;border-color:rgba(33,150,211,0.4)!important;color:var(--blue-l)!important;}
 .ns-tool-tab{transition:color 0.15s;}
 .ns-tool-tab:hover{color:var(--text)!important;}
 .active-tool-tab{color:var(--blue-l)!important;border-bottom:2px solid var(--blue)!important;}
@@ -560,11 +563,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <button onclick="nsOpenTool('workbench')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
           ⬡ Workbench
         </button>
-        <button onclick="nsOpenTool('ptree')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+        <button onclick="nsOpenTool('ptree')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
           ⬡ Process Tree
-        </button>
-        <button onclick="nsOpenTool('timeline')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
-          ⟶ Events Timeline
         </button>
       </div>
       <div class="section-hdr">
@@ -635,55 +635,48 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div id="ns-threat-feed"><div class="threat-empty">Monitoring network — no threats detected yet</div></div>
       </div>
 
-      <!-- Tool launcher buttons -->
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <button onclick="nsOpenTool('ptree')" style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;color:var(--text2);font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:14px;">⬡</span> Process Tree
-          <span style="font-size:10px;color:var(--text3);margin-left:4px;">Full page →</span>
-        </button>
-        <button onclick="nsOpenTool('timeline')" style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;color:var(--text2);font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:14px;">⟶</span> Events Timeline
-          <span style="font-size:10px;color:var(--text3);margin-left:4px;">Full page →</span>
-        </button>
-      </div>
-
     </div>
 
     <!-- PROCESS TREE — full page overlay -->
-    <div id="ns-tool-ptree" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:100;flex-direction:column;">
-      <!-- Toolbar -->
-      <div style="display:flex;align-items:center;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);height:42px;flex-shrink:0;">
-        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+    <div id="ns-tool-ptree" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;flex-direction:column;">
+      <!-- Toolbar — z-index 300 ensures it's above sidebar -->
+      <div style="display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);height:42px;flex-shrink:0;z-index:301;position:relative;">
+        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 16px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
           ← Network Security
         </button>
-        <div style="display:flex;align-items:center;gap:0;height:100%;">
-          <div style="font-size:11px;font-weight:700;color:var(--text3);padding:0 14px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;cursor:pointer;" onclick="nsToolSwitch('ptree')" id="pt-tab-ptree" class="ns-tool-tab active-tool-tab">Details</div>
-          <div style="font-size:11px;font-weight:700;color:var(--text3);padding:0 14px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;cursor:pointer;" onclick="nsToolSwitch('timeline')" id="pt-tab-timeline" class="ns-tool-tab">Events timeline</div>
-        </div>
-        <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding:0 14px;gap:8px;">
-          <div id="pt-device-tabs" style="display:flex;gap:4px;"></div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue-l);padding:0 16px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;border-bottom:2px solid var(--blue);">Process Tree</div>
+        <button onclick="nsToolSwitch('workbench')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">Workbench</button>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:0 16px;">
+          <!-- Filters -->
+          <div style="display:flex;gap:4px;" id="pt-filter-bar">
+            <button onclick="ptSetFilter('all',this)" class="pt-filter-btn active-filter">All</button>
+            <button onclick="ptSetFilter('critical',this)" class="pt-filter-btn">Critical</button>
+            <button onclick="ptSetFilter('high',this)" class="pt-filter-btn">High</button>
+            <button onclick="ptSetFilter('medium',this)" class="pt-filter-btn">Medium</button>
+            <button onclick="ptSetFilter('network',this)" class="pt-filter-btn">Network</button>
+            <button onclick="ptSetFilter('extension',this)" class="pt-filter-btn">Extension</button>
+          </div>
           <button onclick="ptReset()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:10px;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;">Reset View</button>
         </div>
       </div>
-      <!-- Main content: left legend + canvas + right detail -->
+      <!-- Body: left incident list + center canvas + right detail -->
       <div style="display:flex;flex:1;overflow:hidden;">
-        <!-- Left legend panel -->
-        <div style="width:220px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
-          <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
-            <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:10px;">Legend</div>
-            <div id="pt-legend" style="display:grid;gap:6px;"></div>
+        <!-- LEFT — Incident list -->
+        <div style="width:260px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;">Incidents</div>
+            <div style="font-size:10px;color:var(--text3);" id="pt-incident-count">Select an incident to view its process tree</div>
           </div>
-          <div style="padding:14px 16px;">
-            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">Highlight by</div>
-            <div id="pt-highlight-list" style="display:grid;gap:4px;"></div>
-          </div>
+          <div id="pt-incident-list" style="flex:1;overflow-y:auto;"></div>
         </div>
-        <!-- Scrollable canvas -->
+        <!-- CENTER — Process tree canvas -->
         <div style="flex:1;overflow:auto;position:relative;" id="pt-canvas-wrap">
-          <svg id="pt-svg" style="display:block;" height="600"></svg>
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;" id="pt-empty-msg">← Select an incident to view its process tree</div>
+          <svg id="pt-svg" style="display:none;position:absolute;top:0;left:0;" height="600"></svg>
         </div>
-        <!-- Right detail panel -->
-        <div id="pt-detail-panel" style="display:none;width:340px;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
+        <!-- RIGHT — Node detail panel -->
+        <div id="pt-detail-panel" style="display:none;width:320px;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);">
             <div id="pt-detail-title" style="font-size:13px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;"></div>
             <button onclick="document.getElementById('pt-detail-panel').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
@@ -693,52 +686,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       </div>
     </div>
 
-    <!-- EVENTS TIMELINE — full page overlay -->
-    <div id="ns-tool-timeline" style="display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;">
-      <!-- Toolbar -->
-      <div style="display:flex;align-items:center;gap:0;background:#161b22;border-bottom:1px solid #21262d;height:42px;flex-shrink:0;">
-        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid #21262d;color:#8b949e;font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">
-          ← Network Security
-        </button>
-        <div style="display:flex;align-items:center;gap:0;height:100%;">
-          <div style="font-size:11px;font-weight:700;color:#8b949e;padding:0 14px;border-right:1px solid #21262d;height:100%;display:flex;align-items:center;cursor:pointer;" onclick="nsToolSwitch('ptree')" class="ns-tool-tab">Process Tree</div>
-          <div style="font-size:11px;font-weight:700;color:#e6edf3;padding:0 14px;border-right:1px solid #21262d;border-bottom:2px solid #2196d3;height:100%;display:flex;align-items:center;cursor:pointer;" onclick="nsToolSwitch('timeline')" class="ns-tool-tab">Events timeline</div>
-        </div>
-        <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding:0 14px;gap:12px;">
-          <div id="tl-device-tabs" style="display:flex;gap:4px;"></div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8b949e;">
-            <div style="width:20px;height:1.5px;background:#f44336;"></div>C2 / Isolate
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8b949e;">
-            <div style="width:20px;height:1.5px;background:#ffc107;"></div>Warn / Block
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8b949e;">
-            <div style="width:20px;height:1.5px;background:#30363d;"></div>Watch
-          </div>
-          <button onclick="tlReset()" style="background:none;border:1px solid #30363d;color:#8b949e;font-size:10px;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;">Reset View</button>
-        </div>
-      </div>
-      <!-- Canvas + right panel -->
-      <div style="display:flex;flex:1;overflow:hidden;">
-        <div style="flex:1;position:relative;overflow:hidden;" id="tl-canvas-wrap">
-          <svg id="tl-svg" style="position:absolute;inset:0;width:100%;height:100%;"></svg>
-          <div id="tl-tooltip" style="display:none;position:absolute;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:10px 13px;font-size:12px;pointer-events:none;z-index:20;max-width:220px;color:#e6edf3;"></div>
-        </div>
-        <!-- Right adversary/detail panel -->
-        <div id="tl-detail-panel" style="display:none;width:300px;background:#161b22;border-left:1px solid #21262d;overflow-y:auto;flex-shrink:0;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #21262d;">
-            <div id="tl-detail-title" style="font-size:13px;font-weight:700;color:#e6edf3;font-family:'JetBrains Mono',monospace;"></div>
-            <button onclick="document.getElementById('tl-detail-panel').style.display='none'" style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:18px;line-height:1;">×</button>
-          </div>
-          <div id="tl-detail-body" style="padding:16px;"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- WORKBENCH — full page overlay -->
-    <div id="ns-tool-workbench" style="display:none;position:fixed;inset:0;background:#0a0f1a;z-index:100;flex-direction:column;">
+    <div id="ns-tool-workbench" style="display:none;position:fixed;inset:0;background:#0a0f1a;z-index:300;flex-direction:column;">
       <!-- Toolbar -->
-      <div style="display:flex;align-items:center;background:#0f1623;border-bottom:1px solid #1e2a3a;height:42px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;background:#0f1623;border-bottom:1px solid #1e2a3a;height:42px;flex-shrink:0;position:relative;z-index:301;">
         <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid #1e2a3a;color:#4a5568;font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">
           ← Network Security
         </button>
@@ -2032,7 +1983,7 @@ function nsOpenTool(which) {
   });
   const toolId = which==='ptree' ? 'ns-tool-ptree' : which==='timeline' ? 'ns-tool-timeline' : 'ns-tool-workbench';
   document.getElementById(toolId).style.display = 'flex';
-  if (which==='ptree')     { ptUpdateDeviceTabs(); if (nsSelectedDevice) ptPaint(nsSelectedDevice); else ptPaintEmpty(); }
+  if (which==='ptree')     { _ptFilter='all'; ptBuildIncidentList(); ptPaintEmpty(); }
   if (which==='timeline')  { tlUpdateDeviceTabs(); tlPaint(); }
   if (which==='workbench') { setTimeout(wbPaint, 100); }
 }
@@ -2047,37 +1998,194 @@ function nsCloseTool() {
 function nsToolSwitch(which) { nsCloseTool(); nsOpenTool(which); }
 
 // ── PROCESS TREE ──────────────────────────────────────────────────────────────
-function ptUpdateDeviceTabs() {
-  const bar = document.getElementById('pt-device-tabs');
-  if (!bar) return;
-  bar.innerHTML = Object.keys(NS_TIMELINES).map(ip => `
-    <button onclick="nsSelectedDevice='${ip}';ptPaint('${ip}')" style="
-      background:${ip===nsSelectedDevice?'rgba(33,150,211,0.15)':'transparent'};
-      border:1px solid ${ip===nsSelectedDevice?'rgba(33,150,211,0.5)':'var(--border)'};
-      color:${ip===nsSelectedDevice?'#4db8f0':'var(--text3)'};
-      font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;
-      padding:3px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;">
-      ${ip}${NS_ISOLATED[ip]?' 🔴':''}</button>`).join('');
-  const legend = document.getElementById('pt-legend');
-  if (legend) legend.innerHTML = [
-    ['Detection — critical','#f44336'], ['Detection — high','#ff6d2e'],
-    ['Detection — medium','#ffc107'],  ['Host / Device','#2196d3'],
-  ].map(([lbl,col]) => `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-    <div style="width:9px;height:9px;border-radius:50%;background:${col};box-shadow:0 0 5px ${col}88;flex-shrink:0;"></div>
-    <span style="font-size:11px;color:var(--text2);">${lbl}</span>
-  </div>`).join('');
-  const hl = document.getElementById('pt-highlight-list');
-  if (hl) hl.innerHTML = [
-    ['Network operations','🌐'], ['DNS request','🔍'], ['C2 connection','☠'],
-    ['Brute force','🔑'], ['Port scan','📡'], ['Lateral movement','↔'],
-  ].map(([lbl,icon]) => `<div style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:5px;cursor:pointer;color:var(--text2);font-size:11px;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
-    <span>${icon}</span><span>${lbl}</span>
-  </div>`).join('');
+let _ptFilter = 'all';
+let _ptSelectedIncident = null;
+
+function ptSetFilter(f, btn) {
+  _ptFilter = f;
+  document.querySelectorAll('.pt-filter-btn').forEach(b => b.classList.remove('active-filter'));
+  btn.classList.add('active-filter');
+  ptBuildIncidentList();
 }
+
+function ptBuildIncidentList() {
+  const list = document.getElementById('pt-incident-list');
+  const countEl = document.getElementById('pt-incident-count');
+  if (!list) return;
+
+  // Gather all incidents from NS_THREAT_FEED + NS_TIMELINES
+  let incidents = [...NS_THREAT_FEED];
+  // Also add any from timelines not in feed
+  Object.values(NS_TIMELINES).flat().forEach(e => {
+    if (!incidents.find(i => i.sig === e.sig && i.src_ip === e.src_ip)) incidents.push(e);
+  });
+
+  // Apply filter
+  if (_ptFilter !== 'all') {
+    incidents = incidents.filter(e => {
+      if (_ptFilter === 'network')   return e.monitor_type === 'intrusion' || e.sig?.startsWith('AS');
+      if (_ptFilter === 'extension') return e.monitor_type === 'ai' || e.monitor_type === 'general';
+      return e.risk === _ptFilter;
+    });
+  }
+
+  countEl.textContent = `${incidents.length} incident${incidents.length !== 1 ? 's' : ''}`;
+
+  if (!incidents.length) {
+    list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text3);font-size:12px;">No incidents match this filter</div>`;
+    return;
+  }
+
+  list.innerHTML = incidents.map((e, i) => {
+    const col  = e.risk==='critical'?'#f44336':e.risk==='high'?'#ff6d2e':e.risk==='medium'?'#ffc107':'#8b949e';
+    const isSelected = _ptSelectedIncident && _ptSelectedIncident.sig === e.sig && _ptSelectedIncident.src_ip === e.src_ip;
+    const typeIcon = e.sig ? '🌐' : '🔍';
+    return `
+      <div onclick="ptSelectIncident(${i})" style="
+        padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;
+        background:${isSelected?'rgba(33,150,211,0.08)':'transparent'};
+        border-left:3px solid ${isSelected?'var(--blue)':col};
+        transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='${isSelected?'rgba(33,150,211,0.08)':'transparent'}'">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;box-shadow:0 0 4px ${col};"></div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name||e.sig||'Unknown'}</div>
+          <div style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(${col==='#f44336'?'244,67,54':col==='#ff6d2e'?'255,109,46':col==='#ffc107'?'255,193,7':'139,148,158'},0.15);color:${col};flex-shrink:0;">${(e.risk||'').toUpperCase()}</div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${e.src_ip||e.sig||''}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${_relTime(e.time)}</div>
+      </div>`;
+  }).join('');
+
+  // Store for click handler
+  list._incidents = incidents;
+}
+
+function ptSelectIncident(idx) {
+  const list = document.getElementById('pt-incident-list');
+  if (!list._incidents) return;
+  const incident = list._incidents[idx];
+  _ptSelectedIncident = incident;
+  ptBuildIncidentList(); // re-render to show selection
+  // Find device IP — use src_ip or first device in timelines
+  const ip = incident.src_ip || Object.keys(NS_TIMELINES)[0];
+  if (ip) {
+    nsSelectedDevice = ip;
+    // Paint tree for this specific incident
+    ptPaintIncident(incident, ip);
+  }
+}
+
+function ptUpdateDeviceTabs() { ptBuildIncidentList(); }
 
 function ptPaintEmpty() {
   const svg = document.getElementById('pt-svg');
-  if (svg) svg.innerHTML = `<text x="50%" y="300" text-anchor="middle" fill="#4a5568" font-family="Inter,sans-serif" font-size="13">Select a device from the tabs above</text>`;
+  const msg = document.getElementById('pt-empty-msg');
+  if (svg) svg.style.display = 'none';
+  if (msg) msg.style.display = 'flex';
+}
+
+function ptPaintIncident(incident, ip) {
+  const svg = document.getElementById('pt-svg');
+  const msg = document.getElementById('pt-empty-msg');
+  if (!svg) return;
+  msg.style.display = 'none';
+  svg.style.display = 'block';
+
+  const wrap = document.getElementById('pt-canvas-wrap');
+  const W = Math.max(wrap.offsetWidth || 800, 800);
+  const H = Math.max(wrap.offsetHeight || 500, 400);
+
+  // Build a 3-node chain: Source Device → Signature Detection → Response
+  const NW=150, NH=64, HGAP=100, MT=100;
+  const startX = (W - (3*NW + 2*HGAP)) / 2;
+  const nodeY  = H/2 - NH/2;
+
+  const nc = r => r==='critical'?'#f44336':r==='high'?'#ff6d2e':r==='medium'?'#ffc107':r==='device'?'#2196d3':'#4a5568';
+  const riskCol = nc(incident.risk);
+  const respLabel = incident.response==='isolate_and_alert'?'ISOLATED':incident.response==='block_and_alert'?'BLOCKED':incident.response==='alert'?'ALERTED':'WATCHED';
+  const respCol   = incident.response==='isolate_and_alert'?'#f44336':incident.response==='block_and_alert'?'#ff6d2e':incident.response==='alert'?'#ffc107':'#4a5568';
+
+  const nodes = [
+    { x: startX,              y: nodeY, label: ip||'Device', sub: 'Source Device',                 col:'#2196d3',  icon:'⬡', type:'device' },
+    { x: startX+NW+HGAP,      y: nodeY, label: incident.sig||'Detection', sub: (incident.name||'').slice(0,20), col: riskCol, icon:'●', type:'event', score: incident.score },
+    { x: startX+2*(NW+HGAP),  y: nodeY, label: respLabel,  sub: incident.response?.replace(/_/g,' ')||'', col: respCol, icon:'⊗', type:'response' },
+  ];
+
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+
+  let html = `<defs>
+    <marker id="pti-arr" markerWidth="7" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,7 3,0 6" fill="#30363d"/></marker>
+    <marker id="pti-arr-r" markerWidth="7" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,7 3,0 6" fill="${riskCol}"/></marker>
+    <filter id="pti-glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  // Connector lines
+  nodes.forEach((n, i) => {
+    if (i === nodes.length-1) return;
+    const nx = nodes[i+1];
+    const isRed = incident.risk==='critical'||incident.risk==='high';
+    html += `<path d="M${n.x+NW},${n.y+NH/2} C${n.x+NW+HGAP/2},${n.y+NH/2} ${nx.x-HGAP/2},${nx.y+NH/2} ${nx.x},${nx.y+NH/2}"
+      fill="none" stroke="${isRed?riskCol:'#2d3a50'}" stroke-width="1.5"
+      stroke-dasharray="${isRed?'':'5,3'}"
+      marker-end="url(#pti-arr${isRed?'-r':''})"/>`;
+  });
+
+  // Nodes
+  nodes.forEach((n, i) => {
+    const glow = (n.col==='#f44336'||n.col==='#ff6d2e') ? 'filter="url(#pti-glow)"' : '';
+    const dots = n.type==='event' ? `
+      <circle cx="${n.x+NW-16}" cy="${n.y+10}" r="4" fill="${n.col}"/>
+      ${(n.score||0)>=80?`<circle cx="${n.x+NW-26}" cy="${n.y+10}" r="4" fill="#f44336"/>`:''}
+    ` : '';
+    html += `
+      <g onclick="ptNodeClickInc(${i})" style="cursor:pointer;">
+        <rect x="${n.x}" y="${n.y}" width="${NW}" height="${NH}" rx="8" fill="${n.col}18" stroke="${n.col}" stroke-width="1.5" ${glow}/>
+        ${dots}
+        <circle cx="${n.x+18}" cy="${n.y+NH/2}" r="10" fill="${n.col}25" stroke="${n.col}" stroke-width="1.5"/>
+        <text x="${n.x+18}" y="${n.y+NH/2+4}" text-anchor="middle" font-size="10" font-weight="700" fill="${n.col}" font-family="monospace">${n.icon}</text>
+        <text x="${n.x+34}" y="${n.y+22}" font-size="11" font-weight="700" fill="${n.col}" font-family="JetBrains Mono,monospace">${n.label}</text>
+        <text x="${n.x+34}" y="${n.y+37}" font-size="10" fill="#8b949e" font-family="Inter,sans-serif">${n.sub}</text>
+        ${n.type==='event'&&n.score!==undefined?`<text x="${n.x+34}" y="${n.y+52}" font-size="9" fill="#4a5568" font-family="monospace">Score: ${n.score}/100</text>`:''}
+      </g>`;
+  });
+
+  svg.innerHTML = html;
+  svg._nodes   = nodes;
+  svg._incident = incident;
+}
+
+function ptNodeClickInc(i) {
+  const svg = document.getElementById('pt-svg');
+  if (!svg||!svg._nodes||!svg._incident) return;
+  const node = svg._nodes[i];
+  const e    = svg._incident;
+  const col  = node.col;
+  document.getElementById('pt-detail-title').textContent = node.label;
+  document.getElementById('pt-detail-title').style.color = col;
+  document.getElementById('pt-detail-body').innerHTML = `<div style="display:grid;gap:14px;">
+    ${node.type==='device'?`<div style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);border-radius:8px;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#4db8f0;">Source Device</div>
+      <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#e6edf3;margin-top:4px;">${node.label}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px;">${NS_ISOLATED[node.label]?'🔴 Currently Isolated':'Connected to network'}</div>
+      ${NS_ISOLATED[node.label]?`<button class="btn-release" style="margin-top:8px;width:100%;padding:7px;" onclick="networkReleaseDevice('${node.label}')">Release Device</button>`:''}
+    </div>`:''}
+    ${node.type==='event'?`
+      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Signature</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${col};">${e.sig}</div></div>
+      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Detection</div><div style="font-size:12px;color:var(--text2);">${e.name}</div></div>
+      ${e.detail?`<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Detail</div><div style="font-size:11px;color:var(--text2);line-height:1.5;">${e.detail}</div></div>`:''}
+      ${e.score!==undefined?`<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Confidence Score</div><div style="display:flex;align-items:center;gap:10px;"><div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="width:${e.score}%;height:100%;background:${col};border-radius:3px;"></div></div><div style="font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${col};">${e.score}</div></div></div>`:''}
+      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Risk Level</div><div style="font-size:12px;font-weight:700;color:${col};">${(e.risk||'').toUpperCase()}</div></div>
+    `:''}
+    ${node.type==='response'?`
+      <div style="background:rgba(${col==='#f44336'?'244,67,54':col==='#ff6d2e'?'255,109,46':'255,193,7'},0.08);border:1px solid rgba(${col==='#f44336'?'244,67,54':col==='#ff6d2e'?'255,109,46':'255,193,7'},0.2);border-radius:8px;padding:12px;">
+        <div style="font-size:13px;font-weight:700;color:${col};">${node.label}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px;">${(e.response||'').replace(/_/g,' ')}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;">${_timeStr(e.time)}</div>
+      </div>
+    `:''}
+  </div>`;
+  document.getElementById('pt-detail-panel').style.display = '';
 }
 
 function ptPaint(ip) {
