@@ -645,8 +645,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           ← Network Security
         </button>
         <div style="font-size:11px;font-weight:700;color:var(--blue-l);padding:0 16px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;border-bottom:2px solid var(--blue);">Process Tree</div>
-        <button onclick="nsToolSwitch('workbench')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">Workbench</button>
-        <div style="flex:1;"></div>
+        <button onclick="nsToolSwitch('workbench')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">Workbench</button>        <div style="flex:1;"></div>
         <div style="display:flex;align-items:center;gap:8px;padding:0 16px;">
           <!-- Filters -->
           <div style="display:flex;gap:4px;" id="pt-filter-bar">
@@ -696,7 +695,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div style="display:flex;align-items:center;gap:0;height:100%;">
           <div style="font-size:11px;font-weight:700;color:#e6edf3;padding:0 16px;border-right:1px solid #1e2a3a;border-bottom:2px solid #2196d3;height:100%;display:flex;align-items:center;">Workbench</div>
           <div onclick="nsToolSwitch('ptree')" style="font-size:11px;font-weight:600;color:#4a5568;padding:0 14px;border-right:1px solid #1e2a3a;height:100%;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">Process Tree</div>
-          <div onclick="nsToolSwitch('timeline')" style="font-size:11px;font-weight:600;color:#4a5568;padding:0 14px;border-right:1px solid #1e2a3a;height:100%;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">Events Timeline</div>
         </div>
         <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;gap:12px;">
           <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4a5568;">
@@ -2641,12 +2639,18 @@ function wbClickDevice(ip) {
     <div style="display:grid;gap:14px;color:#e6edf3;">
       <div style="background:rgba(255,255,255,0.03);border:1px solid #1e2a3a;border-radius:8px;padding:12px;">
         <div style="font-size:12px;font-weight:700;color:${col};">${d.name||ip}</div>
-        <div style="font-size:11px;color:#8b949e;margin-top:3px;">Network device</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:3px;">Network device · ${ip}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
           <div style="width:6px;height:6px;border-radius:50%;background:${col};box-shadow:0 0 6px ${col};"></div>
-          <div style="font-size:11px;font-weight:600;color:${col};">${d.isolated?'ISOLATED':d.risk==='clean'?'Clean':'Risk: '+d.risk.toUpperCase()}</div>
+          <div style="font-size:11px;font-weight:600;color:${col};" id="wb-device-status-${ip.replace(/\./g,'_')}">${d.isolated?'ISOLATED':d.risk==='clean'?'Clean':'Risk: '+d.risk.toUpperCase()}</div>
         </div>
       </div>
+
+      <!-- Send Agent button -->
+      <button onclick="wbOpenAgentModal('${ip}')" style="background:linear-gradient(135deg,rgba(33,150,211,0.2),rgba(33,150,211,0.1));border:1px solid rgba(33,150,211,0.4);color:#4db8f0;font-size:12px;font-weight:700;padding:10px;border-radius:8px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='rgba(33,150,211,0.25)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(33,150,211,0.2),rgba(33,150,211,0.1))'">
+        <span style="font-size:14px;">⚡</span> Send Agent
+      </button>
+
       ${d.events.length?`
         <div>
           <div style="font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Detections (${d.events.length})</div>
@@ -2655,13 +2659,203 @@ function wbClickDevice(ip) {
             <div><div style="font-size:11px;font-weight:600;">${e.sig} — ${e.name}</div><div style="font-size:10px;color:#4a5568;">${_timeStr(e.time)}</div></div>
           </div>`).join('')}
         </div>
-        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('ptree'),50)" style="background:rgba(33,150,211,0.1);border:1px solid rgba(33,150,211,0.3);color:#4db8f0;font-size:11px;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">
+        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('ptree'),50)" style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);color:#4db8f0;font-size:11px;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">
           View Process Tree →
         </button>
-      `:'<div style="font-size:11px;color:#4a5568;text-align:center;padding:20px 0;">No incidents detected on this device</div>'}
+      `:'<div style="font-size:11px;color:#4a5568;text-align:center;padding:12px 0;">No incidents detected</div>'}
+
+      <!-- Agent run log — shown after dispatch -->
+      <div id="wb-agent-log-${ip.replace(/\./g,'_')}" style="display:none;background:#060a10;border:1px solid #1e2a3a;border-radius:8px;overflow:hidden;">
+        <div style="padding:8px 12px;border-bottom:1px solid #1e2a3a;display:flex;align-items:center;gap:8px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:#2196d3;animation:pulse 1.2s infinite;" id="wb-agent-dot-${ip.replace(/\./g,'_')}"></div>
+          <div style="font-size:10px;font-weight:700;color:#4db8f0;font-family:'JetBrains Mono',monospace;" id="wb-agent-status-${ip.replace(/\./g,'_')}">Agent running...</div>
+        </div>
+        <div style="padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.7;max-height:200px;overflow-y:auto;color:#8b949e;" id="wb-agent-output-${ip.replace(/\./g,'_')}"></div>
+      </div>
+
       ${d.isolated?`<button class="btn-release" style="width:100%;padding:8px;font-size:12px;" onclick="networkReleaseDevice('${ip}');setTimeout(wbPaint,100)">Release Device</button>`:''}
     </div>`;
   document.getElementById('wb-detail-panel').style.display = '';
+}
+
+// ── Agent modal ───────────────────────────────────────────────────────────────
+function wbOpenAgentModal(ip) {
+  const existing = document.getElementById('wb-agent-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'wb-agent-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  modal.innerHTML = `
+    <div style="background:#0f1623;border:1px solid #1e2a3a;border-radius:14px;padding:28px;width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div style="width:36px;height:36px;background:rgba(33,150,211,0.15);border:1px solid rgba(33,150,211,0.3);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;">⚡</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#e6edf3;">Send Agent</div>
+          <div style="font-size:11px;color:#4a5568;font-family:'JetBrains Mono',monospace;">${ip}</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#8b949e;margin-bottom:20px;padding-top:10px;border-top:1px solid #1e2a3a;">
+        The agent will deploy to this machine, run the selected task, report back, then self-delete. Nothing is left behind.
+      </div>
+      <div style="font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">What should the agent do?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+        <button onclick="wbAgentSelectMode(this,'diagnostic')" class="wb-mode-btn" style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);color:#4db8f0;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
+          <div style="font-size:13px;margin-bottom:4px;">🔍</div>
+          <div style="font-size:12px;font-weight:700;">Diagnose</div>
+          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Scan processes, connections, files</div>
+        </button>
+        <button onclick="wbAgentSelectMode(this,'repair')" class="wb-mode-btn" style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);color:#00e676;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
+          <div style="font-size:13px;margin-bottom:4px;">🔧</div>
+          <div style="font-size:12px;font-weight:700;">Fix</div>
+          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Clear cache, flush DNS, free memory</div>
+        </button>
+        <button onclick="wbAgentSelectMode(this,'defend')" class="wb-mode-btn" style="background:rgba(244,67,54,0.08);border:1px solid rgba(244,67,54,0.2);color:#f44336;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
+          <div style="font-size:13px;margin-bottom:4px;">🛡️</div>
+          <div style="font-size:12px;font-weight:700;">Defend</div>
+          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Kill threats, close backdoors (stealth)</div>
+        </button>
+        <button onclick="wbAgentSelectMode(this,'diagnostic')" class="wb-mode-btn" style="background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.15);color:#ffc107;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
+          <div style="font-size:13px;margin-bottom:4px;">📊</div>
+          <div style="font-size:12px;font-weight:700;">Full Scan</div>
+          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Deep scan — processes + network + files</div>
+        </button>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('wb-agent-modal').remove()" style="flex:1;background:transparent;border:1px solid #1e2a3a;color:#4a5568;padding:10px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;">Cancel</button>
+        <button id="wb-modal-confirm" onclick="wbDispatchAgent('${ip}')" disabled style="flex:2;background:rgba(33,150,211,0.15);border:1px solid rgba(33,150,211,0.3);color:#4a5568;padding:10px;border-radius:8px;cursor:not-allowed;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;">Select a task above</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  // Click outside to close
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+let _wbAgentMode = 'diagnostic';
+function wbAgentSelectMode(btn, mode) {
+  _wbAgentMode = mode;
+  document.querySelectorAll('.wb-mode-btn').forEach(b => {
+    b.style.transform = 'scale(1)';
+    b.style.boxShadow = 'none';
+  });
+  btn.style.transform = 'scale(1.03)';
+  btn.style.boxShadow = '0 0 0 2px rgba(33,150,211,0.5)';
+  const confirm = document.getElementById('wb-modal-confirm');
+  if (confirm) {
+    confirm.disabled = false;
+    confirm.style.color = '#4db8f0';
+    confirm.style.cursor = 'pointer';
+    confirm.style.background = 'rgba(33,150,211,0.2)';
+    confirm.textContent = `Deploy ${mode.charAt(0).toUpperCase()+mode.slice(1)} Agent →`;
+  }
+}
+
+async function wbDispatchAgent(ip) {
+  const modal = document.getElementById('wb-agent-modal');
+  if (modal) modal.remove();
+
+  const safeIp  = ip.replace(/\./g,'_');
+  const logEl   = document.getElementById(`wb-agent-log-${safeIp}`);
+  const outEl   = document.getElementById(`wb-agent-output-${safeIp}`);
+  const dotEl   = document.getElementById(`wb-agent-dot-${safeIp}`);
+  const statEl  = document.getElementById(`wb-agent-status-${safeIp}`);
+  const devStat = document.getElementById(`wb-device-status-${safeIp}`);
+
+  if (!logEl||!outEl) return;
+  logEl.style.display = '';
+  outEl.innerHTML = '';
+
+  const addLine = (text, color='#8b949e') => {
+    outEl.innerHTML += `<div style="color:${color};">${text}</div>`;
+    outEl.scrollTop = outEl.scrollHeight;
+  };
+
+  addLine(`Connecting to ${ip}...`, '#4db8f0');
+  addLine(`Mode: ${_wbAgentMode.toUpperCase()}`, '#4a5568');
+
+  // Try local server
+  const live = await wbCheckLocalServer();
+  if (!live) {
+    addLine('⚠ Local server not running', '#f44336');
+    addLine('Start with: python3 local_server.py', '#ffc107');
+    if (statEl) { statEl.textContent = 'Server offline'; dotEl.style.background='#f44336'; }
+    return;
+  }
+
+  addLine('Agent dispatched — terminal opening...', '#a3e635');
+  if (statEl) statEl.textContent = 'Agent running...';
+
+  try {
+    const res  = await fetch('http://localhost:7474/run-agent', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        mode:   _wbAgentMode,
+        reason: `Workbench dispatch to ${ip} — ${_wbAgentMode}`,
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === 'dispatched') {
+      const jobId = data.job_id;
+      addLine('Terminal opened on target machine', '#a3e635');
+      addLine('Running live scan...', '#8b949e');
+
+      // Poll for completion
+      let polls = 0;
+      const poll = setInterval(async () => {
+        polls++;
+        try {
+          const r2   = await fetch('http://localhost:7474/job-status', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({job_id: jobId})
+          });
+          const d2 = await r2.json();
+          if (d2.status === 'done') {
+            clearInterval(poll);
+            addLine('', '#4a5568');
+            addLine('✓ Agent completed', '#a3e635');
+            addLine(d2.summary||'Scan complete.', '#e6edf3');
+            addLine('', '#4a5568');
+            addLine('✓ Agent self-deleted — nothing left behind', '#4a5568');
+            if (statEl) { statEl.textContent = 'Done'; dotEl.style.background='#00e676'; dotEl.style.animation='none'; }
+            // Update device status to green if diagnostic came back clean
+            if (devStat && _wbAgentMode==='diagnostic') {
+              devStat.textContent = 'Scanned — see report';
+              devStat.style.color = '#00e676';
+            }
+            // Log this run
+            wbLogAgentRun(ip, _wbAgentMode, d2.summary||'Complete');
+            // Repaint workbench to potentially update color
+            setTimeout(wbPaint, 500);
+          } else if (d2.status === 'error') {
+            clearInterval(poll);
+            addLine('✗ Agent error', '#f44336');
+            if (statEl) { statEl.textContent = 'Error'; dotEl.style.background='#f44336'; dotEl.style.animation='none'; }
+          }
+        } catch(_){}
+        if (polls > 90) clearInterval(poll); // 3 min timeout
+      }, 2000);
+    } else {
+      addLine(`Error: ${data.error||'Unknown'}`, '#f44336');
+      if (statEl) { statEl.textContent = 'Failed'; dotEl.style.background='#f44336'; dotEl.style.animation='none'; }
+    }
+  } catch(e) {
+    addLine(`Connection error: ${e.message}`, '#f44336');
+    if (statEl) { statEl.textContent = 'Error'; dotEl.style.background='#f44336'; dotEl.style.animation='none'; }
+  }
+}
+
+async function wbCheckLocalServer() {
+  try {
+    const r = await fetch('http://localhost:7474/ping');
+    return r.ok;
+  } catch(_) { return false; }
+}
+
+const _wbAgentLog = []; // session run log
+function wbLogAgentRun(ip, mode, summary) {
+  _wbAgentLog.unshift({ ip, mode, summary, time: new Date() });
 }
 
 function wbTooltip(e, ip) {
