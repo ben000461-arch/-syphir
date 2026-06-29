@@ -2101,61 +2101,58 @@ function ptPaintIncident(incident, ip) {
     <filter id="pt-glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>`;
 
-  // Horizontal spine line (full width between first and last node)
-  html += `<line x1="${chain[0].cx}" y1="${spineY}" x2="${chain[chain.length-1].cx}" y2="${spineY}"
+  // Single gray spine line all the way through
+  html += `<line x1="${chain[0].cx - R}" y1="${spineY}" x2="${chain[chain.length-1].cx + R}" y2="${spineY}"
     stroke="#1e2230" stroke-width="1.5"/>`;
 
-  // Connector segments with arrows
+  // Arrow connectors between nodes (gray only, no color)
   chain.forEach((n,i) => {
     if (i===chain.length-1) return;
     const nx = chain[i+1];
-    const isRed = incident.risk==='critical'||incident.risk==='high';
-    html += `<line x1="${n.cx+R}" y1="${spineY}" x2="${nx.cx-R-5}" y2="${spineY}"
-      stroke="${isRed?riskCol:'#2d3748'}" stroke-width="1.2"
-      marker-end="url(#pt-arr${isRed?'-c':''})"/>`;
+    html += `<line x1="${n.cx+R+2}" y1="${spineY}" x2="${nx.cx-R-6}" y2="${spineY}"
+      stroke="#2d3748" stroke-width="1.2"
+      marker-end="url(#pt-arr)"/>`;
   });
 
-  // Nodes — circles only, floating text above/below, no box
+  // Nodes — single circle + inner dot, no outer ring. Text alternates above/below.
   chain.forEach((n,i) => {
-    const isActive = n.type==='detect';
-    const glow = isActive ? 'filter="url(#pt-glow)"' : '';
+    const above = i % 2 === 0; // even = above, odd = below
+    const textY_label = above ? n.cy - R - 20 : n.cy + R + 14;
+    const textY_sub   = above ? n.cy - R - 8  : n.cy + R + 25;
 
-    // Multiple severity dots on the circle (like CrowdStrike)
-    const dotRow = n.score!==undefined && n.score!==null ? `
-      <circle cx="${n.cx-6}" cy="${n.cy-R-4}" r="3.5" fill="${n.col}"/>
-      ${n.score>=65?`<circle cx="${n.cx+2}" cy="${n.cy-R-4}" r="3.5" fill="${n.score>=80?'#ef4444':'#f97316'}"/>`:''}
-      ${n.score>=80?`<circle cx="${n.cx+10}" cy="${n.cy-R-4}" r="3.5" fill="#ef4444"/>`:''}
+    // Severity dots cluster above node (only for detection node)
+    const dotRow = n.score!==null && n.score!==undefined ? `
+      <circle cx="${n.cx - 5}" cy="${n.cy - R - 4}" r="3" fill="${n.col}"/>
+      ${n.score >= 65 ? `<circle cx="${n.cx + 3}" cy="${n.cy - R - 4}" r="3" fill="${n.score>=80?'#ef4444':'#f97316'}"/>` : ''}
     ` : '';
 
     html += `
       <g onclick="ptNodeClickInc(${i})" style="cursor:pointer;">
-        <!-- Main circle -->
+        <!-- Single circle, no double ring -->
         <circle cx="${n.cx}" cy="${n.cy}" r="${R}"
-          fill="${n.col}20" stroke="${n.col}" stroke-width="1.8"
-          ${glow}/>
+          fill="${n.col}22" stroke="${n.col}" stroke-width="1.5"/>
 
-        <!-- Inner dot -->
-        <circle cx="${n.cx}" cy="${n.cy}" r="${R*0.38}"
-          fill="${n.col}" opacity="0.9"/>
+        <!-- Inner filled dot -->
+        <circle cx="${n.cx}" cy="${n.cy}" r="${R * 0.36}"
+          fill="${n.col}"/>
 
-        <!-- Severity dots above -->
         ${dotRow}
 
-        <!-- Label above -->
-        <text x="${n.cx}" y="${n.cy-R-12}" text-anchor="middle"
-          font-size="11" font-weight="700"
+        <!-- Label — alternates above/below -->
+        <text x="${n.cx}" y="${textY_label}" text-anchor="middle"
+          font-size="11" font-weight="600"
           fill="${n.col}" font-family="JetBrains Mono,monospace">${n.label}</text>
 
-        <!-- Sub below -->
-        <text x="${n.cx}" y="${n.cy+R+13}" text-anchor="middle"
-          font-size="9.5" fill="#64748b"
+        <!-- Sub label -->
+        <text x="${n.cx}" y="${textY_sub}" text-anchor="middle"
+          font-size="9.5" fill="#475569"
           font-family="Inter,sans-serif">${n.sub}</text>
 
-        ${n.score!==null&&n.score!==undefined?`
-          <text x="${n.cx}" y="${n.cy+R+24}" text-anchor="middle"
+        ${n.score!==null && n.score!==undefined ? `
+          <text x="${n.cx}" y="${above ? n.cy - R - 30 : n.cy + R + 36}" text-anchor="middle"
             font-size="8.5" fill="#334155"
             font-family="JetBrains Mono,monospace">Score: ${n.score}/100</text>
-        `:''}
+        ` : ''}
       </g>`;
   });
 
