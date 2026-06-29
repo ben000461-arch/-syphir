@@ -2699,8 +2699,8 @@ function wbPaint() {
     const x1=CX+ux*28, y1=CY+uy*28;
     const x2=d.x-ux*20, y2=d.y-uy*20;
     html+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-      stroke="#2d3748" stroke-width="1"
-      opacity="${hasThreat?0.5:0.25}"
+      stroke="#3d4758" stroke-width="${hasThreat?1.5:1}"
+      opacity="${hasThreat?0.7:0.45}"
       marker-end="url(#wb-a)"/>`;
     // Sig label only for threat devices
     if(d.sig && hasThreat){
@@ -2883,6 +2883,24 @@ function wbAnimatePulse() {
   }, 80);
 }
 
+function wbDetDesc(e) {
+  const short = {
+    'AS001': 'Device scanned multiple hosts — likely reconnaissance.',
+    'AS002': 'Many ports probed on one target — looking for vulnerabilities.',
+    'AS003': 'Repeated login failures — brute-force attempt detected.',
+    'AS004': 'Failed logins across accounts — possible password spray.',
+    'AS005': 'Accessing internal machines — lateral movement detected.',
+    'AS006': 'Connecting to known attacker infrastructure.',
+    'AS007': 'Long DNS query — data may be hidden inside DNS traffic.',
+    'AS008': 'Attacker opened a reverse connection into your network.',
+    'AS009': 'Large data transfer outbound — possible data theft.',
+    'AS010': 'Slow data leak detected — evading threshold-based alerts.',
+    'AS011': 'Unknown device joined the network.',
+    'AS012': 'Traffic to a known C2 server used by malware.',
+  };
+  return short[e.sig] || e.detail || 'Suspicious activity detected on this device.';
+}
+
 function wbToggleDetection(header) {
   const body = header.nextElementSibling;
   const arrow = header.querySelector('div:last-child');
@@ -2950,7 +2968,7 @@ function wbClickDevice(ip) {
                 <div style="font-size:9px;color:#334155;flex-shrink:0;">▾</div>
               </div>
               <div class="wb-det-body" style="display:none;padding:8px 10px;background:#0b0e14;border-top:1px solid #1e2230;">
-                <div style="font-size:10.5px;color:#64748b;line-height:1.6;margin-bottom:6px;">${e.detail||e.name}</div>
+                <div style="font-size:11px;color:#64748b;line-height:1.55;margin-bottom:8px;">${wbDetDesc(e)}</div>
                 <div style="display:flex;gap:12px;">
                   <div><div style="font-size:9px;color:#334155;margin-bottom:2px;">RISK</div><div style="font-size:10.5px;font-weight:600;color:${e.risk==='critical'?'#ef4444':e.risk==='high'?'#f97316':'#eab308'};">${(e.risk||'').toUpperCase()}</div></div>
                   ${e.score!==undefined?`<div><div style="font-size:9px;color:#334155;margin-bottom:2px;">SCORE</div><div style="font-size:10.5px;font-weight:600;color:#94a3b8;">${e.score}/100</div></div>`:''}
