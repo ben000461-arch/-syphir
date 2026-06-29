@@ -1579,6 +1579,58 @@ app.post("/admin/send-expiry-notices", async (c) => {
   return c.json(await sendExpiryNoticesToAllOrgs());
 });
 
+// ── SHIELD: Live device scanner ────────────────────────────────────────────
+// In-memory store per org (Pi pushes every 30s, refills after Render spin-down)
+const shieldDeviceStore = {};
+
+// Pi → Render: push scan results
+app.post('/shield/devices', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  if (!body?.org_key) return c.json({ error: 'Missing org_key' }, 400);
+
+  shieldDeviceStore[body.org_key] = {
+    org_key:      body.org_key,
+    subnet:       body.subnet       || '',
+    device_count: body.device_count || 0,
+    devices:      body.devices      || [],
+    scanned_at:   body.scanned_at   || new Date().toISOString(),
+    received_at:  new Date().toISOString(),
+  };
+
+  console.log(`[Shield] ${body.org_key} → ${body.device_count} devices on ${body.subnet}`);
+  return c.json({ status: 'ok', received: body.device_count });
+});
+
+// Dashboard → Render: poll for latest scan
+app.get('/shield/devices', async (c) => {
+  const key = c.req.query('key') || c.req.query('org_key');
+  if (!key) return c.json({ error: 'Missing key' }, 400);
+
+  const data = shieldDeviceStore[key];
+  if (!data) return c.json({ devices: [], scanned_at: null, device_count: 0, online: false });
+
+  // Flag as stale if last scan was >2 min ago (Pi offline)
+  const age = Date.now() - new Date(data.received_at).getTime();
+  return c.json({ ...data, online: age < 120_000, stale: age > 120_000 });
+});
+
+// Shield heartbeat — Pi pings this every 60s to confirm it's alive
+app.post('/shield/heartbeat', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  if (!body?.org_key) return c.json({ error: 'Missing org_key' }, 400);
+
+  const existing = shieldDeviceStore[body.org_key] || {};
+  shieldDeviceStore[body.org_key] = {
+    ...existing,
+    heartbeat_at: new Date().toISOString(),
+    shield_ip:    body.shield_ip   || '',
+    version:      body.version     || '',
+  };
+
+  console.log(`[Shield] heartbeat from ${body.org_key} @ ${body.shield_ip || 'unknown'}`);
+  return c.json({ status: 'ok', time: new Date().toISOString() });
+});
+
 console.log("Syphir API v2.11.0 running");
 
 // ── KEEP RENDER ALIVE ───────────────────────────────────────────────────────
