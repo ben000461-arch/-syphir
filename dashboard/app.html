@@ -2065,100 +2065,217 @@ function ptPaintIncident(incident, ip) {
   svg.style.display = 'block';
 
   const wrap = document.getElementById('pt-canvas-wrap');
-  const W = Math.max(wrap.offsetWidth || 800, 800);
+  const W = Math.max(wrap.offsetWidth || 900, 900);
   const H = Math.max(wrap.offsetHeight || 500, 400);
 
-  // Build a 3-node chain: Source Device → Signature Detection → Response
-  const NW=150, NH=64, HGAP=100, MT=100;
-  const startX = (W - (3*NW + 2*HGAP)) / 2;
-  const nodeY  = H/2 - NH/2;
-
-  const nc = r => r==='critical'?'#f44336':r==='high'?'#ff6d2e':r==='medium'?'#ffc107':r==='device'?'#2196d3':'#4a5568';
-  const riskCol = nc(incident.risk);
+  // Color helpers
+  const rc = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':r==='device'?'#3b82f6':'#475569';
+  const riskCol  = rc(incident.risk);
+  const respCol  = incident.response==='isolate_and_alert'?'#ef4444':incident.response==='block_and_alert'?'#f97316':incident.response==='alert'?'#eab308':'#475569';
   const respLabel = incident.response==='isolate_and_alert'?'ISOLATED':incident.response==='block_and_alert'?'BLOCKED':incident.response==='alert'?'ALERTED':'WATCHED';
-  const respCol   = incident.response==='isolate_and_alert'?'#f44336':incident.response==='block_and_alert'?'#ff6d2e':incident.response==='alert'?'#ffc107':'#4a5568';
 
-  const nodes = [
-    { x: startX,              y: nodeY, label: ip||'Device', sub: 'Source Device',                 col:'#2196d3',  icon:'⬡', type:'device' },
-    { x: startX+NW+HGAP,      y: nodeY, label: incident.sig||'Detection', sub: (incident.name||'').slice(0,20), col: riskCol, icon:'●', type:'event', score: incident.score },
-    { x: startX+2*(NW+HGAP),  y: nodeY, label: respLabel,  sub: incident.response?.replace(/_/g,' ')||'', col: respCol, icon:'⊗', type:'response' },
+  // Build chain nodes
+  const chain = [
+    { id:0, type:'device', label: ip||'Device',           sub:'Source device',        col:'#3b82f6',  score:null },
+    { id:1, type:'detect', label: incident.sig||'SIG',    sub: (incident.name||'').slice(0,22), col: riskCol, score: incident.score },
+    { id:2, type:'resp',   label: respLabel,               sub: incident.response?.replace(/_/g,' ')||'', col: respCol, score:null },
   ];
+
+  // Layout: horizontal spine
+  const R    = 18;   // node circle radius
+  const STEP = 180;  // horizontal gap between nodes
+  const spineY = H / 2;
+  const startX = (W - (chain.length-1)*STEP) / 2;
+  chain.forEach((n,i) => { n.cx = startX + i*STEP; n.cy = spineY; });
 
   svg.setAttribute('width', W);
   svg.setAttribute('height', H);
 
   let html = `<defs>
-    <marker id="pti-arr" markerWidth="7" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,7 3,0 6" fill="#30363d"/></marker>
-    <marker id="pti-arr-r" markerWidth="7" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,7 3,0 6" fill="${riskCol}"/></marker>
-    <filter id="pti-glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="pt-arr" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+      <polygon points="0 0,6 2.5,0 5" fill="#2d3748"/>
+    </marker>
+    <marker id="pt-arr-c" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+      <polygon points="0 0,6 2.5,0 5" fill="${riskCol}"/>
+    </marker>
+    <filter id="pt-glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>`;
 
-  // Connector lines
-  nodes.forEach((n, i) => {
-    if (i === nodes.length-1) return;
-    const nx = nodes[i+1];
+  // Horizontal spine line (full width between first and last node)
+  html += `<line x1="${chain[0].cx}" y1="${spineY}" x2="${chain[chain.length-1].cx}" y2="${spineY}"
+    stroke="#1e2230" stroke-width="1.5"/>`;
+
+  // Connector segments with arrows
+  chain.forEach((n,i) => {
+    if (i===chain.length-1) return;
+    const nx = chain[i+1];
     const isRed = incident.risk==='critical'||incident.risk==='high';
-    html += `<path d="M${n.x+NW},${n.y+NH/2} C${n.x+NW+HGAP/2},${n.y+NH/2} ${nx.x-HGAP/2},${nx.y+NH/2} ${nx.x},${nx.y+NH/2}"
-      fill="none" stroke="${isRed?riskCol:'#2d3a50'}" stroke-width="1.5"
-      stroke-dasharray="${isRed?'':'5,3'}"
-      marker-end="url(#pti-arr${isRed?'-r':''})"/>`;
+    html += `<line x1="${n.cx+R}" y1="${spineY}" x2="${nx.cx-R-5}" y2="${spineY}"
+      stroke="${isRed?riskCol:'#2d3748'}" stroke-width="1.2"
+      marker-end="url(#pt-arr${isRed?'-c':''})"/>`;
   });
 
-  // Nodes
-  nodes.forEach((n, i) => {
-    const glow = (n.col==='#f44336'||n.col==='#ff6d2e') ? 'filter="url(#pti-glow)"' : '';
-    const dots = n.type==='event' ? `
-      <circle cx="${n.x+NW-16}" cy="${n.y+10}" r="4" fill="${n.col}"/>
-      ${(n.score||0)>=80?`<circle cx="${n.x+NW-26}" cy="${n.y+10}" r="4" fill="#f44336"/>`:''}
+  // Nodes — circles only, floating text above/below, no box
+  chain.forEach((n,i) => {
+    const isActive = n.type==='detect';
+    const glow = isActive ? 'filter="url(#pt-glow)"' : '';
+
+    // Multiple severity dots on the circle (like CrowdStrike)
+    const dotRow = n.score!==undefined && n.score!==null ? `
+      <circle cx="${n.cx-6}" cy="${n.cy-R-4}" r="3.5" fill="${n.col}"/>
+      ${n.score>=65?`<circle cx="${n.cx+2}" cy="${n.cy-R-4}" r="3.5" fill="${n.score>=80?'#ef4444':'#f97316'}"/>`:''}
+      ${n.score>=80?`<circle cx="${n.cx+10}" cy="${n.cy-R-4}" r="3.5" fill="#ef4444"/>`:''}
     ` : '';
+
     html += `
       <g onclick="ptNodeClickInc(${i})" style="cursor:pointer;">
-        <rect x="${n.x}" y="${n.y}" width="${NW}" height="${NH}" rx="8" fill="${n.col}18" stroke="${n.col}" stroke-width="1.5" ${glow}/>
-        ${dots}
-        <circle cx="${n.x+18}" cy="${n.y+NH/2}" r="10" fill="${n.col}25" stroke="${n.col}" stroke-width="1.5"/>
-        <text x="${n.x+18}" y="${n.y+NH/2+4}" text-anchor="middle" font-size="10" font-weight="700" fill="${n.col}" font-family="monospace">${n.icon}</text>
-        <text x="${n.x+34}" y="${n.y+22}" font-size="11" font-weight="700" fill="${n.col}" font-family="JetBrains Mono,monospace">${n.label}</text>
-        <text x="${n.x+34}" y="${n.y+37}" font-size="10" fill="#8b949e" font-family="Inter,sans-serif">${n.sub}</text>
-        ${n.type==='event'&&n.score!==undefined?`<text x="${n.x+34}" y="${n.y+52}" font-size="9" fill="#4a5568" font-family="monospace">Score: ${n.score}/100</text>`:''}
+        <!-- Main circle -->
+        <circle cx="${n.cx}" cy="${n.cy}" r="${R}"
+          fill="${n.col}20" stroke="${n.col}" stroke-width="1.8"
+          ${glow}/>
+
+        <!-- Inner dot -->
+        <circle cx="${n.cx}" cy="${n.cy}" r="${R*0.38}"
+          fill="${n.col}" opacity="0.9"/>
+
+        <!-- Severity dots above -->
+        ${dotRow}
+
+        <!-- Label above -->
+        <text x="${n.cx}" y="${n.cy-R-12}" text-anchor="middle"
+          font-size="11" font-weight="700"
+          fill="${n.col}" font-family="JetBrains Mono,monospace">${n.label}</text>
+
+        <!-- Sub below -->
+        <text x="${n.cx}" y="${n.cy+R+13}" text-anchor="middle"
+          font-size="9.5" fill="#64748b"
+          font-family="Inter,sans-serif">${n.sub}</text>
+
+        ${n.score!==null&&n.score!==undefined?`
+          <text x="${n.cx}" y="${n.cy+R+24}" text-anchor="middle"
+            font-size="8.5" fill="#334155"
+            font-family="JetBrains Mono,monospace">Score: ${n.score}/100</text>
+        `:''}
       </g>`;
   });
 
   svg.innerHTML = html;
-  svg._nodes   = nodes;
+  svg._chain   = chain;
   svg._incident = incident;
+
+  // Auto-show right panel with full summary immediately
+  ptShowSummaryPanel(incident, ip, chain);
+}
+
+function ptShowSummaryPanel(incident, ip, chain) {
+  const panel = document.getElementById('pt-detail-panel');
+  const title = document.getElementById('pt-detail-title');
+  const body  = document.getElementById('pt-detail-body');
+  const rc    = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':'#3b82f6';
+  const col   = rc(incident.risk);
+  const sev   = (incident.risk||'').toUpperCase();
+
+  title.textContent = incident.sig || 'Detection';
+  title.style.color = col;
+
+  // Plain English explanations per sig
+  const explain = {
+    'AS001': 'This device rapidly scanned multiple other devices on the network — a classic sign of reconnaissance or malware spreading.',
+    'AS002': 'Vertical port scan detected. The device probed many ports on a single target, looking for open services to exploit.',
+    'AS003': 'Repeated login failures from the same source — someone or something is trying to brute-force access to this machine.',
+    'AS004': 'Multiple failed logins across different accounts — credential stuffing or a password spray attack.',
+    'AS005': 'The device is trying to access other machines on your internal network. This is how ransomware spreads.',
+    'AS006': 'A device on your network is sending data to a known command-and-control server used by attackers.',
+    'AS007': 'Unusually long DNS query detected — attackers sometimes hide data inside DNS to sneak it past firewalls.',
+    'AS008': 'Attacker attempted to open an outbound connection back into your network from outside.',
+    'AS009': 'Large amount of data was sent outside your network in a short time — possible data theft.',
+    'AS010': 'Data being sent to an external IP in small, slow bursts — a technique to avoid detection.',
+    'AS011': 'A new, unknown device appeared on your network. Could be a guest, contractor, or unauthorized device.',
+    'AS012': 'Traffic detected to a known C2 domain used by malware to receive instructions from attackers.',
+  };
+  const plain = explain[incident.sig] || incident.detail || 'Suspicious network activity was detected on this device.';
+
+  const respMap = {
+    'isolate_and_alert': { label:'Device Isolated', desc:'The Shield cut this device off from the network to stop the threat from spreading. It can still be reached by Syphir for diagnostics.', col:'#ef4444' },
+    'block_and_alert':   { label:'IP Blocked', desc:'Incoming traffic from this external IP has been dropped at the network level. The attacker can no longer reach your devices.', col:'#f97316' },
+    'alert':             { label:'Admin Alerted', desc:'The activity was flagged and you were notified. No automated action was taken — review and decide if isolation is needed.', col:'#eab308' },
+  };
+  const resp = respMap[incident.response] || { label:'Monitoring', desc:'Watching this activity. Score too low to take automated action.', col:'#475569' };
+
+  body.innerHTML = `
+    <div style="display:grid;gap:0;">
+
+      <!-- Severity header -->
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 0 14px;border-bottom:1px solid var(--border);">
+        <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0;"></div>
+        <div style="font-size:11px;font-weight:700;color:${col};">Detection — ${sev}</div>
+      </div>
+
+      <!-- Execution details -->
+      <div style="padding:14px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:10px;">Execution details</div>
+        <div style="display:grid;gap:8px;">
+          <div>
+            <div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Source device</div>
+            <div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text);">${ip||'Unknown'}</div>
+          </div>
+          <div>
+            <div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Signature</div>
+            <div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:${col};">${incident.sig||'—'}</div>
+          </div>
+          ${incident.score!==undefined?`<div>
+            <div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;">Confidence score</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+                <div style="width:${incident.score}%;height:100%;background:${col};border-radius:2px;"></div>
+              </div>
+              <div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${col};">${incident.score}/100</div>
+            </div>
+          </div>`:''}
+          ${incident.time?`<div>
+            <div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Detected</div>
+            <div style="font-size:11px;color:var(--text2);">${_timeStr(incident.time)}</div>
+          </div>`:''}
+        </div>
+      </div>
+
+      <!-- What happened — plain English -->
+      <div style="padding:14px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">What happened</div>
+        <div style="font-size:11.5px;color:var(--text2);line-height:1.6;">${plain}</div>
+        ${incident.detail && incident.detail !== plain ? `<div style="font-size:10.5px;color:var(--text3);margin-top:8px;font-family:'JetBrains Mono',monospace;background:var(--bg3);padding:8px 10px;border-radius:5px;line-height:1.5;">${incident.detail}</div>` : ''}
+      </div>
+
+      <!-- Action taken -->
+      <div style="padding:14px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">Action taken</div>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:${resp.col};flex-shrink:0;"></div>
+          <div style="font-size:12px;font-weight:600;color:${resp.col};">${resp.label}</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--text2);line-height:1.6;">${resp.desc}</div>
+      </div>
+
+      <!-- Actions -->
+      <div style="padding:14px 0;display:grid;gap:7px;">
+        ${NS_ISOLATED[ip]?`<button class="btn-release" style="width:100%;padding:8px;font-size:11.5px;" onclick="networkReleaseDevice('${ip}')">Release Device from Isolation</button>`:''}
+        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('workbench'),50)"
+          style="width:100%;padding:8px;border-radius:5px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;background:transparent;border:1px solid var(--border);color:var(--text3);transition:all 0.12s;"
+          onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+          View in Workbench
+        </button>
+      </div>
+    </div>`;
+
+  panel.style.display = '';
 }
 
 function ptNodeClickInc(i) {
+  // Node click just re-shows the summary panel (already shown on select)
   const svg = document.getElementById('pt-svg');
-  if (!svg||!svg._nodes||!svg._incident) return;
-  const node = svg._nodes[i];
-  const e    = svg._incident;
-  const col  = node.col;
-  document.getElementById('pt-detail-title').textContent = node.label;
-  document.getElementById('pt-detail-title').style.color = col;
-  document.getElementById('pt-detail-body').innerHTML = `<div style="display:grid;gap:14px;">
-    ${node.type==='device'?`<div style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);border-radius:8px;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#4db8f0;">Source Device</div>
-      <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#e6edf3;margin-top:4px;">${node.label}</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:3px;">${NS_ISOLATED[node.label]?'🔴 Currently Isolated':'Connected to network'}</div>
-      ${NS_ISOLATED[node.label]?`<button class="btn-release" style="margin-top:8px;width:100%;padding:7px;" onclick="networkReleaseDevice('${node.label}')">Release Device</button>`:''}
-    </div>`:''}
-    ${node.type==='event'?`
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Signature</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${col};">${e.sig}</div></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Detection</div><div style="font-size:12px;color:var(--text2);">${e.name}</div></div>
-      ${e.detail?`<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Detail</div><div style="font-size:11px;color:var(--text2);line-height:1.5;">${e.detail}</div></div>`:''}
-      ${e.score!==undefined?`<div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Confidence Score</div><div style="display:flex;align-items:center;gap:10px;"><div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="width:${e.score}%;height:100%;background:${col};border-radius:3px;"></div></div><div style="font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${col};">${e.score}</div></div></div>`:''}
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Risk Level</div><div style="font-size:12px;font-weight:700;color:${col};">${(e.risk||'').toUpperCase()}</div></div>
-    `:''}
-    ${node.type==='response'?`
-      <div style="background:rgba(${col==='#f44336'?'244,67,54':col==='#ff6d2e'?'255,109,46':'255,193,7'},0.08);border:1px solid rgba(${col==='#f44336'?'244,67,54':col==='#ff6d2e'?'255,109,46':'255,193,7'},0.2);border-radius:8px;padding:12px;">
-        <div style="font-size:13px;font-weight:700;color:${col};">${node.label}</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:4px;">${(e.response||'').replace(/_/g,' ')}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px;">${_timeStr(e.time)}</div>
-      </div>
-    `:''}
-  </div>`;
-  document.getElementById('pt-detail-panel').style.display = '';
+  if (!svg||!svg._incident) return;
+  ptShowSummaryPanel(svg._incident, svg._incident.src_ip, svg._chain||[]);
 }
 
 function ptPaint(ip) {
