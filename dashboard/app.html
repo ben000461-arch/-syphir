@@ -226,8 +226,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .settings-field{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;}
 .settings-label{font-size:12px;font-weight:500;color:var(--text);}
 .settings-sub{font-size:10.5px;color:var(--text3);margin-top:2px;}
-.settings-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:5px;font-size:12px;font-family:'Inter',sans-serif;width:260px;outline:none;}
+.settings-input{background:var(--bg3)!important;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:5px;font-size:12px;font-family:'Inter',sans-serif;width:260px;outline:none;-webkit-text-fill-color:var(--text)!important;box-shadow:none!important;}
 .settings-input:focus{border-color:var(--blue);}
+input,textarea,select{background:var(--bg3)!important;border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;border-radius:5px;outline:none;-webkit-text-fill-color:var(--text)!important;box-shadow:none!important;}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);}
+input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,textarea:-webkit-autofill,textarea:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 2000px var(--bg3) inset!important;-webkit-text-fill-color:var(--text)!important;caret-color:var(--text);background-color:var(--bg3)!important;}
+textarea{resize:vertical;min-height:80px;padding:8px 10px;font-size:12px;}
+select option{background:var(--bg3);color:var(--text);}
+.inp{background:var(--bg3)!important;border:1px solid var(--border)!important;color:var(--text)!important;padding:7px 10px;border-radius:5px;font-size:12px;font-family:'Inter',sans-serif;width:100%;-webkit-text-fill-color:var(--text)!important;box-shadow:none!important;outline:none;}
+.inp:focus{border-color:var(--blue)!important;}
+.inp:-webkit-autofill,.inp:-webkit-autofill:hover,.inp:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 2000px var(--bg3) inset!important;-webkit-text-fill-color:var(--text)!important;}
+.inp-group{margin-bottom:12px;}
+.inp-lbl{font-size:10.5px;font-weight:500;color:var(--text3);display:block;margin-bottom:5px;}
+
 
 /* ── Intel ───────────────────────────────────────────────────────── */
 .intel-wrap{display:flex;flex-direction:column;height:calc(100vh - var(--top) - 36px);max-height:700px;}
@@ -371,7 +382,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
   </div>
   <div class="nav-section">
     <div class="nav-label">Protection</div>
-    <div class="nav-item" onclick="nav('gateway',this)"><span class="nav-icon">⊕</span>API Gateway</div>
     <div class="nav-item" onclick="nav('policies',this)"><span class="nav-icon">☰</span>Policies</div>
   </div>
   <div class="nav-section">
@@ -702,28 +712,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
       </div>
     </div>
 
-    <!-- GATEWAY -->
-    <div class="page" id="page-gateway">
-      <div class="section-hdr">
-        <div><div class="section-title">API Gateway</div><div class="section-sub">Connect your AI providers</div></div>
-        <button class="btn btn-primary" onclick="saveProviderKeys()">Save Keys</button>
-      </div>
-      <div class="card">
-        <div class="card-hdr">
-          <div><div class="card-title">AI Provider Keys</div><div class="card-sub">Stored locally in your browser</div></div>
-          <button class="btn btn-ghost" onclick="addProviderRow()">+ Add Provider</button>
-        </div>
-        <div style="display:grid;grid-template-columns:190px 1fr 130px 28px;padding:8px 18px 6px;gap:12px;">
-          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">Provider</div>
-          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">API Key</div>
-          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;">Status</div>
-          <div></div>
-        </div>
-        <div id="providers-list"></div>
-        <div style="padding:10px 18px 14px;"><div id="provider-save-msg" style="font-size:11px;color:var(--green);min-height:16px;"></div></div>
-      </div>
-    </div>
-
     <!-- POLICIES -->
     <div class="page" id="page-policies">
       <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects</div></div><button class="btn btn-primary" onclick="showToast('Detection policies saved!')">Save Changes</button></div>
@@ -803,9 +791,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
 <!-- SIDE PANEL -->
 <div class="side-panel" id="side-panel">
-  <div class="sp-topbar">
+  <div class="sp-hdr">
     <div class="sp-title">Incident Detail</div>
-    <button class="sp-close" onclick="closeSidePanel()">x</button>
+    <button class="sp-close" onclick="closeSidePanel()">×</button>
   </div>
   <div class="sp-body" id="sp-body">
     <div class="empty"><div class="empty-icon">🔍</div><div class="empty-msg">Select an incident to inspect</div></div>
@@ -813,15 +801,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 </div>
 
 <!-- TOAST -->
-<div id="app-toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;display:none;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.2s;"></div>
+<div id="app-toast" style="position:fixed;bottom:22px;right:22px;z-index:9999;padding:9px 16px;border-radius:6px;font-size:12px;font-weight:500;font-family:'Inter',sans-serif;display:none;max-width:320px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);box-shadow:0 4px 20px rgba(0,0,0,0.5);transition:opacity 0.2s;"></div>
 
 <!-- CONFIRM MODAL -->
-<div id="app-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8000;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)appConfirmCancel()">
-  <div style="background:#161b25;border:1px solid #242d3e;border-radius:14px;padding:1.75rem;width:min(400px,90vw);">
-    <p id="app-confirm-msg" style="color:#e6edf3;font-size:0.92rem;line-height:1.55;margin:0 0 1.5rem;"></p>
+<div id="app-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:8000;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)appConfirmCancel()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:24px;width:min(380px,90vw);">
+    <p id="app-confirm-msg" style="color:var(--text);font-size:13px;line-height:1.55;margin:0 0 20px;"></p>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="appConfirmCancel()" style="background:transparent;border:1px solid #242d3e;color:#8b949e;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
-      <button id="app-confirm-ok" style="background:#f44336;color:#fff;border:none;padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Confirm</button>
+      <button onclick="appConfirmCancel()" style="background:transparent;border:1px solid var(--border);color:var(--text3);padding:6px 14px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
+      <button id="app-confirm-ok" style="background:var(--red);color:#fff;border:none;padding:6px 16px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Confirm</button>
     </div>
   </div>
 </div>
@@ -2570,37 +2558,65 @@ function wbPaint() {
 
   // Device nodes
   devices.forEach((d,i) => {
-    const col   = riskColor(d.risk);
-    const glow  = d.risk==='critical'||d.isolated ? 'filter="url(#wb-glow-r)"' : d.risk==='clean' ? 'filter="url(#wb-glow-g)"' : '';
+    const col      = riskColor(d.risk);
     const isAttack = d.risk==='critical'||d.isolated;
+    const isClean  = d.risk==='clean'&&!d.isolated;
+    const nameLabel = d.name||d.device_type||'Device';
+    // Truncate long names
+    const shortName = nameLabel.length > 16 ? nameLabel.slice(0,15)+'…' : nameLabel;
 
-    // Computer icon SVG
+    // Clean flat device node: monitor icon (SVG paths) + small status dot + labels
     html += `
       <g onclick="wbClickDevice('${d.ip}')" onmouseenter="wbTooltip(event,'${d.ip}')" onmouseleave="document.getElementById('wb-tooltip').style.display='none'" style="cursor:pointer;">
-        <!-- Status glow -->
-        <circle cx="${d.x}" cy="${d.y}" r="26" fill="${col}12" stroke="${col}" stroke-width="1.5" ${glow} opacity="${d.risk==='clean'?0.5:0.9}"/>
-        ${d.isolated?`<circle cx="${d.x}" cy="${d.y}" r="32" fill="none" stroke="#f44336" stroke-width="1" opacity="0.4" stroke-dasharray="3,4"/>`:``}
-        <!-- Computer monitor icon -->
-        <rect x="${d.x-13}" y="${d.y-10}" width="26" height="16" rx="2" fill="${col}15" stroke="${col}" stroke-width="1.5"/>
-        <rect x="${d.x-8}" y="${d.y+6}" width="16" height="3" rx="1" fill="${col}" opacity="0.6"/>
-        <rect x="${d.x-5}" y="${d.y+9}" width="10" height="2" rx="1" fill="${col}" opacity="0.4"/>
-        <!-- Screen content indicator -->
-        <rect x="${d.x-10}" y="${d.y-8}" width="20" height="12" rx="1" fill="${col}20"/>
-        ${isAttack?`
-          <!-- Skull for active attack -->
-          <text x="${d.x}" y="${d.y-1}" text-anchor="middle" font-size="10" fill="#f44336" font-family="sans-serif">☠</text>
-        `:`
-          <rect x="${d.x-7}" y="${d.y-6}" width="14" height="1.5" rx="1" fill="${col}" opacity="0.4"/>
-          <rect x="${d.x-7}" y="${d.y-3}" width="10" height="1.5" rx="1" fill="${col}" opacity="0.3"/>
+
+        ${/* Monitor body - flat rect, no circle bubble */ ''}
+        <rect x="${d.x-16}" y="${d.y-12}" width="32" height="20" rx="3"
+          fill="${isClean?'#16191f':col+'18'}"
+          stroke="${isClean?'#252a38':col}"
+          stroke-width="${isClean?'1':'1.5'}"
+          opacity="${d.status==='away'?0.35:1}"/>
+
+        ${/* Screen area */ ''}
+        <rect x="${d.x-13}" y="${d.y-10}" width="26" height="14" rx="1"
+          fill="${isClean?'#1c1f27':col+'22'}"/>
+
+        ${isAttack ? `
+          <text x="${d.x}" y="${d.y-1}" text-anchor="middle" font-size="11"
+            fill="#ef4444" font-family="sans-serif" opacity="0.9">☠</text>
+        ` : isClean ? `
+          <rect x="${d.x-8}" y="${d.y-8}" width="16" height="1.5" rx="1" fill="#252a38"/>
+          <rect x="${d.x-6}" y="${d.y-5}" width="12" height="1.5" rx="1" fill="#252a38"/>
+          <rect x="${d.x-8}" y="${d.y-2}" width="10" height="1.5" rx="1" fill="#252a38"/>
+        ` : `
+          <rect x="${d.x-8}" y="${d.y-8}" width="16" height="1.5" rx="1" fill="${col}" opacity="0.5"/>
+          <rect x="${d.x-8}" y="${d.y-5}" width="12" height="1.5" rx="1" fill="${col}" opacity="0.4"/>
+          <rect x="${d.x-8}" y="${d.y-2}" width="8" height="1.5" rx="1" fill="${col}" opacity="0.3"/>
         `}
-        <!-- Status dot -->
-        <circle cx="${d.x+16}" cy="${d.y-16}" r="5" fill="${col}" ${glow}/>
-        <!-- IP label -->
-        <text x="${d.x}" y="${d.y+26}" text-anchor="middle" font-size="10" font-weight="700" fill="${col}" font-family="JetBrains Mono,monospace">${d.ip}</text>
-        <text x="${d.x}" y="${d.y+38}" text-anchor="middle" font-size="9" fill="#4a5568" font-family="Inter,sans-serif">${d.device_type||d.name||'Device'}</text>
-        ${d.location&&d.location!=='Network'?`<text x="${d.x}" y="${d.y+50}" text-anchor="middle" font-size="9" fill="#2d3a50" font-family="Inter,sans-serif">${d.location}</text>`:''}
-        ${d.events&&d.events.length?`<text x="${d.x}" y="${d.y+(d.location&&d.location!=='Network'?62:50)}" text-anchor="middle" font-size="9" fill="${col}" font-family="Inter,sans-serif">${d.events.length} event${d.events.length>1?'s':''}</text>`:''}
-        ${d.status==='away'?`<text x="${d.x}" y="${d.y+62}" text-anchor="middle" font-size="9" fill="#2d3a50" font-family="Inter,sans-serif">away</text>`:''}
+
+        ${/* Monitor stand */ ''}
+        <rect x="${d.x-5}" y="${d.y+8}" width="10" height="3" rx="1"
+          fill="${isClean?'#1c1f27':col+'30'}"/>
+        <rect x="${d.x-8}" y="${d.y+11}" width="16" height="1.5" rx="1"
+          fill="${isClean?'#252a38':col+'40'}"/>
+
+        ${/* Status dot — small, top right */ ''}
+        <circle cx="${d.x+14}" cy="${d.y-14}" r="3.5"
+          fill="${col}" opacity="${isClean?0.6:1}"/>
+
+        ${/* Labels — name first, IP small below */ ''}
+        <text x="${d.x}" y="${d.y+22}" text-anchor="middle"
+          font-size="10.5" font-weight="600"
+          fill="${isClean?'#475569':col}"
+          font-family="Inter,sans-serif"
+          opacity="${d.status==='away'?0.4:1}">${shortName}</text>
+        <text x="${d.x}" y="${d.y+33}" text-anchor="middle"
+          font-size="9" fill="#2d3a50"
+          font-family="JetBrains Mono,monospace">${d.ip}</text>
+        ${d.events&&d.events.length?`
+          <text x="${d.x}" y="${d.y+44}" text-anchor="middle"
+            font-size="9" fill="${col}" font-family="Inter,sans-serif"
+            opacity="0.7">${d.events.length} incident${d.events.length>1?'s':''}</text>
+        `:''}
       </g>`;
   });
 
