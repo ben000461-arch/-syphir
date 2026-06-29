@@ -2691,30 +2691,23 @@ function wbPaint() {
     </marker>
   </defs>`;
 
-  // Connection lines (drawn first, under icons)
+  // Connection lines — always gray, one consistent look
   devices.forEach(d => {
-    const col = rc(d.isolated?'critical':d.risk);
-    const isRed = d.risk==='critical'||d.isolated;
-    const isOra = d.risk==='high';
-    const isYel = d.risk==='medium';
-    const isClean = !isRed&&!isOra&&!isYel;
-    const markId = isRed?'wb-ar':isOra?'wb-ao':isYel?'wb-ay':'wb-a';
-    // Trim line ends so it doesn't overlap the icons
+    const hasThreat = d.risk!=='clean' && d.risk!=='away' || d.isolated;
     const dx=d.x-CX, dy=d.y-CY, dist=Math.sqrt(dx*dx+dy*dy);
     const ux=dx/dist, uy=dy/dist;
     const x1=CX+ux*28, y1=CY+uy*28;
     const x2=d.x-ux*20, y2=d.y-uy*20;
     html+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-      stroke="${col}" stroke-width="${isClean?0.8:1.2}"
-      opacity="${isClean?0.18:0.55}"
-      stroke-dasharray="${isClean?'3,5':''}"
-      marker-end="url(#${markId})"/>`;
-    // Sig label
-    if(d.sig&&!isClean){
+      stroke="#2d3748" stroke-width="1"
+      opacity="${hasThreat?0.5:0.25}"
+      marker-end="url(#wb-a)"/>`;
+    // Sig label only for threat devices
+    if(d.sig && hasThreat){
       const mx=(x1+x2)/2, my=(y1+y2)/2;
       html+=`<text x="${mx}" y="${my-6}" text-anchor="middle"
-        font-size="8.5" fill="${col}" font-family="JetBrains Mono,monospace"
-        opacity="0.6">${d.sig}</text>`;
+        font-size="8.5" fill="#475569" font-family="JetBrains Mono,monospace"
+        opacity="0.7">${d.sig}</text>`;
     }
   });
 
@@ -2735,8 +2728,11 @@ function wbPaint() {
 
   // Device nodes — icon only, color = severity, no circle bubble
   devices.forEach(d => {
-    const col = rc(d.isolated?'critical':d.risk);
-    const isClean = d.risk==='clean'&&!d.isolated;
+    const col = d.isolated ? '#ef4444' :
+                d.risk==='critical' ? '#ef4444' :
+                d.risk==='high'     ? '#f97316' :
+                d.risk==='medium'   ? '#eab308' : '#334155'; // clean/away = neutral gray
+    const isClean = (d.risk==='clean'||d.risk==='away') && !d.isolated;
     const isAway  = d.status==='away';
     const isThreat= d.risk==='critical'||d.isolated;
     const type    = devType(d);
@@ -2820,11 +2816,11 @@ function wbBuildLegend(devices) {
   ].filter(e => counts[e.key] > 0);
 
   const statusTypes = [
-    { key:'clean',    label:'Clean',    col:'#22c55e' },
-    { key:'medium',   label:'Warning',  col:'#eab308' },
-    { key:'high',     label:'High risk',col:'#f97316' },
-    { key:'critical', label:'Threat',   col:'#ef4444' },
-    { key:'away',     label:'Away',     col:'#334155' },
+    { key:'clean',    label:'No incidents', col:'#334155' },
+    { key:'medium',   label:'Warning',      col:'#eab308' },
+    { key:'high',     label:'High risk',    col:'#f97316' },
+    { key:'critical', label:'Threat',       col:'#ef4444' },
+    { key:'away',     label:'Away',         col:'#2d3748' },
   ].filter(s => severities[s.key] > 0);
 
   const miniIcon = (type, col) => {
@@ -2887,6 +2883,15 @@ function wbAnimatePulse() {
   }, 80);
 }
 
+function wbToggleDetection(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('div:last-child');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (arrow) arrow.textContent = open ? '▾' : '▴';
+}
+
 function wbCenter() { wbPaint(); }
 
 function wbClickShield() {
@@ -2935,16 +2940,33 @@ function wbClickDevice(ip) {
 
       ${d.events.length?`
         <div>
-          <div style="font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Detections (${d.events.length})</div>
-          ${d.events.slice(0,6).map(e=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1e2a3a;">
-            <div style="width:6px;height:6px;border-radius:50%;background:${e.risk==='critical'?'#f44336':e.risk==='high'?'#ff6d2e':'#ffc107'};flex-shrink:0;"></div>
-            <div><div style="font-size:11px;font-weight:600;">${e.sig} — ${e.name}</div><div style="font-size:10px;color:#4a5568;">${_timeStr(e.time)}</div></div>
-          </div>`).join('')}
+          <div style="font-size:9.5px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Detections (${d.events.length})</div>
+          ${d.events.slice(0,6).map((e,ei)=>`
+            <div style="border:1px solid #1e2230;border-radius:5px;margin-bottom:4px;overflow:hidden;">
+              <div onclick="wbToggleDetection(this)" style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;background:#111318;"
+                onmouseover="this.style.background='#16191f'" onmouseout="this.style.background='#111318'">
+                <div style="width:5px;height:5px;border-radius:50%;background:${e.risk==='critical'?'#ef4444':e.risk==='high'?'#f97316':'#eab308'};flex-shrink:0;"></div>
+                <div style="flex:1;font-size:11px;font-weight:500;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.sig} — ${e.name}</div>
+                <div style="font-size:9px;color:#334155;flex-shrink:0;">▾</div>
+              </div>
+              <div class="wb-det-body" style="display:none;padding:8px 10px;background:#0b0e14;border-top:1px solid #1e2230;">
+                <div style="font-size:10.5px;color:#64748b;line-height:1.6;margin-bottom:6px;">${e.detail||e.name}</div>
+                <div style="display:flex;gap:12px;">
+                  <div><div style="font-size:9px;color:#334155;margin-bottom:2px;">RISK</div><div style="font-size:10.5px;font-weight:600;color:${e.risk==='critical'?'#ef4444':e.risk==='high'?'#f97316':'#eab308'};">${(e.risk||'').toUpperCase()}</div></div>
+                  ${e.score!==undefined?`<div><div style="font-size:9px;color:#334155;margin-bottom:2px;">SCORE</div><div style="font-size:10.5px;font-weight:600;color:#94a3b8;">${e.score}/100</div></div>`:''}
+                  ${e.time?`<div><div style="font-size:9px;color:#334155;margin-bottom:2px;">TIME</div><div style="font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;">${_timeStr(e.time)}</div></div>`:''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
         </div>
-        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('ptree'),50)" style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);color:#4db8f0;font-size:11px;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">
+        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('ptree'),50)"
+          style="background:transparent;border:1px solid #1e2230;color:#475569;font-size:11px;font-weight:500;padding:7px;border-radius:5px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;transition:all 0.12s;"
+          onmouseover="this.style.borderColor='#2d3748';this.style.color='#94a3b8'"
+          onmouseout="this.style.borderColor='#1e2230';this.style.color='#475569'">
           View Process Tree →
         </button>
-      `:'<div style="font-size:11px;color:#4a5568;text-align:center;padding:12px 0;">No incidents detected</div>'}
+      `:'<div style="font-size:11px;color:#334155;text-align:center;padding:12px 0;">No incidents detected</div>'}
 
       <!-- Agent run log — shown after dispatch -->
       <div id="wb-agent-log-${ip.replace(/\./g,'_')}" style="display:none;background:#060a10;border:1px solid #1e2a3a;border-radius:8px;overflow:hidden;">
