@@ -2505,125 +2505,183 @@ function wbPaint() {
     d.y = CY + RING_R*Math.sin(angle);
   });
 
-  const riskColor = r => r==='critical'?'#f44336':r==='high'?'#ff6d2e':r==='medium'?'#ffc107':'#00e676';
-  const riskGlow  = r => r==='critical'?'0 0 16px #f44336':r==='high'?'0 0 12px #ff6d2e':r==='medium'?'0 0 8px #ffc107':'0 0 8px #00e676';
+  const riskColor = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':r==='away'?'#334155':'#22c55e';
+
+  // Pick device icon path based on type
+  const deviceIcon = d => {
+    const t = (d.device_type||'').toLowerCase();
+    const v = (d.vendor||'').toLowerCase();
+    if (t.includes('phone')||t.includes('iphone')||t.includes('android')) return 'phone';
+    if (t.includes('printer')) return 'printer';
+    if (t.includes('server')||t.includes('linux')) return 'server';
+    if (t.includes('router')||t.includes('gateway')) return 'router';
+    if (t.includes('mac')||v.includes('apple')) return 'laptop';
+    return 'monitor';
+  };
+
+  // SVG icon paths centered at 0,0 (will be translated)
+  const iconSVG = (type, col, r) => {
+    const s = r * 0.55; // scale relative to node radius
+    switch(type) {
+      case 'phone':
+        return `<rect x="${-s*0.4}" y="${-s*0.7}" width="${s*0.8}" height="${s*1.4}" rx="${s*0.15}" fill="none" stroke="${col}" stroke-width="1.5"/>
+                <circle cx="0" cy="${s*0.5}" r="${s*0.1}" fill="${col}"/>`;
+      case 'printer':
+        return `<rect x="${-s*0.6}" y="${-s*0.2}" width="${s*1.2}" height="${s*0.7}" rx="${s*0.1}" fill="none" stroke="${col}" stroke-width="1.5"/>
+                <rect x="${-s*0.4}" y="${-s*0.65}" width="${s*0.8}" height="${s*0.45}" rx="${s*0.08}" fill="none" stroke="${col}" stroke-width="1.2"/>
+                <rect x="${-s*0.35}" y="${s*0.25}" width="${s*0.7}" height="${s*0.4}" rx="${s*0.06}" fill="none" stroke="${col}" stroke-width="1.2"/>`;
+      case 'server':
+        return `<rect x="${-s*0.6}" y="${-s*0.6}" width="${s*1.2}" height="${s*0.35}" rx="${s*0.06}" fill="none" stroke="${col}" stroke-width="1.3"/>
+                <rect x="${-s*0.6}" y="${-s*0.15}" width="${s*1.2}" height="${s*0.35}" rx="${s*0.06}" fill="none" stroke="${col}" stroke-width="1.3"/>
+                <rect x="${-s*0.6}" y="${s*0.3}" width="${s*1.2}" height="${s*0.35}" rx="${s*0.06}" fill="none" stroke="${col}" stroke-width="1.3"/>
+                <circle cx="${s*0.35}" cy="${-s*0.42}" r="${s*0.1}" fill="${col}"/>
+                <circle cx="${s*0.35}" cy="${s*0.025}" r="${s*0.1}" fill="${col}"/>`;
+      case 'router':
+        return `<circle cx="0" cy="0" r="${s*0.35}" fill="none" stroke="${col}" stroke-width="1.5"/>
+                <line x1="${-s*0.7}" y1="0" x2="${s*0.7}" y2="0" stroke="${col}" stroke-width="1.3"/>
+                <line x1="0" y1="${-s*0.7}" x2="0" y2="${s*0.7}" stroke="${col}" stroke-width="1.3"/>`;
+      case 'laptop':
+        return `<rect x="${-s*0.65}" y="${-s*0.45}" width="${s*1.3}" height="${s*0.85}" rx="${s*0.1}" fill="none" stroke="${col}" stroke-width="1.5"/>
+                <line x1="${-s*0.8}" y1="${s*0.45}" x2="${s*0.8}" y2="${s*0.45}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
+      default: // monitor
+        return `<rect x="${-s*0.65}" y="${-s*0.55}" width="${s*1.3}" height="${s*0.9}" rx="${s*0.1}" fill="none" stroke="${col}" stroke-width="1.5"/>
+                <line x1="${-s*0.2}" y1="${s*0.35}" x2="${-s*0.2}" y2="${s*0.6}" stroke="${col}" stroke-width="1.3"/>
+                <line x1="${s*0.2}" y1="${s*0.35}" x2="${s*0.2}" y2="${s*0.6}" stroke="${col}" stroke-width="1.3"/>
+                <line x1="${-s*0.4}" y1="${s*0.6}" x2="${s*0.4}" y2="${s*0.6}" stroke="${col}" stroke-width="1.3"/>`;
+    }
+  };
 
   let html = `<defs>
-    <radialGradient id="wbbg" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#1a2840" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#0a0f1a" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="wb-glow-r"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="wb-glow-g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="wb-glow-c"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <rect width="${W}" height="${H}" fill="url(#wbbg)"/>
-  <!-- Grid lines for ambience -->
-  ${Array.from({length:20},(_,i)=>`<line x1="${i*(W/20)}" y1="0" x2="${i*(W/20)}" y2="${H}" stroke="#1e2a3a" stroke-width="0.5" opacity="0.4"/>`).join('')}
-  ${Array.from({length:12},(_,i)=>`<line x1="0" y1="${i*(H/12)}" x2="${W}" y2="${i*(H/12)}" stroke="#1e2a3a" stroke-width="0.5" opacity="0.4"/>`).join('')}
-  <!-- Concentric rings around shield -->
-  <circle cx="${CX}" cy="${CY}" r="${RING_R}" fill="none" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="4,6" opacity="0.5"/>
-  <circle cx="${CX}" cy="${CY}" r="${RING_R*0.5}" fill="none" stroke="#1e2a3a" stroke-width="0.5" opacity="0.3"/>`;
+    <marker id="wb-arr" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+      <polygon points="0 0, 7 3, 0 6" fill="#334155"/>
+    </marker>
+    <marker id="wb-arr-r" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+      <polygon points="0 0, 7 3, 0 6" fill="#ef4444"/>
+    </marker>
+    <marker id="wb-arr-o" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+      <polygon points="0 0, 7 3, 0 6" fill="#f97316"/>
+    </marker>
+    <marker id="wb-arr-y" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+      <polygon points="0 0, 7 3, 0 6" fill="#eab308"/>
+    </marker>
+    <filter id="wb-glow-c">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="wb-glow-r">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>`;
 
-  // Connection lines from Shield to each device
+  // Connection lines — draw before nodes so nodes sit on top
   devices.forEach(d => {
-    const col = d.isolated?'#f44336':d.risk==='critical'?'#f44336':d.risk==='high'?'#ff6d2e':d.risk==='medium'?'#ffc107':'#1e2a3a';
-    const dash = d.risk==='clean'?'4,8':'';
-    html += `<line x1="${CX}" y1="${CY}" x2="${d.x}" y2="${d.y}" stroke="${col}" stroke-width="${d.isolated||d.risk==='critical'?1.5:1}" opacity="${d.risk==='clean'?0.3:0.6}" stroke-dasharray="${dash}"/>`;
-    // Threat branch dot on the line
-    if (d.risk!=='clean') {
-      const mx = CX+(d.x-CX)*0.65, my = CY+(d.y-CY)*0.65;
-      html += `<circle cx="${mx}" cy="${my}" r="4" fill="${col}" opacity="0.8"/>`;
-    }
-    // Attack signature label on line if threat
-    if (d.sig) {
-      const lx = CX+(d.x-CX)*0.5, ly = CY+(d.y-CY)*0.5;
-      html += `<text x="${lx}" y="${ly-6}" text-anchor="middle" font-size="9" fill="${col}" font-family="JetBrains Mono,monospace" opacity="0.7">${d.sig}</text>`;
+    const col  = riskColor(d.isolated?'critical':d.risk);
+    const isRed  = d.risk==='critical'||d.isolated;
+    const isOrange = d.risk==='high';
+    const isYellow = d.risk==='medium';
+    const isClean  = !isRed && !isOrange && !isYellow;
+    const arrId = isRed?'wb-arr-r':isOrange?'wb-arr-o':isYellow?'wb-arr-y':'wb-arr';
+    // Shorten line so arrowhead sits before node circle edge
+    const R_NODE = 22, R_SHIELD = 34;
+    const dx = d.x - CX, dy = d.y - CY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const ux = dx/dist, uy = dy/dist;
+    const x1 = CX + ux*R_SHIELD, y1 = CY + uy*R_SHIELD;
+    const x2 = d.x - ux*(R_NODE+6),  y2 = d.y - uy*(R_NODE+6);
+
+    html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+      stroke="${col}" stroke-width="${isRed?1.5:1}"
+      opacity="${isClean?0.2:0.65}"
+      stroke-dasharray="${isClean?'4,6':''}"
+      marker-end="url(#${arrId})"/>`;
+
+    // Signature label at midpoint
+    if (d.sig && !isClean) {
+      const mx = (x1+x2)/2, my = (y1+y2)/2;
+      html += `<text x="${mx}" y="${my-7}" text-anchor="middle"
+        font-size="9" fill="${col}" font-family="JetBrains Mono,monospace"
+        opacity="0.65">${d.sig}</text>`;
     }
   });
 
-  // Center node — Syphir Shield Box
+  // Center node — Syphir Shield (larger, blue circle)
   html += `
-    <g onclick="wbClickShield()" style="cursor:pointer;">
-      <!-- Outer glow ring -->
-      <circle cx="${CX}" cy="${CY}" r="42" fill="none" stroke="#2196d3" stroke-width="1.5" opacity="0.3" filter="url(#wb-glow-c)"/>
-      <circle cx="${CX}" cy="${CY}" r="36" fill="#0d1829" stroke="#2196d3" stroke-width="2"/>
-      <!-- Box icon -->
-      <rect x="${CX-14}" y="${CY-10}" width="28" height="20" rx="3" fill="none" stroke="#2196d3" stroke-width="1.5"/>
-      <line x1="${CX-14}" y1="${CY}" x2="${CX+14}" y2="${CY}" stroke="#2196d3" stroke-width="1"/>
-      <circle cx="${CX}" cy="${CY-5}" r="2" fill="#2196d3"/>
-      <text x="${CX}" y="${CY+30}" text-anchor="middle" font-size="10" font-weight="700" fill="#2196d3" font-family="JetBrains Mono,monospace">SHIELD</text>
-      <text x="${CX}" y="${CY+42}" text-anchor="middle" font-size="9" fill="#4a5568" font-family="Inter,sans-serif">Syphir Box</text>
+    <g onclick="wbClickShield()" style="cursor:pointer;" filter="url(#wb-glow-c)">
+      <circle cx="${CX}" cy="${CY}" r="34" fill="#0d1829" stroke="#3b82f6" stroke-width="2"/>
+      <circle cx="${CX}" cy="${CY}" r="28" fill="none" stroke="rgba(59,130,246,0.2)" stroke-width="1"/>
+      <!-- Shield SVG icon centered -->
+      <path d="M${CX} ${CY-14} L${CX+11} ${CY-9} L${CX+11} ${CY+1} C${CX+11} ${CY+9} ${CX+6} ${CY+14} ${CX} ${CY+17} C${CX-6} ${CY+14} ${CX-11} ${CY+9} ${CX-11} ${CY+1} L${CX-11} ${CY-9} Z"
+        fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/>
+      <text x="${CX}" y="${CY+32}" text-anchor="middle" font-size="10" font-weight="600"
+        fill="#3b82f6" font-family="Inter,sans-serif">SHIELD</text>
+      <text x="${CX}" y="${CY+43}" text-anchor="middle" font-size="8.5"
+        fill="#334155" font-family="Inter,sans-serif">Syphir Box</text>
     </g>`;
 
-  // Device nodes
+  // Device nodes — circular, CrowdStrike-style
   devices.forEach((d,i) => {
-    const col      = riskColor(d.risk);
-    const isAttack = d.risk==='critical'||d.isolated;
-    const isClean  = d.risk==='clean'&&!d.isolated;
-    const nameLabel = d.name||d.device_type||'Device';
-    // Truncate long names
-    const shortName = nameLabel.length > 16 ? nameLabel.slice(0,15)+'…' : nameLabel;
+    const col     = riskColor(d.isolated?'critical':d.risk);
+    const isClean = d.risk==='clean' && !d.isolated;
+    const isAway  = d.status==='away';
+    const isThreat = d.risk==='critical'||d.isolated;
+    const R = 22; // node radius
+    const type = deviceIcon(d);
+    const displayName = (() => {
+      const n = d.name && d.name !== d.ip && d.name !== 'Device' ? d.name : (d.device_type||'Device');
+      return n.length>18 ? n.slice(0,17)+'…' : n;
+    })();
+    const fillOpacity = isAway ? 0.15 : isClean ? 0.08 : 0.12;
+    const strokeOpacity = isAway ? 0.3 : 1;
+    const glow = isThreat ? 'filter="url(#wb-glow-r)"' : '';
 
-    // Clean flat device node: monitor icon (SVG paths) + small status dot + labels
     html += `
-      <g onclick="wbClickDevice('${d.ip}')" onmouseenter="wbTooltip(event,'${d.ip}')" onmouseleave="document.getElementById('wb-tooltip').style.display='none'" style="cursor:pointer;">
+      <g onclick="wbClickDevice('${d.ip}')"
+        onmouseenter="wbTooltip(event,'${d.ip}')"
+        onmouseleave="document.getElementById('wb-tooltip').style.display='none'"
+        style="cursor:pointer;" opacity="${isAway?0.4:1}">
 
-        ${/* Monitor body - flat rect, no circle bubble */ ''}
-        <rect x="${d.x-16}" y="${d.y-12}" width="32" height="20" rx="3"
-          fill="${isClean?'#16191f':col+'18'}"
-          stroke="${isClean?'#252a38':col}"
-          stroke-width="${isClean?'1':'1.5'}"
-          opacity="${d.status==='away'?0.35:1}"/>
+        <!-- Outer pulse ring for threats -->
+        ${isThreat ? `<circle cx="${d.x}" cy="${d.y}" r="${R+8}" fill="none"
+          stroke="${col}" stroke-width="1" opacity="0.25" stroke-dasharray="3,4"/>` : ''}
 
-        ${/* Screen area */ ''}
-        <rect x="${d.x-13}" y="${d.y-10}" width="26" height="14" rx="1"
-          fill="${isClean?'#1c1f27':col+'22'}"/>
+        <!-- Main circle -->
+        <circle cx="${d.x}" cy="${d.y}" r="${R}"
+          fill="${col}" fill-opacity="${fillOpacity}"
+          stroke="${col}" stroke-width="1.5" ${glow}
+          opacity="${strokeOpacity}"/>
 
-        ${isAttack ? `
-          <text x="${d.x}" y="${d.y-1}" text-anchor="middle" font-size="11"
-            fill="#ef4444" font-family="sans-serif" opacity="0.9">☠</text>
-        ` : isClean ? `
-          <rect x="${d.x-8}" y="${d.y-8}" width="16" height="1.5" rx="1" fill="#252a38"/>
-          <rect x="${d.x-6}" y="${d.y-5}" width="12" height="1.5" rx="1" fill="#252a38"/>
-          <rect x="${d.x-8}" y="${d.y-2}" width="10" height="1.5" rx="1" fill="#252a38"/>
-        ` : `
-          <rect x="${d.x-8}" y="${d.y-8}" width="16" height="1.5" rx="1" fill="${col}" opacity="0.5"/>
-          <rect x="${d.x-8}" y="${d.y-5}" width="12" height="1.5" rx="1" fill="${col}" opacity="0.4"/>
-          <rect x="${d.x-8}" y="${d.y-2}" width="8" height="1.5" rx="1" fill="${col}" opacity="0.3"/>
-        `}
+        <!-- Device type icon inside circle -->
+        <g transform="translate(${d.x},${d.y})">
+          ${iconSVG(type, col, R)}
+        </g>
 
-        ${/* Monitor stand */ ''}
-        <rect x="${d.x-5}" y="${d.y+8}" width="10" height="3" rx="1"
-          fill="${isClean?'#1c1f27':col+'30'}"/>
-        <rect x="${d.x-8}" y="${d.y+11}" width="16" height="1.5" rx="1"
-          fill="${isClean?'#252a38':col+'40'}"/>
+        <!-- Skull overlay for active attack -->
+        ${isThreat ? `<text x="${d.x}" y="${d.y+4}" text-anchor="middle"
+          font-size="13" font-family="sans-serif" opacity="0.7">☠</text>` : ''}
 
-        ${/* Status dot — small, top right */ ''}
-        <circle cx="${d.x+14}" cy="${d.y-14}" r="3.5"
-          fill="${col}" opacity="${isClean?0.6:1}"/>
+        <!-- Name label below -->
+        <text x="${d.x}" y="${d.y+R+14}" text-anchor="middle"
+          font-size="10.5" font-weight="500"
+          fill="${isClean?'#64748b':col}"
+          font-family="Inter,sans-serif">${displayName}</text>
 
-        ${/* Labels — name first, IP small below */ ''}
-        <text x="${d.x}" y="${d.y+22}" text-anchor="middle"
-          font-size="10.5" font-weight="600"
-          fill="${isClean?'#475569':col}"
-          font-family="Inter,sans-serif"
-          opacity="${d.status==='away'?0.4:1}">${shortName}</text>
-        <text x="${d.x}" y="${d.y+33}" text-anchor="middle"
-          font-size="9" fill="#2d3a50"
+        <!-- IP address smaller below name -->
+        <text x="${d.x}" y="${d.y+R+25}" text-anchor="middle"
+          font-size="8.5" fill="#334155"
           font-family="JetBrains Mono,monospace">${d.ip}</text>
+
+        <!-- Incident count if any -->
         ${d.events&&d.events.length?`
-          <text x="${d.x}" y="${d.y+44}" text-anchor="middle"
-            font-size="9" fill="${col}" font-family="Inter,sans-serif"
-            opacity="0.7">${d.events.length} incident${d.events.length>1?'s':''}</text>
+          <text x="${d.x}" y="${d.y+R+36}" text-anchor="middle"
+            font-size="8.5" fill="${col}" font-family="Inter,sans-serif"
+            opacity="0.75">${d.events.length} incident${d.events.length>1?'s':''}</text>
         `:''}
       </g>`;
   });
 
   svg.innerHTML = html;
   _wb.devices = deviceMap;
-
-  // Start live pulse animation for threat nodes
   wbAnimatePulse();
 }
 
