@@ -2128,9 +2128,9 @@ function ptPaintIncident(incident, ip) {
 
     html += `
       <g onclick="ptNodeClickInc(${i})" style="cursor:pointer;">
-        <!-- Single circle, no double ring -->
+        <!-- Single circle — filled only, no stroke ring -->
         <circle cx="${n.cx}" cy="${n.cy}" r="${R}"
-          fill="${n.col}22" stroke="${n.col}" stroke-width="1.5"/>
+          fill="${n.col}18"/>
 
         <!-- Inner filled dot -->
         <circle cx="${n.cx}" cy="${n.cy}" r="${R * 0.36}"
@@ -2138,10 +2138,10 @@ function ptPaintIncident(incident, ip) {
 
         ${dotRow}
 
-        <!-- Label — alternates above/below -->
+        <!-- Label — neutral color, alternates above/below -->
         <text x="${n.cx}" y="${textY_label}" text-anchor="middle"
-          font-size="11" font-weight="600"
-          fill="${n.col}" font-family="JetBrains Mono,monospace">${n.label}</text>
+          font-size="11" font-weight="500"
+          fill="#94a3b8" font-family="Inter,sans-serif">${n.label}</text>
 
         <!-- Sub label -->
         <text x="${n.cx}" y="${textY_sub}" text-anchor="middle"
