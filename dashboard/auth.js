@@ -1,177 +1,305 @@
-// ── SYPHIR AUTH & BUSINESS REGISTRY ────────────────────────────────────────
+// ── SYPHIR AUTH ───────────────────────────────────────────────────────────────
 const API = 'https://syphir-api.onrender.com';
-const SESSION_KEY = 'syphir_session';
-const SESSION_TTL = 8 * 60 * 60 * 1000;
+const SUPABASE_URL  = 'https://pfrojobhrmfnoxavlrmm.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcm9qb2Jocm1mbm94YXZscm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTU5MDcsImV4cCI6MjA5MTQ5MTkwN30.0FFbJq_gwsFtZSQY7isojouZAlt3xWAUBGFXx-j9nbzo';
+const SESSION_KEY   = 'syphir_session';
+const REMEMBER_KEY  = 'syphir_remember';
+const SESSION_TTL   = 8 * 60 * 60 * 1000;   // 8 hours
+const REMEMBER_TTL  = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-function saveSession(data) {
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...data, authenticated_at: Date.now() })); } catch(_) {}
+let sb = null;
+function getSB() {
+  if (!sb && window.supabase) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  return sb;
 }
+
+// ── Session helpers ───────────────────────────────────────────────────────────
+function saveSession(data, remember = false) {
+  const payload = { ...data, authenticated_at: Date.now() };
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload)); } catch(_) {}
+  if (remember) {
+    try { localStorage.setItem(REMEMBER_KEY, JSON.stringify(payload)); } catch(_) {}
+  }
+}
+
 function getSession() {
+  // Check sessionStorage first
   try {
     const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-    if (!s || !s.key) return null;
-    if (Date.now() - s.authenticated_at > SESSION_TTL) { sessionStorage.removeItem(SESSION_KEY); return null; }
-    return s;
-  } catch(_) { return null; }
-}
-
-const DEFAULT_BUSINESSES = [
-  { id: 'biz_demo1', name: 'Demo Dental Practice', email: 'admin@dentalpractice.com', key: 'SYP-DEMO-2026-SYPHIR', emp_key: 'EMP-DENT-DEMO-2026', plan: 'Professional', status: 'demo', created: '2026-01-10' },
-  { id: 'biz_ucr1',  name: 'UCR Medical School', email: 'sherif.hassan@medsch.ucr.edu', key: 'CS-PILOT-UCR1', emp_key: 'EMP-UCR-PILOT-01', plan: 'Starter', status: 'demo', created: '2026-02-01' },
-  { id: 'biz_llu1',  name: 'Loma Linda University', email: 'lauraarellano@llu.edu', key: 'CS-PILOT-LLU1', emp_key: 'EMP-LLU-PILOT-01', plan: 'Starter', status: 'demo', created: '2026-02-15' },
-];
-
-function getBusinesses() {
+    if (s?.key && Date.now() - s.authenticated_at < SESSION_TTL) return s;
+  } catch(_) {}
+  // Fall back to remembered session (30 days)
   try {
-    const stored = localStorage.getItem('syphir_businesses');
-    if (stored) return JSON.parse(stored);
-  } catch(e) {}
-  saveBusinesses(DEFAULT_BUSINESSES);
-  return DEFAULT_BUSINESSES;
+    const r = JSON.parse(localStorage.getItem(REMEMBER_KEY) || 'null');
+    if (r?.key && Date.now() - r.authenticated_at < REMEMBER_TTL) {
+      // Restore into sessionStorage
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(r)); } catch(_) {}
+      return r;
+    }
+  } catch(_) {}
+  return null;
 }
 
-function saveBusinesses(list) {
-  localStorage.setItem('syphir_businesses', JSON.stringify(list));
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(_) {}
+  try { localStorage.removeItem(REMEMBER_KEY); } catch(_) {}
 }
 
-function findBusinessByKey(key) {
-  const k = key.toUpperCase();
-  return getBusinesses().find(b =>
-    b.key.toUpperCase() === k || (b.emp_key && b.emp_key.toUpperCase() === k)
-  ) || null;
+// ── Auto-redirect if already logged in ───────────────────────────────────────
+(function checkAutoLogin() {
+  // Check saved session
+  const session = getSession();
+  if (session?.key) {
+    // Show "returning user" state on the button
+    const btn = document.querySelector('.nav-btn[onclick*="openModal"]');
+    if (btn) {
+      btn.textContent = '→ Open Dashboard';
+      btn.onclick = () => goToDashboard(session.key, session.org_name);
+    }
+    return;
+  }
+
+  // Check Supabase OAuth callback (Google redirect)
+  if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+    handleSupabaseCallback();
+  }
+})();
+
+async function handleSupabaseCallback() {
+  const client = getSB();
+  if (!client) return;
+  const { data: { session } } = await client.auth.getSession();
+  if (session?.user) {
+    await provisionAndRedirect(session.user, true);
+  }
 }
 
-function isEmployeeKey(key) {
-  const k = key.toUpperCase();
-  const biz = getBusinesses().find(b => b.emp_key && b.emp_key.toUpperCase() === k);
-  return !!biz;
-}
-
-function generateKey() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const seg = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
-  return `SYP-${seg()}-${seg()}-${seg()}`;
-}
-
-function generateEmpKey() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const seg = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
-  return `EMP-${seg()}-${seg()}`;
-}
-
-// ── MODAL ──────────────────────────────────────────────────────────────────
-function openModal() {
-  document.getElementById('loginModal').classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal() {
-  const m = document.getElementById('loginModal');
-  if (m) m.classList.remove('active');
-  document.body.style.overflow = '';
-  document.querySelectorAll('.err-msg').forEach(e => e.style.display = 'none');
-}
-window.addEventListener('click', e => {
-  const m = document.getElementById('loginModal');
-  if (m && e.target === m) closeModal();
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-function switchTab(tab) {
-  document.querySelectorAll('.modal-tab').forEach((t,i) => {
-    t.classList.toggle('active', (i===0&&tab==='key')||(i===1&&tab==='email'));
+// ── Panel navigation ──────────────────────────────────────────────────────────
+function showPane(id) {
+  ['pane-main','pane-key','pane-forgot'].forEach(p => {
+    const el = document.getElementById(p);
+    if (el) el.style.display = p === id ? '' : 'none';
   });
-  const kp = document.getElementById('tab-key');
-  const ep = document.getElementById('tab-email');
-  if (kp) kp.classList.toggle('active', tab==='key');
-  if (ep) ep.classList.toggle('active', tab==='email');
 }
 
-// ── KEY LOGIN ──────────────────────────────────────────────────────────────
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+async function authGoogle() {
+  const client = getSB();
+  if (!client) { showModalErr('Google auth not available — use email or key.'); return; }
+  const btn = document.getElementById('googleBtn');
+  if (btn) { btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; }
+  const { error } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/dashboard/index.html',
+    }
+  });
+  if (error) {
+    if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
+    showModalErr(error.message);
+  }
+  // Page will redirect — no need to reset button
+}
+
+// ── Magic link ────────────────────────────────────────────────────────────────
+async function authMagicLink() {
+  const email = (document.getElementById('magicEmail')?.value || '').trim().toLowerCase();
+  if (!email || !email.includes('@')) {
+    showModalErr('Enter a valid business email.', 'magicErr');
+    return;
+  }
+  const btn  = document.getElementById('magicBtn');
+  const succ = document.getElementById('magicSuccess');
+  const err  = document.getElementById('magicErr');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  if (err) err.textContent = '';
+
+  const client = getSB();
+  if (!client) {
+    // Fallback: try key-based email lookup via API
+    await handleRecoveryFor(email, btn, succ, err, 'Send sign-in link');
+    return;
+  }
+
+  const { error } = await client.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: window.location.origin + '/dashboard/index.html',
+      shouldCreateUser: true,
+    }
+  });
+
+  btn.disabled = false;
+  if (error) {
+    btn.textContent = 'Send sign-in link';
+    if (err) err.textContent = error.message;
+  } else {
+    btn.textContent = 'Sent ✓';
+    if (succ) succ.style.display = '';
+  }
+}
+
+// ── License key login ─────────────────────────────────────────────────────────
 function handleKey() {
   const raw = (document.getElementById('keyInput')?.value || '').trim().toUpperCase();
   const err = document.getElementById('keyErr');
-  if (!raw) { showErr(err, 'Please enter your license key.'); return; }
-
-  // Block employee keys from dashboard
-  if (isEmployeeKey(raw)) {
-    showErr(err, 'This is an employee key — it only works in the Syphir Chrome extension. Contact your admin for dashboard access.');
+  if (!raw) { if (err) err.textContent = 'Enter your license key.'; return; }
+  if (raw.startsWith('EMP-')) {
+    if (err) err.textContent = 'Employee keys only work in the Chrome extension. Ask your admin for the dashboard key.';
     return;
   }
+  const btn = document.getElementById('keyBtn');
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  if (err) err.textContent = '';
 
-  // Business key — check locally first
-  const biz = findBusinessByKey(raw);
-  if (biz && biz.key.toUpperCase() === raw) {
-    hideErr(err);
-    saveSession({ key: raw, org_name: biz.name, org_id: biz.id || '' });
-    setBtnLoading('keyBtn', 'Opening your dashboard…');
-    setTimeout(() => {
-      window.location.href = 'app.html?key=' + encodeURIComponent(raw) + '&org=' + encodeURIComponent(biz.name);
-    }, 600);
-    return;
-  }
-
-  // Fall back to API validation
-  setBtnLoading('keyBtn', 'Checking…');
-  fetch(API + '/validate-key', {
+  fetch(`${API}/validate-key`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ key: raw, context: 'dashboard' }),
   })
   .then(r => r.json())
   .then(data => {
+    btn.disabled = false;
+    btn.textContent = 'Open Dashboard →';
     if (data.valid) {
-      hideErr(err);
-      saveSession({ key: raw, org_name: data.org_name, org_id: data.org_id || '' });
-      window.location.href = 'app.html?key=' + encodeURIComponent(raw) + '&org=' + encodeURIComponent(data.org_name);
+      saveSession({ key: raw, org_name: data.org_name, org_id: data.org_id }, true);
+      goToDashboard(raw, data.org_name);
     } else if (data.key_type === 'employee') {
-      resetBtn('keyBtn', 'Open Dashboard →');
-      showErr(err, 'This is an employee key — it only works in the Chrome extension. Contact your admin for dashboard access.');
+      if (err) err.textContent = 'Employee keys only work in the Chrome extension.';
+    } else if (data.expired) {
+      if (err) err.textContent = 'Your trial has expired. Upgrade at syphir.vercel.app/pricing.html';
     } else {
-      resetBtn('keyBtn', 'Open Dashboard →');
-      showErr(err, 'Invalid key. Check your welcome email or contact syphir26@gmail.com');
+      if (err) err.textContent = 'Key not found. Check your welcome email or use email sign-in.';
     }
   })
   .catch(() => {
-    resetBtn('keyBtn', 'Open Dashboard →');
-    showErr(err, 'Could not connect. Check your key or try again.');
+    btn.disabled = false;
+    btn.textContent = 'Open Dashboard →';
+    if (err) err.textContent = 'Could not connect. Try again in a moment.';
   });
 }
 
-// ── EMAIL LOGIN ────────────────────────────────────────────────────────────
-function handleEmail() {
-  const email = (document.getElementById('emailIn')?.value || '').trim();
-  const pass  = (document.getElementById('passIn')?.value  || '');
-  const err   = document.getElementById('emailErr');
-  if (!email || pass.length < 4) { showErr(err, 'Enter your email and password.'); return; }
-  const biz = getBusinesses().find(b => b.email.toLowerCase() === email.toLowerCase());
-  if (biz && pass.length >= 4) {
-    hideErr(err);
-    saveSession({ key: biz.key, org_name: biz.name, org_id: biz.id || '' });
-    setBtnLoading('emailBtn', 'Signing in…');
-    setTimeout(() => {
-      window.location.href = 'app.html?key=' + encodeURIComponent(biz.key) + '&org=' + encodeURIComponent(biz.name);
-    }, 600);
-  } else {
-    showErr(err, 'Invalid credentials. Try using your license key instead.');
+// ── Account recovery (forgot everything) ─────────────────────────────────────
+async function handleRecovery() {
+  const email = (document.getElementById('recoveryEmail')?.value || '').trim().toLowerCase();
+  const err   = document.getElementById('recoveryErr');
+  const btn   = document.getElementById('recoveryBtn');
+  const succ  = document.getElementById('recoverySuccess');
+  if (!email || !email.includes('@')) {
+    if (err) err.textContent = 'Enter the email you used to sign up.';
+    return;
+  }
+  await handleRecoveryFor(email, btn, succ, err, 'Send recovery email');
+}
+
+async function handleRecoveryFor(email, btn, succ, err, resetLabel) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  if (err) err.textContent = '';
+  try {
+    const r = await fetch(`${API}/auth/recover`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    // Always show success (don't reveal if email exists)
+    if (btn) { btn.disabled = false; btn.textContent = resetLabel; }
+    if (succ) succ.style.display = '';
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = resetLabel; }
+    if (err) err.textContent = 'Could not send recovery email. Try contacting support.';
   }
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
-function showErr(el, msg) { if (el) { el.textContent = msg; el.style.display = 'block'; } }
-function hideErr(el) { if (el) el.style.display = 'none'; }
-function setBtnLoading(id, text) {
-  const btn = document.getElementById(id);
-  if (btn) { btn.textContent = text; btn.disabled = true; }
+// ── Provision after Supabase OAuth ───────────────────────────────────────────
+async function provisionAndRedirect(user, remember = true) {
+  try {
+    const client = getSB();
+    const { data: { session } } = await client.auth.getSession();
+    const token = session?.access_token;
+    const r = await fetch(`${API}/auth/provision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        email:    user.email,
+        name:     user.user_metadata?.full_name || user.email.split('@')[0],
+        provider: user.app_metadata?.provider || 'email',
+      }),
+    });
+    const data = await r.json();
+    if (data.key) {
+      saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email: user.email }, remember);
+      goToDashboard(data.key, data.org_name);
+    } else {
+      showModalErr(data.error || 'Could not provision account. Contact support.');
+    }
+  } catch(e) {
+    showModalErr('Authentication error. Please try again.');
+  }
 }
-function resetBtn(id, text) {
-  const btn = document.getElementById(id);
-  if (btn) { btn.textContent = text; btn.disabled = false; }
+
+// ── Redirect to dashboard ─────────────────────────────────────────────────────
+function goToDashboard(key, orgName) {
+  closeModal();
+  window.location.href = `app.html?key=${encodeURIComponent(key)}&org=${encodeURIComponent(orgName || '')}`;
 }
-document.addEventListener('DOMContentLoaded', () => {
-  const ki = document.getElementById('keyInput');
-  if (ki) ki.addEventListener('keydown', e => { if (e.key==='Enter') handleKey(); });
-  const ei = document.getElementById('emailIn');
-  const pi = document.getElementById('passIn');
-  if (ei) ei.addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('passIn')?.focus(); });
-  if (pi) pi.addEventListener('keydown', e => { if (e.key==='Enter') handleEmail(); });
+
+// ── Modal open/close ──────────────────────────────────────────────────────────
+function openModal() {
+  // If already have a session, go straight to dashboard
+  const session = getSession();
+  if (session?.key) {
+    goToDashboard(session.key, session.org_name);
+    return;
+  }
+  showPane('pane-main');
+  document.getElementById('loginModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('magicEmail')?.focus(), 100);
+}
+
+function closeModal() {
+  const m = document.getElementById('loginModal');
+  if (m) m.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+window.addEventListener('click', e => {
+  const m = document.getElementById('loginModal');
+  if (m && e.target === m) closeModal();
 });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Error helper ──────────────────────────────────────────────────────────────
+function showModalErr(msg, id) {
+  const el = document.getElementById(id || 'magicErr');
+  if (el) el.textContent = msg;
+}
+
+// ── Enter key support ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('magicEmail')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') authMagicLink();
+  });
+  document.getElementById('keyInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleKey();
+  });
+  document.getElementById('recoveryEmail')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleRecovery();
+  });
+
+  // Check Supabase OAuth callback
+  if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+    const client = getSB();
+    if (client) {
+      client.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) provisionAndRedirect(session.user, true);
+      });
+    }
+  }
+});
+
+// Legacy stubs so old inline callers don't break
+function switchTab() {}
+function handleEmail() { authMagicLink(); }

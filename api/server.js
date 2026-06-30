@@ -1789,6 +1789,58 @@ app.post('/auth/provision', async (c) => {
   }
 });
 
+// ── AUTH: Account recovery — resend key to email ─────────────────────────────
+app.post('/auth/recover', async (c) => {
+  const { email } = await c.req.json().catch(() => ({}));
+  if (!email) return c.json({ sent: false }, 400);
+
+  // Always return 200 — don't reveal if email exists
+  try {
+    const orgs = await db(
+      `organizations?admin_email=eq.${encodeURIComponent(email.toLowerCase())}&select=*`
+    ).catch(() => []);
+
+    if (orgs?.length) {
+      const org = orgs[0];
+      const keys = await db(
+        `license_keys?org_id=eq.${encodeURIComponent(org.id)}&status=eq.active&select=key,key_type`
+      ).catch(() => []);
+      const bizKey = keys?.find(k => k.key_type === 'business')?.key;
+      const empKey = keys?.find(k => k.key_type === 'employee')?.key;
+
+      if (bizKey) {
+        const dashUrl = `https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}`;
+        await resend.emails.send({
+          from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: email,
+          subject: `Your Syphir dashboard access — ${org.name}`,
+          html: `
+            <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
+              <div style="font-size:18px;font-weight:700;margin-bottom:8px;">🔑 Your Syphir keys</div>
+              <p style="color:#8b949e;margin-bottom:20px;line-height:1.6;">You requested account recovery for <strong>${org.name}</strong>. Here are your access details:</p>
+              <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:18px;margin-bottom:14px;">
+                <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY (admin login)</div>
+                <div style="font-size:18px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
+              </div>
+              ${empKey ? `<div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:18px;margin-bottom:20px;">
+                <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">EMPLOYEE KEY (share with staff)</div>
+                <div style="font-size:15px;font-weight:700;font-family:'Courier New',monospace;color:#8b949e;letter-spacing:1px;">${empKey}</div>
+              </div>` : ''}
+              <a href="${dashUrl}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:20px;">Open Dashboard →</a>
+              <p style="color:#4a5568;font-size:12px;">If you didn't request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        });
+        console.log(`[Auth] Recovery email sent to ${email}`);
+      }
+    }
+    // Always return 200
+    return c.json({ sent: true });
+  } catch(err) {
+    console.error('[Auth] recover error:', err.message);
+    return c.json({ sent: true }); // don't expose errors
+  }
+});
+
 // ── SHIELD: Live device scanner ────────────────────────────────────────────
 // In-memory store per org (Pi pushes every 30s, refills after Render spin-down)
 const shieldDeviceStore = {};
