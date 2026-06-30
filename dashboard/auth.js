@@ -46,11 +46,10 @@ function clearSession() {
 }
 
 // ── Auto-redirect if already logged in ───────────────────────────────────────
-(function checkAutoLogin() {
-  // Check saved session
+function initAuthCheck() {
+  // Check saved session first
   const session = getSession();
   if (session?.key) {
-    // Show "returning user" state on the button
     const btn = document.querySelector('.nav-btn[onclick*="openModal"]');
     if (btn) {
       btn.textContent = '→ Open Dashboard';
@@ -59,19 +58,35 @@ function clearSession() {
     return;
   }
 
-  // Check Supabase OAuth callback (Google redirect)
-  if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
-    handleSupabaseCallback();
-  }
-})();
-
-async function handleSupabaseCallback() {
   const client = getSB();
-  if (!client) return;
-  const { data: { session } } = await client.auth.getSession();
-  if (session?.user) {
-    await provisionAndRedirect(session.user, true);
+  if (!client) {
+    console.warn('Syphir: Supabase client not available — retrying...');
+    setTimeout(initAuthCheck, 200);
+    return;
   }
+
+  // Listen for auth state changes — this reliably catches the OAuth callback
+  // regardless of timing, since Supabase fires this once it's parsed the URL hash.
+  client.auth.onAuthStateChange(async (event, authSession) => {
+    console.log('Syphir: auth state change:', event);
+    if (event === 'SIGNED_IN' && authSession?.user) {
+      await provisionAndRedirect(authSession.user, true);
+    }
+  });
+
+  // Also check immediately in case the session is already there
+  client.auth.getSession().then(({ data: { session: authSession } }) => {
+    if (authSession?.user && (window.location.hash.includes('access_token') || window.location.search.includes('code='))) {
+      provisionAndRedirect(authSession.user, true);
+    }
+  });
+}
+
+// Run once Supabase CDN script has loaded
+if (window.supabase) {
+  initAuthCheck();
+} else {
+  window.addEventListener('load', initAuthCheck);
 }
 
 // ── Panel navigation ──────────────────────────────────────────────────────────
@@ -215,6 +230,20 @@ async function handleRecoveryFor(email, btn, succ, err, resetLabel) {
 
 // ── Provision after Supabase OAuth ───────────────────────────────────────────
 async function provisionAndRedirect(user, remember = true) {
+  // Show a loading indicator so the page doesn't look frozen
+  let loader = document.getElementById('syphir-oauth-loader');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'syphir-oauth-loader';
+    loader.style.cssText = 'position:fixed;inset:0;background:#0b0e14;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#94a3b8;font-family:-apple-system,sans-serif;';
+    loader.innerHTML = `
+      <div style="width:32px;height:32px;border:3px solid #1e2230;border-top-color:#3b82f6;border-radius:50%;animation:syphirSpin 0.8s linear infinite;"></div>
+      <div style="font-size:13px;">Setting up your dashboard…</div>
+      <style>@keyframes syphirSpin{to{transform:rotate(360deg)}}</style>
+    `;
+    document.body.appendChild(loader);
+  }
+
   try {
     const client = getSB();
     const { data: { session } } = await client.auth.getSession();
@@ -233,10 +262,14 @@ async function provisionAndRedirect(user, remember = true) {
       saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email: user.email }, remember);
       goToDashboard(data.key, data.org_name);
     } else {
+      loader.remove();
       showModalErr(data.error || 'Could not provision account. Contact support.');
+      openModal();
     }
   } catch(e) {
+    loader?.remove();
     showModalErr('Authentication error. Please try again.');
+    openModal();
   }
 }
 
@@ -295,16 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('recoveryEmail')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleRecovery();
   });
-
-  // Check Supabase OAuth callback
-  if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
-    const client = getSB();
-    if (client) {
-      client.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) provisionAndRedirect(session.user, true);
-      });
-    }
-  }
 });
 
 // Legacy stubs so old inline callers don't break
