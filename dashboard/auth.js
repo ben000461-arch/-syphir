@@ -91,7 +91,7 @@ async function authGoogle() {
   const { error } = await client.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin + '/dashboard/index.html',
+      redirectTo: window.location.origin + '/index.html',
     }
   });
   if (error) {
@@ -101,42 +101,43 @@ async function authGoogle() {
   // Page will redirect — no need to reset button
 }
 
-// ── Magic link ────────────────────────────────────────────────────────────────
+// ── Email sign-in (direct, no magic-link wait) ───────────────────────────────
 async function authMagicLink() {
-  const email = (document.getElementById('magicEmail')?.value || '').trim().toLowerCase();
+  const emailField = document.getElementById('magicEmail');
+  const email = (emailField?.value || '').trim().toLowerCase();
   if (!email || !email.includes('@')) {
     showModalErr('Enter a valid business email.', 'magicErr');
     return;
   }
-  const btn  = document.getElementById('magicBtn');
-  const succ = document.getElementById('magicSuccess');
-  const err  = document.getElementById('magicErr');
+  const btn = document.getElementById('magicBtn');
+  const err = document.getElementById('magicErr');
   btn.disabled = true;
-  btn.textContent = 'Sending…';
+  btn.textContent = 'Signing in…';
   if (err) err.textContent = '';
 
-  const client = getSB();
-  if (!client) {
-    // Fallback: try key-based email lookup via API
-    await handleRecoveryFor(email, btn, succ, err, 'Send sign-in link');
-    return;
-  }
+  try {
+    // Direct provision — no Supabase auth token required for email-only flow
+    const r = await fetch(`${API}/auth/provision-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await r.json();
+    btn.disabled = false;
+    btn.textContent = 'Sign in →';
 
-  const { error } = await client.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: window.location.origin + '/dashboard/index.html',
-      shouldCreateUser: true,
+    if (data.key) {
+      // Remember this email for next visit
+      try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
+      saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email }, true);
+      goToDashboard(data.key, data.org_name);
+    } else {
+      if (err) err.textContent = data.error || 'Could not sign in. Try your license key instead.';
     }
-  });
-
-  btn.disabled = false;
-  if (error) {
-    btn.textContent = 'Send sign-in link';
-    if (err) err.textContent = error.message;
-  } else {
-    btn.textContent = 'Sent ✓';
-    if (succ) succ.style.display = '';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Sign in →';
+    if (err) err.textContent = 'Could not connect. Try again in a moment.';
   }
 }
 
@@ -256,6 +257,12 @@ function openModal() {
   showPane('pane-main');
   document.getElementById('loginModal').classList.add('active');
   document.body.style.overflow = 'hidden';
+  // Pre-fill remembered email
+  try {
+    const remembered = localStorage.getItem('syphir_remembered_email');
+    const field = document.getElementById('magicEmail');
+    if (remembered && field) field.value = remembered;
+  } catch(_) {}
   setTimeout(() => document.getElementById('magicEmail')?.focus(), 100);
 }
 
