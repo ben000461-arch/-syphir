@@ -1236,6 +1236,35 @@ app.post("/stripe-webhook", async (c) => {
     }
   }
 
+  // ── invoice.payment_succeeded — fires on every successful recurring payment
+  // Ensures keys never expire as long as billing is current
+  if (event.type === "invoice.payment_succeeded") {
+    const invoice = event.data.object;
+    const customerId = invoice.customer;
+    if (customerId) {
+      try {
+        // Find org by stripe_customer_id and clear expiry
+        const orgs = await dbWithRetry(
+          `organizations?stripe_customer_id=eq.${encodeURIComponent(customerId)}&select=id,name,plan`
+        ).catch(() => []);
+        if (orgs?.length) {
+          const org = orgs[0];
+          await dbWithRetry(`organizations?id=eq.${encodeURIComponent(org.id)}`, {
+            method: "PATCH", prefer: "return=minimal",
+            body: JSON.stringify({ active: true }),
+          });
+          await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(org.id)}`, {
+            method: "PATCH", prefer: "return=minimal",
+            body: JSON.stringify({ expires_at: null, status: "active" }),
+          });
+          console.log(`✓ Recurring payment: cleared expiry for org ${org.id} (${org.name})`);
+        }
+      } catch (err) {
+        console.error("Failed to clear expiry on invoice.payment_succeeded:", err.message);
+      }
+    }
+  }
+
   return c.json({ received: true });
 });
 
@@ -1557,6 +1586,36 @@ async function sendExpiryNoticesToAllOrgs() {
   return { sent: results.filter(r => r.sent).length, total: orgs.length, results };
 }
 
+// ── ADMIN: Clear expiry — for paid orgs or manual overrides ────────────────
+app.post("/admin/clear-expiry", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  const { org_id, key } = await c.req.json().catch(() => ({}));
+
+  // Resolve org_id from key if not provided directly
+  let resolvedOrgId = org_id;
+  if (!resolvedOrgId && key) {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&select=org_id`).catch(() => []);
+    resolvedOrgId = rows?.[0]?.org_id;
+  }
+  if (!resolvedOrgId) return c.json({ error: "Provide org_id or key" }, 400);
+
+  try {
+    await dbWithRetry(`organizations?id=eq.${encodeURIComponent(resolvedOrgId)}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify({ active: true }),
+    });
+    await dbWithRetry(`license_keys?org_id=eq.${encodeURIComponent(resolvedOrgId)}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify({ expires_at: null, status: "active" }),
+    });
+    console.log(`✓ Admin cleared expiry for org ${resolvedOrgId}`);
+    return c.json({ success: true, org_id: resolvedOrgId, message: "Expiry cleared — key is now permanent" });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 // ── WEEKLY REPORTS ─────────────────────────────────────────────────────────
 app.post("/admin/send-weekly-reports", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
@@ -1577,6 +1636,157 @@ app.post("/admin/send-expiry-notices", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
   if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
   return c.json(await sendExpiryNoticesToAllOrgs());
+});
+
+// ── AUTH: Provision org after Supabase login ──────────────────────────────────
+// Called after Google OAuth or magic link — creates org if new, returns key if existing
+app.post('/auth/provision', async (c) => {
+  // Verify Supabase JWT
+  const authHeader = c.req.header('Authorization') || '';
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) return c.json({ error: 'Missing auth token' }, 401);
+
+  // Decode JWT to get user info (verify with Supabase)
+  let userEmail, userId;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_KEY }
+    });
+    if (!r.ok) return c.json({ error: 'Invalid session' }, 401);
+    const user = await r.json();
+    userEmail = user.email?.toLowerCase();
+    userId    = user.id;
+    if (!userEmail) return c.json({ error: 'No email on account' }, 400);
+  } catch(e) {
+    return c.json({ error: 'Auth verification failed' }, 401);
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const displayName = body.name || userEmail.split('@')[0];
+
+  try {
+    // Check if org already exists for this email
+    const existing = await db(
+      `organizations?admin_email=eq.${encodeURIComponent(userEmail)}&select=*`
+    ).catch(() => []);
+
+    if (existing?.length) {
+      const org = existing[0];
+      // Fetch their business key
+      const keys = await db(
+        `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
+      ).catch(() => []);
+      const key = keys?.[0]?.key;
+      if (!key) return c.json({ error: 'No active key found. Contact support.' }, 404);
+
+      console.log(`[Auth] Returning user: ${userEmail} → org ${org.id}`);
+      return c.json({
+        key,
+        org_name: org.name,
+        org_id:   org.id,
+        plan:     org.plan,
+        is_new:   false,
+      });
+    }
+
+    // ── New user — create org with Demo plan, 7-day trial ──
+    const bizKey = genKey();
+    const empKey = genEmpKey();
+    const orgName = displayName.includes('@')
+      ? displayName.split('@')[0].replace(/[^a-zA-Z0-9 ]/g,' ').trim() + "'s Organization"
+      : displayName + "'s Organization";
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Create org
+    const newOrg = await db('organizations', {
+      method: 'POST',
+      prefer: 'return=representation',
+      body: JSON.stringify({
+        name:        orgName,
+        admin_email: userEmail,
+        plan:        'Demo',
+        active:      true,
+        expires_at:  expiresAt,
+        supabase_uid: userId,
+      }),
+    });
+    const orgId = newOrg?.[0]?.id;
+    if (!orgId) return c.json({ error: 'Failed to create organization' }, 500);
+
+    // Create business key
+    await db('license_keys', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify({
+        key:      bizKey,
+        org_id:   orgId,
+        key_type: 'business',
+        status:   'active',
+        expires_at: expiresAt,
+      }),
+    });
+
+    // Create employee key
+    await db('license_keys', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify({
+        key:      empKey,
+        org_id:   orgId,
+        key_type: 'employee',
+        status:   'active',
+        expires_at: expiresAt,
+      }),
+    });
+
+    console.log(`[Auth] New org created: ${orgName} (${userEmail}) → ${bizKey}`);
+
+    // Send welcome email
+    try {
+      await resend.emails.send({
+        from:    EMAIL_FROM,
+        replyTo: EMAIL_REPLYTO,
+        to:      userEmail,
+        subject: `Welcome to Syphir — your 7-day trial is active`,
+        html: `
+          <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
+            <div style="font-size:22px;font-weight:700;margin-bottom:8px;">You're in. 🛡️</div>
+            <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">Your Syphir AI Data Protection trial is active for the next 7 days. Here's everything you need:</p>
+            <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:20px;">
+              <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY</div>
+              <div style="font-size:20px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
+              <div style="font-size:11px;color:#4a5568;margin-top:8px;">Keep this safe — it's your login.</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:24px;">
+              <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">EMPLOYEE KEY (share with staff)</div>
+              <div style="font-size:16px;font-weight:700;font-family:'Courier New',monospace;color:#8b949e;letter-spacing:1px;">${empKey}</div>
+            </div>
+            <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(orgName)}"
+               style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:20px;">
+              Open Dashboard →
+            </a>
+            <p style="color:#4a5568;font-size:12px;line-height:1.6;">Your trial lasts 7 days. After that, choose a plan to keep your team protected. Questions? Reply to this email.</p>
+          </div>
+        `,
+      });
+    } catch(emailErr) {
+      console.warn('[Auth] Welcome email failed:', emailErr.message);
+    }
+
+    return c.json({
+      key:      bizKey,
+      emp_key:  empKey,
+      org_name: orgName,
+      org_id:   orgId,
+      plan:     'Demo',
+      is_new:   true,
+      expires_at: expiresAt,
+    });
+
+  } catch(err) {
+    console.error('[Auth] provision error:', err.message);
+    return c.json({ error: err.message }, 500);
+  }
 });
 
 // ── SHIELD: Live device scanner ────────────────────────────────────────────
