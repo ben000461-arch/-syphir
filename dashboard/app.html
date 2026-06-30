@@ -1137,6 +1137,32 @@ function openSidePanel(incId) {
   const timeStr = inc.timestamp ? new Date(inc.timestamp).toLocaleString() : '—';
   const statusStr = inc.resolved ? '<span style="color:#34d399;font-weight:600;">Resolved</span>' : '<span style="color:#f87171;font-weight:600;">Active</span>';
   document.getElementById('sp-body').innerHTML = `
+    ${inc.status === 'confirmed' ? `
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:7px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;">
+      <div style="font-size:15px;flex-shrink:0;margin-top:1px;">⚠️</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:3px;">Send confirmed by user — critical data may have left</div>
+        <div style="font-size:11px;color:#94a3b8;line-height:1.5;">
+          <strong style="color:#e2e8f0;">${inc.confirmed_by || inc.user_email || 'User'}</strong> chose to proceed despite the critical data warning.
+          ${inc.confirmed_at ? `Confirmed at ${new Date(inc.confirmed_at).toLocaleTimeString()}.` : ''}
+          This send was marked critical and may need admin attention.
+        </div>
+      </div>
+    </div>` : inc.status === 'held' ? `
+    <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:7px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;">
+      <div style="font-size:15px;flex-shrink:0;margin-top:1px;">🔒</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#facc15;margin-bottom:3px;">Send was blocked by Syphir</div>
+        <div style="font-size:11px;color:#94a3b8;line-height:1.5;">The firewall intercepted this prompt. The user was shown a warning and did not proceed — data was not sent.</div>
+      </div>
+    </div>` : inc.status === 'cancelled' ? `
+    <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;">
+      <div style="font-size:15px;flex-shrink:0;margin-top:1px;">✅</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#22c55e;margin-bottom:3px;">User cancelled the send</div>
+        <div style="font-size:11px;color:#94a3b8;line-height:1.5;">After seeing the critical data warning, the user chose to cancel. No data was sent to the AI tool.</div>
+      </div>
+    </div>` : ''}
     <div class="sp-sev-row">
       <div class="sp-sev-icon" style="background:${scfg.bg};">${scfg.icon}</div>
       <div class="sp-sev-info"><div class="sp-sev-type" style="color:${scfg.color};">${sev.toUpperCase()} RISK</div><div class="sp-sev-meta">${inc.ai_tool||'AI Tool'} · ${src==='network'?'Shield Network':'Browser Extension'}</div></div>
@@ -1158,6 +1184,7 @@ function openSidePanel(incId) {
       <div class="sp-field"><span class="sp-field-lbl">Source</span><span class="sp-field-val">${src==='network'?'Syphir Shield':'Chrome Extension'}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">AI Tool</span><span class="sp-field-val">${inc.ai_tool||'—'}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">Detected</span><span class="sp-field-val" style="font-size:11px;">${timeStr}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">Send status</span><span class="sp-field-val"><span style="font-size:11px;font-weight:600;color:${inc.status==='confirmed'?'#f87171':inc.status==='cancelled'?'#22c55e':inc.status==='held'?'#facc15':'#94a3b8'};">${inc.status==='confirmed'?'⚠ Confirmed by user':inc.status==='cancelled'?'✓ Cancelled':inc.status==='held'?'🔒 Blocked':'Flagged'}</span></span></div>
       <div class="sp-field"><span class="sp-field-lbl">Status</span><span class="sp-field-val">${statusStr}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">Incident ID</span><span class="sp-field-val" style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${inc.id}</span></div>
     </div>

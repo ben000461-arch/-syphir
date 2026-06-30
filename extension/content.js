@@ -222,7 +222,142 @@ function buildMessage(findings) {
   return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
 }
 
-// ── BANNER ────────────────────────────────────────────────────────────────────
+// ── CRITICAL INTERCEPT ────────────────────────────────────────────────────────
+// For high-risk sends (SSN, card, API key): block the send and show a
+// "Critical data detected — proceed?" overlay. User must confirm explicitly.
+// Medium/low: show banner only, never block.
+
+const CRITICAL_TYPES = new Set([
+  "SSN","CREDIT_CARD","API_KEY","PRIVATE_KEY","JWT_TOKEN","AWS_KEY",
+  "BANK_ACCOUNT","PASSPORT","DRIVERS_LICENSE","MEDICAL_RECORD","STRIPE_KEY",
+  "GITHUB_TOKEN","GOOGLE_KEY","SLACK_TOKEN",
+]);
+
+function isCriticalFindings(findings) {
+  return findings.some(f => f.risk === "high" && CRITICAL_TYPES.has(f.type));
+}
+
+// Stores the pending event so we can re-fire it after user confirms
+let _pendingEvent   = null;
+let _pendingElement = null;
+let _interceptActive = false;
+
+function showCriticalIntercept(findings, risk, onProceed, onCancel) {
+  const old = document.getElementById("syphir-intercept");
+  if (old) old.remove();
+
+  if (!document.getElementById("syphir-style")) {
+    const s = document.createElement("style");
+    s.id = "syphir-style";
+    s.textContent = `
+      @keyframes syphirSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+      @keyframes syphirPulse{0%,100%{opacity:1}50%{opacity:0.4}}
+      #syphir-intercept *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;}
+    `;
+    document.head.appendChild(s);
+  }
+
+  const ITEM_COLORS = { high: "#f85149", medium: "#e3b341", low: "#8b949e" };
+  const deduped = [];
+  const seen = new Set();
+  for (const f of findings) {
+    if (!seen.has(f.type)) { seen.add(f.type); deduped.push(f); }
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "syphir-intercept";
+  overlay.style.cssText = `
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.55);z-index:2147483646;
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(2px);
+  `;
+
+  const card = document.createElement("div");
+  card.style.cssText = `
+    background:#0d1117;border:1px solid #a02020;border-radius:14px;
+    max-width:420px;width:90%;color:#e6edf3;
+    box-shadow:0 24px 64px rgba(0,0,0,0.7);
+    animation:syphirSlide 0.25s ease;overflow:hidden;
+  `;
+
+  // Header
+  const hdr = document.createElement("div");
+  hdr.style.cssText = `background:#a02020;padding:12px 16px;display:flex;align-items:center;gap:8px;`;
+  hdr.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="#fff" style="flex-shrink:0">
+      <path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/>
+    </svg>
+    <span style="font-weight:700;font-size:13px;color:#fff;">Critical Data Detected</span>
+    <span style="margin-left:auto;font-size:10px;font-weight:600;background:rgba(255,255,255,0.2);padding:2px 7px;border-radius:4px;color:#fff;animation:syphirPulse 1.5s infinite;">BLOCKED</span>
+  `;
+
+  // Body
+  const body = document.createElement("div");
+  body.style.cssText = `padding:16px;`;
+
+  const desc = document.createElement("p");
+  desc.style.cssText = `font-size:12.5px;color:#8b949e;margin:0 0 12px;line-height:1.5;`;
+  desc.textContent = "This prompt contains sensitive data that may put your organization at risk. Review before sending.";
+  body.appendChild(desc);
+
+  // Detection list
+  const list = document.createElement("div");
+  list.style.cssText = `background:#161b22;border:1px solid #21262d;border-radius:8px;padding:10px 12px;margin-bottom:14px;`;
+  for (const f of deduped.slice(0, 4)) {
+    const row = document.createElement("div");
+    row.style.cssText = `font-size:11.5px;color:${ITEM_COLORS[f.risk]||'#8b949e'};padding:3px 0;display:flex;gap:7px;align-items:flex-start;`;
+    row.innerHTML = `<span style="flex-shrink:0;margin-top:2px;">●</span><span>${f.label}</span>`;
+    list.appendChild(row);
+  }
+  if (deduped.length > 4) {
+    const more = document.createElement("div");
+    more.style.cssText = `font-size:11px;color:#4a5568;padding:3px 0 0;`;
+    more.textContent = `+ ${deduped.length - 4} more`;
+    list.appendChild(more);
+  }
+  body.appendChild(list);
+
+  // Buttons
+  const btns = document.createElement("div");
+  btns.style.cssText = `display:grid;grid-template-columns:1fr 1fr;gap:8px;`;
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.textContent = "Cancel Send";
+  cancelBtn.style.cssText = `background:transparent;border:1px solid #30363d;color:#c9d1d9;padding:9px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;`;
+  cancelBtn.addEventListener("mouseenter", () => cancelBtn.style.background = "#161b22");
+  cancelBtn.addEventListener("mouseleave", () => cancelBtn.style.background = "transparent");
+  cancelBtn.addEventListener("click", () => {
+    overlay.remove();
+    onCancel && onCancel();
+  });
+
+  const proceedBtn = document.createElement("button");
+  proceedBtn.textContent = "⚠ Proceed Anyway";
+  proceedBtn.style.cssText = `background:#a02020;border:1px solid #c0392b;color:#fff;padding:9px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;`;
+  proceedBtn.addEventListener("mouseenter", () => proceedBtn.style.background = "#c0392b");
+  proceedBtn.addEventListener("mouseleave", () => proceedBtn.style.background = "#a02020");
+  proceedBtn.addEventListener("click", () => {
+    overlay.remove();
+    onProceed && onProceed();
+  });
+
+  btns.appendChild(cancelBtn);
+  btns.appendChild(proceedBtn);
+  body.appendChild(btns);
+
+  const note = document.createElement("p");
+  note.style.cssText = `font-size:10.5px;color:#4a5568;margin:10px 0 0;text-align:center;`;
+  note.textContent = "This action will be logged and flagged for admin review.";
+  body.appendChild(note);
+
+  card.appendChild(hdr);
+  card.appendChild(body);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
+// ── BANNER (medium/low only) ──────────────────────────────────────────────────
 function getAITool() {
   const h = window.location.hostname;
   if (h.includes("chatgpt") || h.includes("openai")) return "ChatGPT";
@@ -252,6 +387,100 @@ function getAITool() {
 }
 
 const RISK_ORDER = { high: 0, medium: 1, low: 2 };
+
+function showBanner(findingsOrMessage, risk) {
+  try {
+    const isArray = Array.isArray(findingsOrMessage);
+    const rawFindings = isArray
+      ? findingsOrMessage
+      : [{ type: "NOTICE", label: findingsOrMessage, risk: risk || "medium", masked: "", lineNum: null, isCode: false }];
+
+    const old = document.getElementById("syphir-banner");
+    if (old) old.remove();
+
+    if (!document.getElementById("syphir-style")) {
+      const s = document.createElement("style");
+      s.id = "syphir-style";
+      s.textContent = `@keyframes syphirSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}`;
+      document.head.appendChild(s);
+    }
+
+    const piiSeen = new Set();
+    const codeSeen = new Set();
+    const piiDeduped = [];
+    const codeDeduped = [];
+
+    for (const f of rawFindings) {
+      if (f.isCode) {
+        const k = f.type + "|" + f.lineNum;
+        if (!codeSeen.has(k)) { codeSeen.add(k); codeDeduped.push(f); }
+      } else {
+        if (!piiSeen.has(f.type)) { piiSeen.add(f.type); piiDeduped.push(f); }
+      }
+    }
+
+    piiDeduped.sort((a, b) => (RISK_ORDER[a.risk] || 2) - (RISK_ORDER[b.risk] || 2));
+    codeDeduped.sort((a, b) => (RISK_ORDER[a.risk] || 2) - (RISK_ORDER[b.risk] || 2));
+
+    const allItems = [...piiDeduped, ...codeDeduped];
+    const MAX = 5;
+    const overflow = allItems.length > MAX ? allItems.length - MAX : 0;
+    const displayItems = allItems.slice(0, MAX);
+
+    const ITEM_COLORS = { high: "#f85149", medium: "#e3b341", low: "#8b949e" };
+    const headerColor = ITEM_COLORS[risk] || ITEM_COLORS.medium;
+    const borderColor = risk === "high" ? "#a02020" : risk === "medium" ? "#9a7a1a" : "#4a5568";
+
+    const d = document.createElement("div");
+    d.id = "syphir-banner";
+    d.style.cssText = `position:fixed;top:20px;right:20px;z-index:2147483647;background:#0d1117;border:1px solid ${borderColor};border-radius:12px;max-width:420px;min-width:300px;color:#e6edf3;font-family:-apple-system,sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.6);animation:syphirSlide 0.3s ease;overflow:hidden;`;
+
+    const header = document.createElement("div");
+    header.style.cssText = `background:${headerColor};padding:9px 13px;display:flex;align-items:center;justify-content:space-between;gap:8px;`;
+
+    const headerTitle = document.createElement("div");
+    headerTitle.style.cssText = `font-weight:700;font-size:12px;color:#fff;display:flex;align-items:center;gap:6px;`;
+    headerTitle.innerHTML = `<span>🛡</span><span>Syphir — Sensitive Data Detected</span>`;
+
+    const x = document.createElement("button");
+    x.textContent = "✕";
+    x.style.cssText = `background:rgba(255,255,255,0.25);border:none;color:#fff;padding:2px 7px;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;line-height:1.5;`;
+    x.addEventListener("click", () => d.remove());
+
+    header.appendChild(headerTitle);
+    header.appendChild(x);
+
+    const itemsDiv = document.createElement("div");
+    itemsDiv.style.cssText = `padding:10px 14px 4px;`;
+
+    for (const f of displayItems) {
+      const item = document.createElement("div");
+      const color = ITEM_COLORS[f.risk] || ITEM_COLORS.low;
+      item.style.cssText = `font-size:11.5px;color:${color};padding:3px 0;display:flex;align-items:flex-start;gap:6px;line-height:1.4;`;
+      item.innerHTML = `<span style="flex-shrink:0;margin-top:1px;">●</span><span>${f.label}</span>`;
+      itemsDiv.appendChild(item);
+    }
+
+    if (overflow > 0) {
+      const more = document.createElement("div");
+      more.style.cssText = `font-size:11px;color:#8b949e;padding:3px 0 1px;`;
+      more.textContent = `+ ${overflow} more detection${overflow === 1 ? "" : "s"}`;
+      itemsDiv.appendChild(more);
+    }
+
+    const dismiss = document.createElement("button");
+    dismiss.textContent = "Dismiss";
+    dismiss.style.cssText = `display:block;width:calc(100% - 28px);margin:8px 14px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#c9d1d9;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;font-family:-apple-system,sans-serif;text-align:center;`;
+    dismiss.addEventListener("click", () => { bannerDismissed = true; d.remove(); });
+
+    d.appendChild(header);
+    d.appendChild(itemsDiv);
+    d.appendChild(dismiss);
+    document.body.appendChild(d);
+
+    setTimeout(() => { const b = document.getElementById("syphir-banner"); if (b) b.remove(); }, 8000);
+  } catch(e) {}
+}
 
 // Accepts findings array (new) or a plain string message (legacy file-scan calls).
 function showBanner(findingsOrMessage, risk) {
@@ -354,18 +583,19 @@ function showBanner(findingsOrMessage, risk) {
 }
 
 // ── LOG INCIDENT ──────────────────────────────────────────────────────────────
-// key and email are passed in — resolved by the caller before this is invoked.
-// No chrome APIs used here; fetch fires unconditionally.
-async function logIncident(findings, risk_level, message, ai_tool, key, email) {
+async function logIncident(findings, risk_level, message, ai_tool, key, email, opts = {}) {
   if (!key) { console.warn('Syphir: no key loaded, skipping log'); return; }
   const incident = {
-    id: `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-    key:        key   || SYPHIR_KEY,
-    user_email: email || USER_EMAIL,
-    ai_tool:    ai_tool || getAITool(),
-    url:        window.location.href,
+    id:           `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+    key:          key   || SYPHIR_KEY,
+    user_email:   email || USER_EMAIL,
+    ai_tool:      ai_tool || getAITool(),
+    url:          window.location.href,
     risk_level,
-    flagged: true,
+    flagged:      true,
+    status:       opts.status       || 'flagged',      // 'flagged' | 'held' | 'confirmed' | 'cancelled'
+    confirmed_by: opts.confirmed_by || null,            // email of user who clicked Proceed
+    confirmed_at: opts.confirmed_at || null,
     detections: findings.map(f => ({
       label:   f.label,
       type:    f.type,
@@ -376,22 +606,23 @@ async function logIncident(findings, risk_level, message, ai_tool, key, email) {
     message,
     timestamp: new Date().toISOString(),
   };
-  console.log('Syphir: firing log-incident fetch', incident.key, incident.user_email);
+  console.log('Syphir: firing log-incident fetch', incident.key, incident.user_email, 'status:', incident.status);
   const response = await fetch(`${SYPHIR_API}/log-incident`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(incident),
   });
   console.log('Syphir: log-incident response:', response.status);
+  return incident.id;
 }
 
 // ── SCAN TEXT ─────────────────────────────────────────────────────────────────
-async function scan(text, source) {
-  if (syphirExpired) return;
-  if (!text || text.trim().length < 5) return;
+async function scan(text, source, interceptEvent) {
+  if (syphirExpired) return false;
+  if (!text || text.trim().length < 5) return false;
   const now = Date.now();
   const trimmed = text.trim();
-  if (trimmed === lastScanned && now - lastScannedTime < 5000) return;
+  if (trimmed === lastScanned && now - lastScannedTime < 5000) return false;
 
   const isNewText = trimmed !== lastScanned;
   lastScanned = trimmed;
@@ -402,13 +633,14 @@ async function scan(text, source) {
     const codeFindings = isCodeLike(trimmed) ? detectCodeSecrets(trimmed) : [];
     const findings = [...piiFindings, ...codeFindings];
 
-    if (!findings.length) return;
+    if (!findings.length) return false;
 
     const risk_level = getRiskLevel(findings);
     const message    = buildMessage(findings);
     const tool       = source || getAITool();
+    const isCritical = isCriticalFindings(findings);
 
-    // Read key/email from storage before logging
+    // Read key/email from storage
     let key = SYPHIR_KEY, email = USER_EMAIL;
     if (chrome?.runtime?.id) {
       try {
@@ -420,17 +652,53 @@ async function scan(text, source) {
       } catch(_) {}
     }
 
-    // Logging fires immediately and unconditionally — no UI setting gates this
-    const logPromise = logIncident(findings, risk_level, message, tool, key, email)
+    // ── CRITICAL: block send, show intercept overlay ──
+    if (isCritical && interceptEvent) {
+      // Log as 'held' immediately
+      logIncident(findings, risk_level, message, tool, key, email, { status: 'held' })
+        .catch(e => console.error('Syphir: log held error:', e));
+
+      try {
+        if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level: 'critical', status: 'held' });
+      } catch(e) {}
+
+      showCriticalIntercept(findings, risk_level,
+        // onProceed — user clicked "Proceed Anyway"
+        () => {
+          logIncident(findings, risk_level, message, tool, key, email, {
+            status:       'confirmed',
+            confirmed_by: email || 'user',
+            confirmed_at: new Date().toISOString(),
+          }).catch(e => console.error('Syphir: log confirmed error:', e));
+
+          try {
+            if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_CONFIRMED", risk_level: 'critical' });
+          } catch(e) {}
+
+          // Re-fire the original event so the message actually sends
+          _interceptActive = true;
+          interceptEvent.target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+          _interceptActive = false;
+        },
+        // onCancel
+        () => {
+          logIncident(findings, risk_level, message, tool, key, email, { status: 'cancelled' })
+            .catch(() => {});
+        }
+      );
+      return true; // signals caller to block the original event
+    }
+
+    // ── NON-CRITICAL: log + banner only, never block ──
+    logIncident(findings, risk_level, message, tool, key, email, { status: 'flagged' })
       .catch(e => console.error('Syphir: log-incident error:', e));
+
     try {
       if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level });
     } catch(e) {}
 
-    // Reset dismissed state when a genuinely new input triggers a detection
     if (isNewText) bannerDismissed = false;
 
-    // Check popup "Hide Alerts" setting — only gates the banner, never the log
     let hideAlerts = false;
     if (chrome?.runtime?.id) {
       try {
@@ -439,12 +707,12 @@ async function scan(text, source) {
         });
       } catch(_) {}
     }
-
     if (!bannerDismissed && !hideAlerts) showBanner(findings, risk_level);
 
-    await logPromise;
+    return false;
   } catch(e) {
     console.error('Syphir: scan error:', e);
+    return false;
   }
 }
 
@@ -552,20 +820,59 @@ function getText() {
 }
 
 document.addEventListener("keydown", async (e) => {
-  if (e.key === "Enter" && !e.shiftKey) { const t = getText(); if (t) await scan(t); }
+  if (e.key === "Enter" && !e.shiftKey) {
+    if (_interceptActive) return; // re-fired after user confirmed — let through
+    const t = getText();
+    if (!t) return;
+    // Peek at findings before committing
+    const piiFindings  = detectPII(t.trim());
+    const codeFindings = isCodeLike(t.trim()) ? detectCodeSecrets(t.trim()) : [];
+    const findings = [...piiFindings, ...codeFindings];
+    if (findings.length && isCriticalFindings(findings)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      await scan(t, null, e);
+    } else {
+      await scan(t);
+    }
+  }
 }, true);
 
 document.addEventListener("click", async (e) => {
+  if (_interceptActive) return; // let through after confirm
   const btn = e.target.closest("button,[role='button'],[type='submit']");
   if (!btn) return;
   const info = (btn.getAttribute("aria-label") || btn.getAttribute("data-testid") || btn.textContent || "").toLowerCase();
   if (info.includes("send") || info.includes("submit") || info.includes("ask") || btn.getAttribute("type") === "submit") {
-    const t = getText(); if (t) await scan(t);
+    const t = getText();
+    if (!t) return;
+    const piiFindings  = detectPII(t.trim());
+    const codeFindings = isCodeLike(t.trim()) ? detectCodeSecrets(t.trim()) : [];
+    const findings = [...piiFindings, ...codeFindings];
+    if (findings.length && isCriticalFindings(findings)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      await scan(t, null, e);
+    } else {
+      await scan(t);
+    }
   }
 }, true);
 
-document.addEventListener("submit", async () => {
-  const t = getText(); if (t) await scan(t);
+document.addEventListener("submit", async (e) => {
+  if (_interceptActive) return;
+  const t = getText();
+  if (!t) return;
+  const piiFindings  = detectPII(t.trim());
+  const codeFindings = isCodeLike(t.trim()) ? detectCodeSecrets(t.trim()) : [];
+  const findings = [...piiFindings, ...codeFindings];
+  if (findings.length && isCriticalFindings(findings)) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    await scan(t, null, e);
+  } else {
+    await scan(t);
+  }
 }, true);
 
 // DOM mutations
