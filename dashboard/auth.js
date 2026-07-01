@@ -55,42 +55,101 @@ function clearSession() {
 
 // ── Auto-redirect if already logged in ───────────────────────────────────────
 function initAuthCheck() {
-  const session = getSession();
-  if (session?.key) {
+  const saved = getSession();
+  if (saved?.key) {
     const btn = document.querySelector('.nav-btn[onclick*="openModal"]');
     if (btn) {
       btn.textContent = '→ Open Dashboard';
-      btn.onclick = () => goToDashboard(session.key, session.org_name);
+      btn.onclick = () => goToDashboard(saved.key, saved.org_name);
     }
     return;
   }
 
+  // Parse hash manually — most reliable approach for static sites
+  const hash = window.location.hash;
+  if (hash.includes('access_token=')) {
+    console.log('Syphir: access_token found in URL hash — provisioning...');
+    const params = new URLSearchParams(hash.replace('#', ''));
+    const accessToken = params.get('access_token');
+    if (accessToken) {
+      // Show loader immediately
+      showOAuthLoader();
+      // Fetch user info directly from Supabase using the token
+      fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': SUPABASE_ANON,
+        }
+      })
+      .then(r => r.json())
+      .then(user => {
+        console.log('Syphir: user from token:', user.email);
+        if (user.email) {
+          // Call provision endpoint directly with the token
+          return fetch(`${API}/auth/provision`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              email:    user.email,
+              name:     user.user_metadata?.full_name || user.email.split('@')[0],
+              provider: user.app_metadata?.provider || 'google',
+            }),
+          })
+          .then(r => r.json())
+          .then(data => {
+            console.log('Syphir: provision result:', data);
+            if (data.key) {
+              saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email: user.email }, true);
+              // Clean URL then redirect
+              history.replaceState(null, '', window.location.pathname);
+              goToDashboard(data.key, data.org_name);
+            } else {
+              hideOAuthLoader();
+              console.error('Syphir: provision error:', data.error);
+            }
+          });
+        }
+      })
+      .catch(e => {
+        hideOAuthLoader();
+        console.error('Syphir: token exchange error:', e);
+      });
+      return;
+    }
+  }
+
+  // No OAuth callback — just set up the Supabase listener for future events
   const client = getSB();
-  if (!client) {
-    console.warn('Syphir: Supabase not ready, retrying in 200ms...');
-    setTimeout(initAuthCheck, 200);
-    return;
+  if (client) {
+    client.auth.onAuthStateChange(async (event, authSession) => {
+      console.log('Syphir: auth state change:', event, authSession?.user?.email);
+      if (event === 'SIGNED_IN' && authSession?.user) {
+        await provisionAndRedirect(authSession.user, true);
+      }
+    });
   }
+}
 
-  console.log('Syphir: initAuthCheck running');
-  console.log('Syphir: URL hash:', window.location.hash.substring(0, 80));
-  console.log('Syphir: URL search:', window.location.search.substring(0, 80));
+function showOAuthLoader() {
+  let loader = document.getElementById('syphir-oauth-loader');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'syphir-oauth-loader';
+    loader.style.cssText = 'position:fixed;inset:0;background:#0b0e14;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#94a3b8;font-family:-apple-system,sans-serif;';
+    loader.innerHTML = `
+      <div style="width:32px;height:32px;border:3px solid #1e2230;border-top-color:#3b82f6;border-radius:50%;animation:syphirSpin 0.8s linear infinite;"></div>
+      <div style="font-size:13px;font-weight:500;">Setting up your dashboard…</div>
+      <style>@keyframes syphirSpin{to{transform:rotate(360deg)}}</style>
+    `;
+    document.body.appendChild(loader);
+  }
+}
 
-  // onAuthStateChange is the reliable way to catch the OAuth callback
-  client.auth.onAuthStateChange(async (event, authSession) => {
-    console.log('Syphir: onAuthStateChange fired:', event, authSession?.user?.email);
-    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && authSession?.user) {
-      await provisionAndRedirect(authSession.user, true);
-    }
-  });
-
-  // Also try getSession immediately
-  client.auth.getSession().then(({ data: { session: authSession }, error }) => {
-    console.log('Syphir: getSession result:', authSession?.user?.email, error?.message);
-    if (authSession?.user) {
-      provisionAndRedirect(authSession.user, true);
-    }
-  });
+function hideOAuthLoader() {
+  document.getElementById('syphir-oauth-loader')?.remove();
 }
 
 // Initialize client immediately so it can parse the URL hash right away
@@ -245,20 +304,7 @@ async function handleRecoveryFor(email, btn, succ, err, resetLabel) {
 
 // ── Provision after Supabase OAuth ───────────────────────────────────────────
 async function provisionAndRedirect(user, remember = true) {
-  // Show a loading indicator so the page doesn't look frozen
-  let loader = document.getElementById('syphir-oauth-loader');
-  if (!loader) {
-    loader = document.createElement('div');
-    loader.id = 'syphir-oauth-loader';
-    loader.style.cssText = 'position:fixed;inset:0;background:#0b0e14;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#94a3b8;font-family:-apple-system,sans-serif;';
-    loader.innerHTML = `
-      <div style="width:32px;height:32px;border:3px solid #1e2230;border-top-color:#3b82f6;border-radius:50%;animation:syphirSpin 0.8s linear infinite;"></div>
-      <div style="font-size:13px;">Setting up your dashboard…</div>
-      <style>@keyframes syphirSpin{to{transform:rotate(360deg)}}</style>
-    `;
-    document.body.appendChild(loader);
-  }
-
+  showOAuthLoader();
   try {
     const client = getSB();
     const { data: { session } } = await client.auth.getSession();
@@ -277,12 +323,12 @@ async function provisionAndRedirect(user, remember = true) {
       saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email: user.email }, remember);
       goToDashboard(data.key, data.org_name);
     } else {
-      loader.remove();
+      hideOAuthLoader();
       showModalErr(data.error || 'Could not provision account. Contact support.');
       openModal();
     }
   } catch(e) {
-    loader?.remove();
+    hideOAuthLoader();
     showModalErr('Authentication error. Please try again.');
     openModal();
   }
