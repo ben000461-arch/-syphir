@@ -9,7 +9,15 @@ const REMEMBER_TTL  = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 let sb = null;
 function getSB() {
-  if (!sb && window.supabase) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  if (!sb && window.supabase) {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+      auth: {
+        flowType: 'implicit',        // works on static HTML sites — no server needed
+        detectSessionInUrl: true,    // auto-parse the #access_token hash
+        persistSession: true,
+      }
+    });
+  }
   return sb;
 }
 
@@ -47,7 +55,6 @@ function clearSession() {
 
 // ── Auto-redirect if already logged in ───────────────────────────────────────
 function initAuthCheck() {
-  // Check saved session first
   const session = getSession();
   if (session?.key) {
     const btn = document.querySelector('.nav-btn[onclick*="openModal"]');
@@ -60,33 +67,39 @@ function initAuthCheck() {
 
   const client = getSB();
   if (!client) {
-    console.warn('Syphir: Supabase client not available — retrying...');
+    console.warn('Syphir: Supabase not ready, retrying in 200ms...');
     setTimeout(initAuthCheck, 200);
     return;
   }
 
-  // Listen for auth state changes — this reliably catches the OAuth callback
-  // regardless of timing, since Supabase fires this once it's parsed the URL hash.
+  console.log('Syphir: initAuthCheck running');
+  console.log('Syphir: URL hash:', window.location.hash.substring(0, 80));
+  console.log('Syphir: URL search:', window.location.search.substring(0, 80));
+
+  // onAuthStateChange is the reliable way to catch the OAuth callback
   client.auth.onAuthStateChange(async (event, authSession) => {
-    console.log('Syphir: auth state change:', event);
-    if (event === 'SIGNED_IN' && authSession?.user) {
+    console.log('Syphir: onAuthStateChange fired:', event, authSession?.user?.email);
+    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && authSession?.user) {
       await provisionAndRedirect(authSession.user, true);
     }
   });
 
-  // Also check immediately in case the session is already there
-  client.auth.getSession().then(({ data: { session: authSession } }) => {
-    if (authSession?.user && (window.location.hash.includes('access_token') || window.location.search.includes('code='))) {
+  // Also try getSession immediately
+  client.auth.getSession().then(({ data: { session: authSession }, error }) => {
+    console.log('Syphir: getSession result:', authSession?.user?.email, error?.message);
+    if (authSession?.user) {
       provisionAndRedirect(authSession.user, true);
     }
   });
 }
 
-// Run once Supabase CDN script has loaded
+// Initialize client immediately so it can parse the URL hash right away
 if (window.supabase) {
+  getSB();
   initAuthCheck();
 } else {
-  window.addEventListener('load', initAuthCheck);
+  // Supabase CDN not loaded yet — wait for it
+  window.addEventListener('load', () => { getSB(); initAuthCheck(); });
 }
 
 // ── Panel navigation ──────────────────────────────────────────────────────────
@@ -107,6 +120,8 @@ async function authGoogle() {
     provider: 'google',
     options: {
       redirectTo: window.location.origin + '/index.html',
+      queryParams: { access_type: 'offline' },
+      skipBrowserRedirect: false,
     }
   });
   if (error) {
