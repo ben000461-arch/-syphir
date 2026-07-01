@@ -85,33 +85,11 @@ function initAuthCheck() {
       .then(user => {
         console.log('Syphir: user from token:', user.email);
         if (user.email) {
-          // Call provision endpoint directly with the token
-          return fetch(`${API}/auth/provision`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
-              email:    user.email,
-              name:     user.user_metadata?.full_name || user.email.split('@')[0],
-              provider: user.app_metadata?.provider || 'google',
-            }),
-          })
-          .then(r => r.json())
-          .then(data => {
-            console.log('Syphir: provision result:', data);
-            if (data.key) {
-              saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email: user.email }, true);
-              // Clean URL then redirect
+              // Save email for later, redirect to get-started page
+              try { localStorage.setItem('syphir_pending_email', user.email); } catch(_) {}
               history.replaceState(null, '', window.location.pathname);
-              goToDashboard(data.key, data.org_name);
-            } else {
-              hideOAuthLoader();
-              console.error('Syphir: provision error:', data.error);
+              window.location.href = '/contact.html?ref=google&email=' + encodeURIComponent(user.email);
             }
-          });
-        }
       })
       .catch(e => {
         hideOAuthLoader();
@@ -204,30 +182,29 @@ async function authMagicLink() {
   btn.textContent = 'Signing in…';
   if (err) err.textContent = '';
 
+  // Check if they already have a key
   try {
-    // Direct provision — no Supabase auth token required for email-only flow
-    const r = await fetch(`${API}/auth/provision-email`, {
+    const r = await fetch(`${API}/validate-key-by-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
     const data = await r.json();
-    btn.disabled = false;
-    btn.textContent = 'Sign in →';
-
-    if (data.key) {
-      // Remember this email for next visit
+    if (data.valid && data.key) {
       try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
       saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email }, true);
+      btn.disabled = false;
+      btn.textContent = 'Sign in →';
       goToDashboard(data.key, data.org_name);
-    } else {
-      if (err) err.textContent = data.error || 'Could not sign in. Try your license key instead.';
+      return;
     }
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Sign in →';
-    if (err) err.textContent = 'Could not connect. Try again in a moment.';
-  }
+  } catch(_) {}
+
+  // No existing account — capture email and send to contact page
+  try { localStorage.setItem('syphir_pending_email', email); } catch(_) {}
+  btn.disabled = false;
+  btn.textContent = 'Sign in →';
+  window.location.href = '/contact.html?ref=email&email=' + encodeURIComponent(email);
 }
 
 // ── License key login ─────────────────────────────────────────────────────────

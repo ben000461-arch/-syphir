@@ -1638,6 +1638,108 @@ app.post("/admin/send-expiry-notices", async (c) => {
   return c.json(await sendExpiryNoticesToAllOrgs());
 });
 
+// ── Validate key by email — for returning customers ───────────────────────────
+app.post('/validate-key-by-email', async (c) => {
+  const { email } = await c.req.json().catch(() => ({}));
+  if (!email) return c.json({ valid: false });
+  try {
+    const orgs = await db(`organizations?admin_email=eq.${encodeURIComponent(email.toLowerCase())}&select=*`).catch(() => []);
+    if (!orgs?.length) return c.json({ valid: false });
+    const org = orgs[0];
+    if (!org.active) return c.json({ valid: false, expired: true });
+    const keys = await db(`license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`).catch(() => []);
+    const key = keys?.[0]?.key;
+    if (!key) return c.json({ valid: false });
+    return c.json({ valid: true, key, org_name: org.name, org_id: org.id, plan: org.plan });
+  } catch(e) {
+    return c.json({ valid: false });
+  }
+});
+
+// ── AUTH: Provision by email only (no Supabase token needed) ────────────────
+// Used by the simple "sign in with email" flow — no magic link wait.
+app.post('/auth/provision-email', async (c) => {
+  const { email } = await c.req.json().catch(() => ({}));
+  if (!email || !email.includes('@')) return c.json({ error: 'Valid email required' }, 400);
+
+  const userEmail = email.toLowerCase().trim();
+
+  try {
+    // Check if org already exists for this email
+    const existing = await db(
+      `organizations?admin_email=eq.${encodeURIComponent(userEmail)}&select=*`
+    ).catch(() => []);
+
+    if (existing?.length) {
+      const org = existing[0];
+      const keys = await db(
+        `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
+      ).catch(() => []);
+      const key = keys?.[0]?.key;
+      if (!key) return c.json({ error: 'No active key found. Contact support.' }, 404);
+
+      console.log(`[Auth] Returning user (email): ${userEmail} → org ${org.id}`);
+      return c.json({ key, org_name: org.name, org_id: org.id, plan: org.plan, is_new: false });
+    }
+
+    // ── New user — create org with Demo plan, 7-day trial ──
+    const bizKey = genKey();
+    const empKey = genEmpKey();
+    const orgName = userEmail.split('@')[0].replace(/[^a-zA-Z0-9 ]/g,' ').trim() + "'s Organization";
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const newOrg = await db('organizations', {
+      method: 'POST', prefer: 'return=representation',
+      body: JSON.stringify({
+        name: orgName, admin_email: userEmail, plan: 'Demo',
+        active: true, expires_at: expiresAt,
+      }),
+    });
+    const orgId = newOrg?.[0]?.id;
+    if (!orgId) return c.json({ error: 'Failed to create organization' }, 500);
+
+    await db('license_keys', {
+      method: 'POST', prefer: 'return=minimal',
+      body: JSON.stringify({ key: bizKey, org_id: orgId, key_type: 'business', status: 'active', expires_at: expiresAt }),
+    });
+    await db('license_keys', {
+      method: 'POST', prefer: 'return=minimal',
+      body: JSON.stringify({ key: empKey, org_id: orgId, key_type: 'employee', status: 'active', expires_at: expiresAt }),
+    });
+
+    console.log(`[Auth] New org created (email): ${orgName} (${userEmail}) → ${bizKey}`);
+
+    // Send welcome email (best-effort)
+    try {
+      await resend.emails.send({
+        from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: userEmail,
+        subject: `Welcome to Syphir — your 7-day trial is active`,
+        html: `
+          <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
+            <div style="font-size:22px;font-weight:700;margin-bottom:8px;">You're in. 🛡️</div>
+            <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">Your Syphir AI Data Protection trial is active for the next 7 days.</p>
+            <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:20px;">
+              <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY</div>
+              <div style="font-size:20px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
+            </div>
+            <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:24px;">
+              <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">EMPLOYEE KEY (share with staff)</div>
+              <div style="font-size:16px;font-weight:700;font-family:'Courier New',monospace;color:#8b949e;letter-spacing:1px;">${empKey}</div>
+            </div>
+            <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(orgName)}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;">Open Dashboard →</a>
+          </div>
+        `,
+      });
+    } catch(emailErr) { console.warn('[Auth] Welcome email failed:', emailErr.message); }
+
+    return c.json({ key: bizKey, emp_key: empKey, org_name: orgName, org_id: orgId, plan: 'Demo', is_new: true, expires_at: expiresAt });
+
+  } catch(err) {
+    console.error('[Auth] provision-email error:', err.message);
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 // ── AUTH: Provision org after Supabase login ──────────────────────────────────
 // Called after Google OAuth or magic link — creates org if new, returns key if existing
 app.post('/auth/provision', async (c) => {
