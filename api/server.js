@@ -1011,6 +1011,101 @@ app.get("/admin/submissions", async (c) => {
   }
 });
 
+// ── ADMIN: LIST PENDING SELF-SERVE SIGNUPS ────────────────────────────────
+app.get("/admin/pending-signups", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  try {
+    const orgs = await db("organizations?signup_status=eq.pending&select=*&order=created_at.desc");
+    return c.json({ signups: orgs || [] });
+  } catch (err) {
+    return c.json({ signups: [], error: err.message });
+  }
+});
+
+// ── ADMIN: APPROVE A PENDING SIGNUP — activates the 7-day trial ──────────
+app.post("/admin/approve-signup", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  const { org_id } = await c.req.json().catch(() => ({}));
+  if (!org_id) return c.json({ error: "org_id required" }, 400);
+
+  try {
+    const orgs = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=*`).catch(() => []);
+    const org = orgs?.[0];
+    if (!org) return c.json({ error: "Org not found" }, 404);
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    await db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify({ active: true, signup_status: "approved", expires_at: expiresAt }),
+    });
+
+    const keys = await db(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&select=*`).catch(() => []);
+    for (const k of (keys || [])) {
+      await db(`license_keys?id=eq.${encodeURIComponent(k.id)}`, {
+        method: "PATCH", prefer: "return=minimal",
+        body: JSON.stringify({ status: "active", expires_at: expiresAt }),
+      }).catch(() => {});
+    }
+    const bizKey = keys?.find(k => k.key_type === "business")?.key;
+
+    // Welcome email — this is the one that actually unlocks them.
+    if (bizKey) {
+      try {
+        await resend.emails.send({
+          from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
+          subject: `You're approved — welcome to Syphir 🛡️`,
+          html: `
+            <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
+              <div style="font-size:22px;font-weight:700;margin-bottom:8px;">You're in. 🛡️</div>
+              <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">Your Syphir trial is approved and active for the next 7 days. Let's get you started — pick the plan that fits your team and you'll be protecting data in minutes.</p>
+              <a href="https://syphir.vercel.app/dashboard/pricing.html?key=${bizKey}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Get Started →</a>
+              <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:20px;">
+                <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY</div>
+                <div style="font-size:20px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
+                <div style="font-size:11px;color:#4a5568;margin-top:8px;">Keep this safe — it's your login.</div>
+              </div>
+              <p style="color:#4a5568;font-size:12px;line-height:1.6;">Already picked a plan? Skip straight to your <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}" style="color:#4db8f0;">dashboard</a>. Questions? Just reply to this email.</p>
+            </div>
+          `,
+        });
+      } catch(emailErr) { console.warn('[Admin] Approval email failed:', emailErr.message); }
+    }
+
+    console.log(`[Admin] Approved signup: ${org.name} (${org.admin_email})`);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+// ── ADMIN: REJECT A PENDING SIGNUP ────────────────────────────────────────
+app.post("/admin/reject-signup", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  const { org_id } = await c.req.json().catch(() => ({}));
+  if (!org_id) return c.json({ error: "org_id required" }, 400);
+
+  try {
+    await db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify({ signup_status: "rejected", active: false }),
+    });
+    const keys = await db(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&select=*`).catch(() => []);
+    for (const k of (keys || [])) {
+      await db(`license_keys?id=eq.${encodeURIComponent(k.id)}`, {
+        method: "PATCH", prefer: "return=minimal",
+        body: JSON.stringify({ status: "inactive" }),
+      }).catch(() => {});
+    }
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 // ── ADMIN: DEDUP ORGS ─────────────────────────────────────────────────────
 app.post("/admin/dedup-orgs", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
@@ -1672,6 +1767,16 @@ app.post('/auth/provision-email', async (c) => {
 
     if (existing?.length) {
       const org = existing[0];
+
+      // Still waiting on manual approval — don't hand out a key yet.
+      if (org.signup_status === 'pending') {
+        console.log(`[Auth] Pending signup checked in again: ${userEmail} → org ${org.id}`);
+        return c.json({ pending: true, is_new: false, org_id: org.id });
+      }
+      if (org.signup_status === 'rejected') {
+        return c.json({ error: 'This signup was not approved. Contact syphir26@gmail.com for details.' }, 403);
+      }
+
       const keys = await db(
         `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
       ).catch(() => []);
@@ -1682,57 +1787,50 @@ app.post('/auth/provision-email', async (c) => {
       return c.json({ key, org_name: org.name, org_id: org.id, plan: org.plan, is_new: false });
     }
 
-    // ── New user — create org with Demo plan, 7-day trial ──
+    // ── New signup request — creates a PENDING org, no dashboard access yet ──
+    // Trial + keys only activate once approved from the admin panel.
     const bizKey = genKey();
     const empKey = genEmpKey();
     const orgName = userEmail.split('@')[0].replace(/[^a-zA-Z0-9 ]/g,' ').trim() + "'s Organization";
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const newOrg = await db('organizations', {
       method: 'POST', prefer: 'return=representation',
       body: JSON.stringify({
         name: orgName, admin_email: userEmail, plan: 'Demo',
-        active: true, expires_at: expiresAt,
+        active: false, signup_status: 'pending',
       }),
     });
     const orgId = newOrg?.[0]?.id;
     if (!orgId) return c.json({ error: 'Failed to create organization' }, 500);
 
+    // Keys are created inactive — validate-key naturally rejects them until approved.
     await db('license_keys', {
       method: 'POST', prefer: 'return=minimal',
-      body: JSON.stringify({ key: bizKey, org_id: orgId, key_type: 'business', status: 'active', expires_at: expiresAt }),
+      body: JSON.stringify({ key: bizKey, org_id: orgId, key_type: 'business', status: 'pending' }),
     });
     await db('license_keys', {
       method: 'POST', prefer: 'return=minimal',
-      body: JSON.stringify({ key: empKey, org_id: orgId, key_type: 'employee', status: 'active', expires_at: expiresAt }),
+      body: JSON.stringify({ key: empKey, org_id: orgId, key_type: 'employee', status: 'pending' }),
     });
 
-    console.log(`[Auth] New org created (email): ${orgName} (${userEmail}) → ${bizKey}`);
+    console.log(`[Auth] New signup request (pending approval): ${orgName} (${userEmail})`);
 
-    // Send welcome email (best-effort)
+    // Confirmation email — no key yet, just a heads-up that it's under review.
     try {
       await resend.emails.send({
         from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: userEmail,
-        subject: `Welcome to Syphir — your 7-day trial is active`,
+        subject: `We got your Syphir signup request`,
         html: `
           <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
-            <div style="font-size:22px;font-weight:700;margin-bottom:8px;">You're in. 🛡️</div>
-            <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">Your Syphir AI Data Protection trial is active for the next 7 days.</p>
-            <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:20px;">
-              <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY</div>
-              <div style="font-size:20px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
-            </div>
-            <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:24px;">
-              <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">EMPLOYEE KEY (share with staff)</div>
-              <div style="font-size:16px;font-weight:700;font-family:'Courier New',monospace;color:#8b949e;letter-spacing:1px;">${empKey}</div>
-            </div>
-            <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(orgName)}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;">Open Dashboard →</a>
+            <div style="font-size:22px;font-weight:700;margin-bottom:8px;">Thanks for signing up. 🛡️</div>
+            <p style="color:#8b949e;margin-bottom:12px;line-height:1.6;">We've got your request for a Syphir trial. We personally review every signup — you'll get a follow-up email with your dashboard key and a link to pick a plan shortly.</p>
+            <p style="color:#4a5568;font-size:12px;line-height:1.6;">Questions in the meantime? Just reply to this email.</p>
           </div>
         `,
       });
-    } catch(emailErr) { console.warn('[Auth] Welcome email failed:', emailErr.message); }
+    } catch(emailErr) { console.warn('[Auth] Signup confirmation email failed:', emailErr.message); }
 
-    return c.json({ key: bizKey, emp_key: empKey, org_name: orgName, org_id: orgId, plan: 'Demo', is_new: true, expires_at: expiresAt });
+    return c.json({ pending: true, is_new: true, org_id: orgId });
 
   } catch(err) {
     console.error('[Auth] provision-email error:', err.message);

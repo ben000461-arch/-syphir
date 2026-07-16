@@ -1,25 +1,9 @@
 // ── SYPHIR AUTH ───────────────────────────────────────────────────────────────
 const API = 'https://syphir-api.onrender.com';
-const SUPABASE_URL  = 'https://pfrojobhrmfnoxavlrmm.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcm9qb2Jocm1mbm94YXZscm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTU5MDcsImV4cCI6MjA5MTQ5MTkwN30.0FFbJq_gwsFtZSQY7isojouZAlt3xWAUBGFXx-j9nbzo';
 const SESSION_KEY   = 'syphir_session';
 const REMEMBER_KEY  = 'syphir_remember';
 const SESSION_TTL   = 8 * 60 * 60 * 1000;   // 8 hours
 const REMEMBER_TTL  = 30 * 24 * 60 * 60 * 1000; // 30 days
-
-let sb = null;
-function getSB() {
-  if (!sb && window.supabase) {
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-      auth: {
-        flowType: 'implicit',        // works on static HTML sites — no server needed
-        detectSessionInUrl: true,    // auto-parse the #access_token hash
-        persistSession: true,
-      }
-    });
-  }
-  return sb;
-}
 
 // ── Session helpers ───────────────────────────────────────────────────────────
 function saveSession(data, remember = false) {
@@ -53,91 +37,62 @@ function clearSession() {
   try { localStorage.removeItem(REMEMBER_KEY); } catch(_) {}
 }
 
-// ── Auto-redirect if already logged in ───────────────────────────────────────
+// ── Nav state: profile icon (logged in) vs Dashboard Login (logged out) ──────
 function initAuthCheck() {
-  const saved = getSession();
-  if (saved?.key) {
-    const btn = document.querySelector('.nav-btn[onclick*="openModal"]');
-    if (btn) {
-      btn.textContent = '→ Open Dashboard';
-      btn.onclick = () => goToDashboard(saved.key, saved.org_name);
-    }
-    return;
-  }
-
-  // Parse hash manually — most reliable approach for static sites
-  const hash = window.location.hash;
-  if (hash.includes('access_token=')) {
-    console.log('Syphir: access_token found in URL hash — provisioning...');
-    const params = new URLSearchParams(hash.replace('#', ''));
-    const accessToken = params.get('access_token');
-    if (accessToken) {
-      // Show loader immediately
-      showOAuthLoader();
-      // Fetch user info directly from Supabase using the token
-      fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'apikey': SUPABASE_ANON,
-        }
-      })
-      .then(r => r.json())
-      .then(user => {
-        console.log('Syphir: user from token:', user.email);
-        if (user.email) {
-              // Save email for later, redirect to get-started page
-              try { localStorage.setItem('syphir_pending_email', user.email); } catch(_) {}
-              history.replaceState(null, '', window.location.pathname);
-              window.location.href = '/contact.html?ref=google&email=' + encodeURIComponent(user.email);
-            }
-      })
-      .catch(e => {
-        hideOAuthLoader();
-        console.error('Syphir: token exchange error:', e);
-      });
-      return;
-    }
-  }
-
-  // No OAuth callback — just set up the Supabase listener for future events
-  const client = getSB();
-  if (client) {
-    client.auth.onAuthStateChange(async (event, authSession) => {
-      console.log('Syphir: auth state change:', event, authSession?.user?.email);
-      if (event === 'SIGNED_IN' && authSession?.user) {
-        await provisionAndRedirect(authSession.user, true);
-      }
-    });
-  }
+  renderNavAuthState();
 }
 
-function showOAuthLoader() {
-  let loader = document.getElementById('syphir-oauth-loader');
-  if (!loader) {
-    loader = document.createElement('div');
-    loader.id = 'syphir-oauth-loader';
-    loader.style.cssText = 'position:fixed;inset:0;background:#0b0e14;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#94a3b8;font-family:-apple-system,sans-serif;';
-    loader.innerHTML = `
-      <div style="width:32px;height:32px;border:3px solid #1e2230;border-top-color:#3b82f6;border-radius:50%;animation:syphirSpin 0.8s linear infinite;"></div>
-      <div style="font-size:13px;font-weight:500;">Setting up your dashboard…</div>
-      <style>@keyframes syphirSpin{to{transform:rotate(360deg)}}</style>
+function renderNavAuthState() {
+  const slot = document.getElementById('navAuthSlot');
+  if (!slot) return;
+  const session = getSession();
+
+  if (session?.key) {
+    const initial = (session.org_name || session.email || '?').trim().charAt(0).toUpperCase();
+    slot.innerHTML = `
+      <div class="profile-wrap">
+        <button class="profile-btn" onclick="toggleProfileMenu(event)" aria-label="Account menu">${initial}</button>
+        <div class="profile-dropdown" id="profileDropdown">
+          ${session.email ? `<div class="profile-dropdown-email">${session.email}</div>` : ''}
+          <a href="#" onclick="goToDashboard('${session.key}','${(session.org_name||'').replace(/'/g,"\\'")}');return false;">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Open Dashboard
+          </a>
+          <a href="billing.html?key=${encodeURIComponent(session.key)}">
+            <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            Manage Billing
+          </a>
+          <button class="danger" onclick="signOut()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            Sign Out
+          </button>
+        </div>
+      </div>
     `;
-    document.body.appendChild(loader);
+  } else {
+    slot.innerHTML = `
+      <button class="nav-btn" onclick="openModal()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Dashboard Login
+      </button>
+    `;
   }
 }
 
-function hideOAuthLoader() {
-  document.getElementById('syphir-oauth-loader')?.remove();
+function toggleProfileMenu(e) {
+  e.stopPropagation();
+  document.getElementById('profileDropdown')?.classList.toggle('open');
 }
 
-// Initialize client immediately so it can parse the URL hash right away
-if (window.supabase) {
-  getSB();
-  initAuthCheck();
-} else {
-  // Supabase CDN not loaded yet — wait for it
-  window.addEventListener('load', () => { getSB(); initAuthCheck(); });
+function signOut() {
+  clearSession();
+  renderNavAuthState();
+  window.location.href = 'index.html';
 }
+
+document.addEventListener('click', () => {
+  document.getElementById('profileDropdown')?.classList.remove('open');
+});
 
 // ── Panel navigation ──────────────────────────────────────────────────────────
 function showPane(id) {
@@ -147,29 +102,11 @@ function showPane(id) {
   });
 }
 
-// ── Google OAuth ──────────────────────────────────────────────────────────────
-async function authGoogle() {
-  const client = getSB();
-  if (!client) { showModalErr('Google auth not available — use email or key.'); return; }
-  const btn = document.getElementById('googleBtn');
-  if (btn) { btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; }
-  const { error } = await client.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + '/index.html',
-      queryParams: { access_type: 'offline' },
-      skipBrowserRedirect: false,
-    }
-  });
-  if (error) {
-    if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
-    showModalErr(error.message);
-  }
-  // Page will redirect — no need to reset button
-}
-
-// ── Email sign-in (direct, no magic-link wait) ───────────────────────────────
-async function authMagicLink() {
+// ── Sign in or request a trial by email — the single entry point ─────────────
+// Existing, approved accounts: logs straight into the dashboard.
+// New or still-pending accounts: submits a trial request for manual approval —
+// no dashboard access is granted until it shows up approved on the admin side.
+async function authContinue() {
   const emailField = document.getElementById('magicEmail');
   const email = (emailField?.value || '').trim().toLowerCase();
   if (!email || !email.includes('@')) {
@@ -178,33 +115,47 @@ async function authMagicLink() {
   }
   const btn = document.getElementById('magicBtn');
   const err = document.getElementById('magicErr');
+  const succ = document.getElementById('magicSuccess');
   btn.disabled = true;
-  btn.textContent = 'Signing in…';
+  btn.textContent = 'Continuing…';
   if (err) err.textContent = '';
 
-  // Check if they already have a key
   try {
-    const r = await fetch(`${API}/validate-key-by-email`, {
+    const r = await fetch(`${API}/auth/provision-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
     const data = await r.json();
-    if (data.valid && data.key) {
-      try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
-      saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email }, true);
+
+    if (!r.ok || data.error) {
       btn.disabled = false;
-      btn.textContent = 'Sign in →';
-      goToDashboard(data.key, data.org_name);
+      btn.textContent = 'Continue →';
+      showModalErr(data.error || 'Could not connect. Try again in a moment.', 'magicErr');
       return;
     }
-  } catch(_) {}
 
-  // No existing account — capture email and send to contact page
-  try { localStorage.setItem('syphir_pending_email', email); } catch(_) {}
-  btn.disabled = false;
-  btn.textContent = 'Sign in →';
-  window.location.href = '/contact.html?ref=email&email=' + encodeURIComponent(email);
+    if (data.pending) {
+      // Signup request received — no session, no dashboard access yet.
+      btn.disabled = false;
+      btn.textContent = 'Continue →';
+      if (err) err.textContent = '';
+      if (succ) succ.style.display = '';
+      try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
+      return;
+    }
+
+    // Existing, approved account — straight into the dashboard.
+    try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
+    saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email }, true);
+    btn.disabled = false;
+    btn.textContent = 'Continue →';
+    goToDashboard(data.key, data.org_name);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Continue →';
+    showModalErr('Could not connect. Try again in a moment.', 'magicErr');
+  }
 }
 
 // ── License key login ─────────────────────────────────────────────────────────
@@ -238,7 +189,7 @@ function handleKey() {
     } else if (data.expired) {
       if (err) err.textContent = 'Your trial has expired. Upgrade at syphir.vercel.app/pricing.html';
     } else {
-      if (err) err.textContent = 'Key not found. Check your welcome email or use email sign-in.';
+      if (err) err.textContent = 'Key not found. Check your welcome email or sign in with email.';
     }
   })
   .catch(() => {
@@ -258,56 +209,20 @@ async function handleRecovery() {
     if (err) err.textContent = 'Enter the email you used to sign up.';
     return;
   }
-  await handleRecoveryFor(email, btn, succ, err, 'Send recovery email');
-}
-
-async function handleRecoveryFor(email, btn, succ, err, resetLabel) {
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
   if (err) err.textContent = '';
   try {
-    const r = await fetch(`${API}/auth/recover`, {
+    await fetch(`${API}/auth/recover`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
     // Always show success (don't reveal if email exists)
-    if (btn) { btn.disabled = false; btn.textContent = resetLabel; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Send recovery email'; }
     if (succ) succ.style.display = '';
   } catch(e) {
-    if (btn) { btn.disabled = false; btn.textContent = resetLabel; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Send recovery email'; }
     if (err) err.textContent = 'Could not send recovery email. Try contacting support.';
-  }
-}
-
-// ── Provision after Supabase OAuth ───────────────────────────────────────────
-async function provisionAndRedirect(user, remember = true) {
-  showOAuthLoader();
-  try {
-    const client = getSB();
-    const { data: { session } } = await client.auth.getSession();
-    const token = session?.access_token;
-    const r = await fetch(`${API}/auth/provision`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({
-        email:    user.email,
-        name:     user.user_metadata?.full_name || user.email.split('@')[0],
-        provider: user.app_metadata?.provider || 'email',
-      }),
-    });
-    const data = await r.json();
-    if (data.key) {
-      saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email: user.email }, remember);
-      goToDashboard(data.key, data.org_name);
-    } else {
-      hideOAuthLoader();
-      showModalErr(data.error || 'Could not provision account. Contact support.');
-      openModal();
-    }
-  } catch(e) {
-    hideOAuthLoader();
-    showModalErr('Authentication error. Please try again.');
-    openModal();
   }
 }
 
@@ -326,7 +241,7 @@ function openModal() {
     return;
   }
   showPane('pane-main');
-  document.getElementById('loginModal').classList.add('active');
+  document.getElementById('loginModal')?.classList.add('active');
   document.body.style.overflow = 'hidden';
   // Pre-fill remembered email
   try {
@@ -355,10 +270,13 @@ function showModalErr(msg, id) {
   if (el) el.textContent = msg;
 }
 
-// ── Enter key support ─────────────────────────────────────────────────────────
+// ── Init ───────────────────────────────────────────────────────────────────────
+initAuthCheck();
+
 document.addEventListener('DOMContentLoaded', () => {
+  renderNavAuthState();
   document.getElementById('magicEmail')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') authMagicLink();
+    if (e.key === 'Enter') authContinue();
   });
   document.getElementById('keyInput')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleKey();
@@ -367,7 +285,3 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') handleRecovery();
   });
 });
-
-// Legacy stubs so old inline callers don't break
-function switchTab() {}
-function handleEmail() { authMagicLink(); }

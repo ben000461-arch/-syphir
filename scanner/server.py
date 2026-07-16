@@ -97,7 +97,7 @@ analyzer.registry.add_recognizer(PatternRecognizer(
 
 class ScanRequest(BaseModel):
     text: str
-    org_id: str | None = None
+    org_id: str | None = None 
 
 class Finding(BaseModel):
     entity_type: str

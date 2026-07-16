@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "updated": "2026-06-25",
+
+  "session_window_minutes": 10,
+
+  "thresholds": {
+    "warn_bytes": 30720,
+    "warn_queries": 20,
+    "critical_bytes": 102400,
+    "critical_queries": 50,
+
+    "_notes": {
+      "warn_bytes": "30KB in a session — a large document paste. Normal chat messages are 0.5-2KB.",
+      "warn_queries": "20 queries in 10 min — heavy usage, not necessarily bad, just watch.",
+      "critical_bytes": "100KB — multiple large documents or a database dump. Always flag.",
+      "critical_queries": "50 queries in 10 min — automated or bulk submission pattern."
+    }
+  },
+
+  "behavior_rules": [
+    {
+      "id": "BR001",
+      "name": "Normal AI usage",
+      "description": "Small queries, low frequency. Standard assistant use.",
+      "condition": "bytes < warn_bytes AND queries < warn_queries",
+      "action": "watch",
+      "notify_employee": false,
+      "log_incident": false
+    },
+    {
+      "id": "BR002",
+      "name": "Elevated data volume",
+      "description": "Employee is sending large amounts of data to an AI tool. Could be a document, code, or client data.",
+      "condition": "bytes >= warn_bytes",
+      "action": "warn",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "You've sent a large amount of data to {tool}. If this includes sensitive client information, consider whether this is appropriate."
+    },
+    {
+      "id": "BR003",
+      "name": "High-volume data exposure risk",
+      "description": "Large data volume suggesting possible document dump, database export, or bulk sensitive data submission.",
+      "condition": "bytes >= critical_bytes",
+      "action": "critical",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "high",
+      "message": "High-volume data transfer detected to {tool}. Your IT administrator has been notified."
+    },
+    {
+      "id": "BR004",
+      "name": "Rapid query burst",
+      "description": "Very high query rate suggesting automated or scripted submission.",
+      "condition": "queries >= critical_queries",
+      "action": "critical",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "high",
+      "message": "Unusual activity pattern detected on your connection to {tool}."
+    },
+    {
+      "id": "BR005",
+      "name": "Elevated risk tool — lower threshold",
+      "description": "Tools with risk_weight above 1.0 (DeepSeek, direct APIs) trigger at lower byte counts.",
+      "condition": "bytes >= (warn_bytes / risk_weight) AND risk_weight > 1.0",
+      "action": "warn",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "Data sent to {tool} has been flagged for review due to elevated risk classification."
+    }
+  ],
+
+  "cooldown": {
+    "warn_cooldown_minutes": 10,
+    "critical_cooldown_minutes": 30,
+    "_notes": "Don't re-alert for the same employee+tool within these windows. Prevents notification spam."
+  },
+
+  "agent_triggers": {
+    "auto_send_agent_on_critical": false,
+    "require_admin_approval": true,
+    "_notes": "When true, a critical event automatically dispatches the terminal agent to the employee machine. Requires admin approval by default — set to false to make it autonomous."
+  },
+
+  "logging": {
+    "log_watch_events": false,
+    "log_warn_events": true,
+    "log_critical_events": true,
+    "log_to_file": true,
+    "log_file": "syphir.log"
+  }
+}

@@ -1,0 +1,2312 @@
+[
+  {
+    "id": "inc_ca8642b68bf147c9b982",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "WeTransfer",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:35:00.255060Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "7812.5KB to WeTransfer",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "7812.5KB in 1s",
+        "domain": "wetransfer.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "wetransfer.com",
+      "bytes_sent": 8000000,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.5,
+      "reason": "After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_b69e988d0e9a4e4ea2d6",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:35:03.460871Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "146.5KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "146.5KB in 1s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 150000,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 146.5KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_e351c3603f0945c2b335",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:35:27.050069Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "49.8KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "49.8KB in 47s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 50980,
+      "queries": 4,
+      "duration_secs": 47,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 49.8KB to ChatGPT in 47s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_40c4b36624ae4e169258",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:35:36.016064Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "320.9KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "320.9KB in 1s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 328608,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 320.9KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_5f43ba2ce6284bada193",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:35:37.766144Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "327.8KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "327.8KB in 2s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 335640,
+      "queries": 2,
+      "duration_secs": 2,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 327.8KB to Pastebin in 2s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_d390466ddb5e444b9c12",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-26T04:22:32.480318Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "122.1KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "122.1KB in 12s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 125000,
+      "queries": 5,
+      "duration_secs": 12,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 122.1KB to Claude \u2014 possible sensitive data exposure",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_fa5fdb0c6d2a4b35a70f",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:36:09.233298Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "50.5KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "50.5KB in 45s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 51692,
+      "queries": 4,
+      "duration_secs": 45,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 50.5KB to ChatGPT in 45s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_bbb62850161542249883",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:36:13.199967Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "50.2KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "50.2KB in 8s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 51355,
+      "queries": 2,
+      "duration_secs": 8,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 50.2KB to Pastebin in 8s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_d8e347bb40b44ac09125",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "DeepSeek",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:36:13.963276Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "111.3KB to DeepSeek",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "111.3KB in 66s",
+        "domain": "chat.deepseek.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.deepseek.com",
+      "bytes_sent": 113963,
+      "queries": 2,
+      "duration_secs": 66,
+      "risk_weight": 1.3,
+      "reason": "High-volume data exfiltration risk: 111.3KB to DeepSeek",
+      "provider": "DeepSeek",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_ab140c3efc194549a383",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-26T04:07:17.715241Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "43.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "43.9KB in 9s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 45000,
+      "queries": 4,
+      "duration_secs": 9,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume detected: 43.9KB sent to Claude in 9s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_e35e5e952d4f42bba368",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "DeepSeek",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:36:52.752946Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "113.2KB to DeepSeek",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "113.2KB in 105s",
+        "domain": "chat.deepseek.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.deepseek.com",
+      "bytes_sent": 115936,
+      "queries": 3,
+      "duration_secs": 105,
+      "risk_weight": 1.3,
+      "reason": "Elevated data volume: 113.2KB to DeepSeek in 105s",
+      "provider": "DeepSeek",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_27d16dafb203458aba16",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:37:10.395047Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "2366.9KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "2366.9KB in 127s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 2423719,
+      "queries": 2,
+      "duration_secs": 127,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 2366.9KB to Pastebin in 127s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_33a136c2c1ce497e94e8",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:37:12.811497Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "34.6KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "34.6KB in 131s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 35423,
+      "queries": 4,
+      "duration_secs": 131,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 34.6KB to ChatGPT in 131s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_e801adb8a71043bca739",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Perplexity",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:37:15.551960Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "158.0KB to Perplexity",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "158.0KB in 1s",
+        "domain": "perplexity.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "perplexity.ai",
+      "bytes_sent": 161779,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 0.8,
+      "reason": "High-volume data exfiltration risk: 158.0KB to Perplexity",
+      "provider": "Perplexity AI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_67f935cf55e441b1b08e",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Temp Mail",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:37:30.969052Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "1422.6KB to Temp Mail",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "1422.6KB in 1s",
+        "domain": "temp-mail.org"
+      }
+    ],
+    "shield_meta": {
+      "domain": "temp-mail.org",
+      "bytes_sent": 1456714,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 2.0,
+      "reason": "After-hours Personal Email transfer: 1422.6KB to Temp Mail in 1s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_0dbb571be62c4de685a9",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Perplexity",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:37:31.516607Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "164.2KB to Perplexity",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "164.2KB in 16s",
+        "domain": "perplexity.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "perplexity.ai",
+      "bytes_sent": 168158,
+      "queries": 2,
+      "duration_secs": 16,
+      "risk_weight": 0.8,
+      "reason": "Elevated data volume: 164.2KB to Perplexity in 16s",
+      "provider": "Perplexity AI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_6c75a746a485428d85e2",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:37:35.046098Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "79.4KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "79.4KB in 158s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 81352,
+      "queries": 4,
+      "duration_secs": 158,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 79.4KB to ChatGPT in 158s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_f0432a9bc48d49188917",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-26T04:07:20.753625Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "122.1KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "122.1KB in 12s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 125000,
+      "queries": 5,
+      "duration_secs": 12,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 122.1KB to Claude \u2014 possible sensitive data exposure",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_d316b02a3f3a4e3a84b8",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Microsoft Copilot",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:37:44.800121Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "151.9KB to Microsoft Copilot",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "151.9KB in 168s",
+        "domain": "copilot.microsoft.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "copilot.microsoft.com",
+      "bytes_sent": 155559,
+      "queries": 6,
+      "duration_secs": 168,
+      "risk_weight": 1.1,
+      "reason": "High-volume data exfiltration risk: 151.9KB to Microsoft Copilot",
+      "provider": "Microsoft",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_81bedc2d76b649709dd1",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Temp Mail",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:37:45.559620Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "1313.4KB to Temp Mail",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "1313.4KB in 173s",
+        "domain": "temp-mail.org"
+      }
+    ],
+    "shield_meta": {
+      "domain": "temp-mail.org",
+      "bytes_sent": 1344926,
+      "queries": 2,
+      "duration_secs": 173,
+      "risk_weight": 2.0,
+      "reason": "After-hours Personal Email transfer: 1313.4KB to Temp Mail in 173s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_d5b99352c4be476ab70f",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Gemini",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:41:37.210763Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "74.4KB to Gemini",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "74.4KB in 1s",
+        "domain": "gemini.google.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "gemini.google.com",
+      "bytes_sent": 76184,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 74.4KB to Gemini in 1s",
+      "provider": "Google",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_6000c6695ee942cf92b4",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:41:37.375136Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "43.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "43.9KB in 9s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 45000,
+      "queries": 4,
+      "duration_secs": 9,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 43.9KB to Claude in 9s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_e74690648d6547ceb425",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:41:40.582459Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "122.1KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "122.1KB in 12s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 125000,
+      "queries": 5,
+      "duration_secs": 12,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 122.1KB to Claude",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_63640af586bd459188c3",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "WeTransfer",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:41:46.772989Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "7812.5KB to WeTransfer",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "7812.5KB in 1s",
+        "domain": "wetransfer.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "wetransfer.com",
+      "bytes_sent": 8000000,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.5,
+      "reason": "After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_49b788ae95e7468ea5f2",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:41:50.094680Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "173.5KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "173.5KB in 18s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 177670,
+      "queries": 2,
+      "duration_secs": 18,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 173.5KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_426878c087134969b1a7",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Microsoft Copilot",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:42:06.110751Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "123.0KB to Microsoft Copilot",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "123.0KB in 32s",
+        "domain": "copilot.microsoft.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "copilot.microsoft.com",
+      "bytes_sent": 125920,
+      "queries": 2,
+      "duration_secs": 32,
+      "risk_weight": 1.1,
+      "reason": "High-volume data exfiltration risk: 123.0KB to Microsoft Copilot",
+      "provider": "Microsoft",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_8f647d47f13b4aeebe1c",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Temp Mail",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:42:15.436027Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "1067.0KB to Temp Mail",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "1067.0KB in 1s",
+        "domain": "temp-mail.org"
+      }
+    ],
+    "shield_meta": {
+      "domain": "temp-mail.org",
+      "bytes_sent": 1092590,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 2.0,
+      "reason": "After-hours Personal Email transfer: 1067.0KB to Temp Mail in 1s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_74a8807eb22b4b69ad99",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-26T04:22:29.416350Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "43.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "43.9KB in 9s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 45000,
+      "queries": 4,
+      "duration_secs": 9,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume detected: 43.9KB sent to Claude in 9s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_7c3ad0681030402a8853",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:42:53.754803Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "73.8KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "73.8KB in 86s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 75592,
+      "queries": 2,
+      "duration_secs": 86,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 73.8KB to Pastebin in 86s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_019a436f795d4524ab92",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:43:06.075005Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "177.1KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "177.1KB in 94s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 181401,
+      "queries": 3,
+      "duration_secs": 94,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 177.1KB to Pastebin in 94s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_d123c93d64b144f89fb8",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Temp Mail",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:43:16.157083Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "4251.6KB to Temp Mail",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "4251.6KB in 61s",
+        "domain": "temp-mail.org"
+      }
+    ],
+    "shield_meta": {
+      "domain": "temp-mail.org",
+      "bytes_sent": 4353630,
+      "queries": 2,
+      "duration_secs": 61,
+      "risk_weight": 2.0,
+      "reason": "After-hours High-volume personal_email transfer: 4251.6KB to Temp Mail",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_1ec08bf6b5684b88bbe2",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Gemini",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:43:26.327386Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "50.5KB to Gemini",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "50.5KB in 5s",
+        "domain": "gemini.google.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "gemini.google.com",
+      "bytes_sent": 51678,
+      "queries": 2,
+      "duration_secs": 5,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 50.5KB to Gemini in 5s",
+      "provider": "Google",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_5d205fb813b34a6d9f16",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-26T05:15:17.437342Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "43.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "43.9KB in 9s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 45000,
+      "queries": 4,
+      "duration_secs": 9,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume detected: 43.9KB sent to Claude in 9s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_6a9fd2768e4c43429872",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Microsoft Copilot",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:43:29.811721Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "136.6KB to Microsoft Copilot",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "136.6KB in 116s",
+        "domain": "copilot.microsoft.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "copilot.microsoft.com",
+      "bytes_sent": 139853,
+      "queries": 3,
+      "duration_secs": 116,
+      "risk_weight": 1.1,
+      "reason": "Elevated data volume: 136.6KB to Microsoft Copilot in 116s",
+      "provider": "Microsoft",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_120f27e41fe9405bbf66",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:43:34.078347Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "42.0KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "42.0KB in 25s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 43055,
+      "queries": 3,
+      "duration_secs": 25,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 42.0KB to ChatGPT in 25s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_5f6dd5c9ce604c8d9c7b",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:43:42.369582Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "2076.0KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "2076.0KB in 1s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 2125847,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 2076.0KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_4d43b893106a40909a19",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:43:43.006257Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "4330.7KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "4330.7KB in 55s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 4434631,
+      "queries": 3,
+      "duration_secs": 55,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 4330.7KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_705596b449a243e1b64c",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:43:44.241348Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "63.7KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "63.7KB in 131s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 65255,
+      "queries": 3,
+      "duration_secs": 131,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 63.7KB to Claude in 131s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_9eb1949e0ec140b0aae3",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:43:47.041451Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "39.6KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "39.6KB in 130s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 40526,
+      "queries": 7,
+      "duration_secs": 130,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 39.6KB to ChatGPT in 130s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_086e0bceb35c47cf80df",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Gemini",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:44:03.756981Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "32.1KB to Gemini",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "32.1KB in 149s",
+        "domain": "gemini.google.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "gemini.google.com",
+      "bytes_sent": 32921,
+      "queries": 3,
+      "duration_secs": 149,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 32.1KB to Gemini in 149s",
+      "provider": "Google",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_8908a71c0e994ed9a821",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:44:22.296703Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "451.6KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "451.6KB in 175s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 462420,
+      "queries": 3,
+      "duration_secs": 175,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 451.6KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_b640882b23fd4e779e1c",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-26T05:15:20.507596Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "122.1KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "122.1KB in 12s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 125000,
+      "queries": 5,
+      "duration_secs": 12,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 122.1KB to Claude \u2014 possible sensitive data exposure",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_c17ecc217c6c4b6f9234",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:44:37.917586Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "2104.9KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "2104.9KB in 56s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 2155425,
+      "queries": 2,
+      "duration_secs": 56,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 2104.9KB to Pastebin in 56s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_a8e34ed3b317449694db",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:44:48.167290Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "7277.2KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "7277.2KB in 120s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 7451863,
+      "queries": 4,
+      "duration_secs": 120,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 7277.2KB to Pastebin in 120s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_fc9d8cfef52b4b77ba96",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:45:07.639481Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "107.2KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "107.2KB in 211s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 109782,
+      "queries": 12,
+      "duration_secs": 211,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 107.2KB to ChatGPT",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_dbebec0ebafa46198142",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:45:27.042078Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "79.0KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "79.0KB in 231s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 80933,
+      "queries": 5,
+      "duration_secs": 231,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 79.0KB to ChatGPT in 231s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_72771a9dece7422eb5a5",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:34:50.781990Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "43.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "43.9KB in 9s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 45000,
+      "queries": 4,
+      "duration_secs": 9,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 43.9KB to Claude in 9s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_14baa5c8e66f4d5fa1d1",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Temp Mail",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:45:28.758940Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "2355.8KB to Temp Mail",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "2355.8KB in 110s",
+        "domain": "temp-mail.org"
+      }
+    ],
+    "shield_meta": {
+      "domain": "temp-mail.org",
+      "bytes_sent": 2412319,
+      "queries": 2,
+      "duration_secs": 110,
+      "risk_weight": 2.0,
+      "reason": "After-hours Personal Email transfer: 2355.8KB to Temp Mail in 110s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_a50f14e3dada49d282c3",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:45:38.572897Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "33.2KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "33.2KB in 182s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 34023,
+      "queries": 6,
+      "duration_secs": 182,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 33.2KB to ChatGPT in 182s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_2b9d0d6daba243bca93d",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:45:46.297854Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "128.2KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "128.2KB in 209s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 131276,
+      "queries": 5,
+      "duration_secs": 209,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 128.2KB to Claude",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_dae6bbf3fdf8433a9fd2",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:45:49.348958Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "129.5KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "129.5KB in 212s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 132634,
+      "queries": 6,
+      "duration_secs": 212,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 129.5KB to Claude in 212s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_f9b6884561a34f43ba09",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:45:50.204022Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "30.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "30.9KB in 243s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 31641,
+      "queries": 7,
+      "duration_secs": 243,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 30.9KB to Claude in 243s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_6fecb3f23f924fbebf16",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Gemini",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:45:56.754015Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "69.7KB to Gemini",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "69.7KB in 195s",
+        "domain": "gemini.google.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "gemini.google.com",
+      "bytes_sent": 71349,
+      "queries": 5,
+      "duration_secs": 195,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 69.7KB to Gemini in 195s",
+      "provider": "Google",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_e8b64152cf6d497baec4",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Temp Mail",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:45:58.718896Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "2132.0KB to Temp Mail",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "2132.0KB in 189s",
+        "domain": "temp-mail.org"
+      }
+    ],
+    "shield_meta": {
+      "domain": "temp-mail.org",
+      "bytes_sent": 2183206,
+      "queries": 6,
+      "duration_secs": 189,
+      "risk_weight": 2.0,
+      "reason": "After-hours Personal Email transfer: 2132.0KB to Temp Mail in 189s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_77714710cb6c4d94bd42",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "ChatGPT",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:52:16.355971Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "50.4KB to ChatGPT",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "50.4KB in 1s",
+        "domain": "chat.openai.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.openai.com",
+      "bytes_sent": 51646,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 50.4KB to ChatGPT in 1s",
+      "provider": "OpenAI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_5f7f56cb0ac34bc38149",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:52:20.932984Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "33.2KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "33.2KB in 1s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 33961,
+      "queries": 2,
+      "duration_secs": 1,
+      "risk_weight": 1.8,
+      "reason": "After-hours Data Transfer transfer: 33.2KB to Pastebin in 1s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_28f482e06b5f42b68ea5",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "DeepSeek",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:52:24.669431Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "29.4KB to DeepSeek",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "29.4KB in 1s",
+        "domain": "chat.deepseek.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "chat.deepseek.com",
+      "bytes_sent": 30096,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.3,
+      "reason": "Elevated data volume: 29.4KB to DeepSeek in 1s",
+      "provider": "DeepSeek",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_b18badf31bee415b89d3",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:52:27.376693Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "43.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "43.9KB in 9s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 45000,
+      "queries": 4,
+      "duration_secs": 9,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 43.9KB to Claude in 9s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_e3674ebf742c4f738aad",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:52:30.820942Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "122.1KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "122.1KB in 12s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 125000,
+      "queries": 5,
+      "duration_secs": 12,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 122.1KB to Claude",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_96cdbc2122c44cff9d6a",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Gemini",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "timestamp": "2026-06-27T04:52:36.875195Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "91.5KB to Gemini",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "91.5KB in 1s",
+        "domain": "gemini.google.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "gemini.google.com",
+      "bytes_sent": 93649,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 91.5KB to Gemini in 1s",
+      "provider": "Google",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_da1e03a2d6ea45be8db9",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "WeTransfer",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:52:37.040885Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "7812.5KB to WeTransfer",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "7812.5KB in 1s",
+        "domain": "wetransfer.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "wetransfer.com",
+      "bytes_sent": 8000000,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.5,
+      "reason": "After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_27f3ea5ce4574540bfa6",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Network \u2014 Connection to known C2",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:52:40.251053Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 Connection to known C2",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "192.168.1.71 connected to known C2 domain pastebin.com \u2014 Pastebin \u2014 C2 config hosting",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_ee268aadc00d479797fc",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:52:40.222663Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "146.5KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "146.5KB in 1s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 150000,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 146.5KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_41a0c05d06834c6481fa",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Network \u2014 C2 domain connection",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:52:43.579647Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 C2 domain connection",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": "ngrok.io"
+      }
+    ],
+    "shield_meta": {
+      "domain": "ngrok.io",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "192.168.1.42 connected to ngrok.io",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_17d6968c6186402d8d4b",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Network \u2014 Brute force SSH",
+    "user_email": null,
+    "ip_address": "203.0.113.5",
+    "timestamp": "2026-06-27T04:52:46.547165Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 Brute force SSH",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": ""
+      }
+    ],
+    "shield_meta": {
+      "domain": "",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "203.0.113.5 \u2014 8 SSH attempts in 60s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_62a06492f87a475cb469",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Perplexity",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:52:59.612490Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "150.0KB to Perplexity",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "150.0KB in 1s",
+        "domain": "perplexity.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "perplexity.ai",
+      "bytes_sent": 153566,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 0.8,
+      "reason": "High-volume data exfiltration risk: 150.0KB to Perplexity",
+      "provider": "Perplexity AI",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_4468bb9708724aaaaacc",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Temp Mail",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:53:04.911565Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "766.1KB to Temp Mail",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "766.1KB in 3s",
+        "domain": "temp-mail.org"
+      }
+    ],
+    "shield_meta": {
+      "domain": "temp-mail.org",
+      "bytes_sent": 784519,
+      "queries": 2,
+      "duration_secs": 3,
+      "risk_weight": 2.0,
+      "reason": "After-hours Personal Email transfer: 766.1KB to Temp Mail in 3s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_1da83384b32b4535bdd3",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Network \u2014 Port scan \u2014 horizontal",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "timestamp": "2026-06-27T04:53:13.719724Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 Port scan \u2014 horizontal",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": ""
+      }
+    ],
+    "shield_meta": {
+      "domain": "",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "192.168.1.63 scanned 10 unique IPs in 60s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_377f5ec9d64f43af82ba",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "timestamp": "2026-06-27T04:34:54.042294Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "129.5KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "129.5KB in 12s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 132566,
+      "queries": 6,
+      "duration_secs": 12,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 129.5KB to Claude",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_7c719636b63a4646adbc",
+    "org_key": "SYP-XXXX-XXXX-XXXX",
+    "device_key": "SYP-NET-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Network \u2014 Port scan \u2014 horizontal",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "timestamp": "2026-06-27T04:53:17.028881Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 Port scan \u2014 horizontal",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": ""
+      }
+    ],
+    "shield_meta": {
+      "domain": "",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "192.168.1.71 scanned 10 unique IPs in 60s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "firmware": "1.0.0"
+    }
+  }
+]

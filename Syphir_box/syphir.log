@@ -1,0 +1,745 @@
+2026-06-25 21:07:06  [INFO]  ==================================================
+2026-06-25 21:07:06  [INFO]    Syphir Shield — Starting up
+2026-06-25 21:07:06  [INFO]  ==================================================
+2026-06-25 21:07:06  [INFO]  Device key : SYP-NET-XXXX-XXXX
+2026-06-25 21:07:06  [INFO]  Org        : SYP-XXXX-XXXX-XXXX
+2026-06-25 21:07:06  [INFO]  API        : https://syphir-api.onrender.com
+2026-06-25 21:07:06  [INFO]  AI tools   : 26 domains loaded
+2026-06-25 21:07:06  [INFO]  Warn at    : 30KB
+2026-06-25 21:07:06  [INFO]  Critical at: 100KB
+2026-06-25 21:07:06  [INFO]  Offline retry worker started
+2026-06-25 21:07:06  [INFO]  Heartbeat started — pinging every 60s
+2026-06-25 21:07:06  [INFO]  DNS monitor started (simulation mode)
+2026-06-25 21:07:06  [INFO]  Shield is active. Monitoring network traffic.
+2026-06-25 21:07:06  [INFO]  --------------------------------------------------
+2026-06-25 21:07:06  [INFO]  SIMULATION MODE ON — injecting test events
+2026-06-25 21:07:06  [WARNING]  Heartbeat failed (1x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:07:08  [INFO]  [SIM] John opens Claude — small query (should be WATCH)
+2026-06-25 21:07:11  [INFO]  [SIM] John sends another message — still normal
+2026-06-25 21:07:14  [INFO]  [SIM] John pastes a large document — threshold approaching
+2026-06-25 21:07:17  [INFO]  [SIM] John sends another large payload — WARN triggered
+2026-06-25 21:07:17  [WARNING]  WARN  | Elevated data volume detected: 43.9KB sent to Claude in 9s
+2026-06-25 21:07:17  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Claude | Elevated data volume detected: 43.9KB sent to Claude in 9s
+2026-06-25 21:07:17  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Claude | 43.9KB
+2026-06-25 21:07:17  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:07:17  [WARNING]  API unreachable — incident queued (1 pending)
+2026-06-25 21:07:20  [INFO]  [SIM] Massive data dump — CRITICAL triggered
+2026-06-25 21:07:20  [ERROR]  CRIT  | High-volume data exfiltration risk: 122.1KB to Claude — possible sensitive data exposure
+2026-06-25 21:07:20  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Claude | High-volume data exfiltration risk: 122.1KB to Claude — possible sensitive data exposure
+2026-06-25 21:07:20  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Claude | 122.1KB
+2026-06-25 21:07:20  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:07:20  [WARNING]  API unreachable — incident queued (2 pending)
+2026-06-25 21:07:23  [INFO]  [SIM] Sarah opens ChatGPT — normal use (WATCH)
+2026-06-25 21:08:06  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:08:06  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:08:06  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:08:06  [WARNING]  Heartbeat failed (2x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:09:06  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:09:06  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:09:06  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:09:06  [WARNING]  Heartbeat failed (3x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:09:06  [ERROR]  Shield has lost contact with Syphir API after 3 attempts. Dashboard will show device as offline. Incidents are still being queued locally.
+2026-06-25 21:10:06  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:10:06  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:10:06  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:10:07  [WARNING]  Heartbeat failed (4x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:11:06  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:11:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:11:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:11:07  [WARNING]  Heartbeat failed (5x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:12:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:12:07  [WARNING]  Heartbeat failed (6x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:12:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:12:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:13:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:13:07  [WARNING]  Heartbeat failed (7x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:13:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:13:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:14:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:14:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:14:07  [WARNING]  Heartbeat failed (8x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:14:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:15:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:15:07  [WARNING]  Heartbeat failed (9x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:15:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:15:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:16:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:16:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:16:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:16:07  [WARNING]  Heartbeat failed (10x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:17:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:17:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:17:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:17:07  [WARNING]  Heartbeat failed (11x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:18:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:18:07  [WARNING]  Heartbeat failed (12x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:18:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:18:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:19:07  [INFO]  Retrying 2 queued incident(s)...
+2026-06-25 21:19:07  [WARNING]  Heartbeat failed (13x): [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:19:07  [WARNING]  API unreachable: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
+2026-06-25 21:19:07  [WARNING]  Retry: API still unreachable, 2 remaining in queue
+2026-06-25 21:19:18  [INFO]  Shutting down Syphir Shield...
+2026-06-25 21:19:18  [INFO]  Heartbeat stopped
+2026-06-25 21:19:18  [INFO]  Goodbye.
+2026-06-25 21:22:18  [INFO]  ==================================================
+2026-06-25 21:22:18  [INFO]    Syphir Shield — Starting up
+2026-06-25 21:22:18  [INFO]  ==================================================
+2026-06-25 21:22:18  [INFO]  Device key : SYP-NET-XXXX-XXXX
+2026-06-25 21:22:18  [INFO]  Org        : SYP-XXXX-XXXX-XXXX
+2026-06-25 21:22:18  [INFO]  API        : https://syphir-api.onrender.com
+2026-06-25 21:22:18  [INFO]  AI tools   : 26 domains loaded
+2026-06-25 21:22:18  [INFO]  Warn at    : 30KB
+2026-06-25 21:22:18  [INFO]  Critical at: 100KB
+2026-06-25 21:22:18  [INFO]  Loaded 2 queued incidents from disk
+2026-06-25 21:22:18  [INFO]  Offline retry worker started
+2026-06-25 21:22:18  [INFO]  Heartbeat started — pinging every 60s
+2026-06-25 21:22:18  [INFO]  DNS monitor started (simulation mode)
+2026-06-25 21:22:18  [INFO]  Shield is active. Monitoring network traffic.
+2026-06-25 21:22:18  [INFO]  --------------------------------------------------
+2026-06-25 21:22:18  [INFO]  SIMULATION MODE ON — injecting test events
+2026-06-25 21:22:18  [WARNING]  Heartbeat failed (1x): Not Found
+2026-06-25 21:22:20  [INFO]  [SIM] John opens Claude — small query (should be WATCH)
+2026-06-25 21:22:23  [INFO]  [SIM] John sends another message — still normal
+2026-06-25 21:22:26  [INFO]  [SIM] John pastes a large document — threshold approaching
+2026-06-25 21:22:29  [INFO]  [SIM] John sends another large payload — WARN triggered
+2026-06-25 21:22:29  [WARNING]  WARN  | Elevated data volume detected: 43.9KB sent to Claude in 9s
+2026-06-25 21:22:29  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Claude | Elevated data volume detected: 43.9KB sent to Claude in 9s
+2026-06-25 21:22:29  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Claude | 43.9KB
+2026-06-25 21:22:29  [WARNING]  API unreachable: Not Found
+2026-06-25 21:22:29  [WARNING]  API unreachable — incident queued (3 pending)
+2026-06-25 21:22:32  [INFO]  [SIM] Massive data dump — CRITICAL triggered
+2026-06-25 21:22:32  [ERROR]  CRIT  | High-volume data exfiltration risk: 122.1KB to Claude — possible sensitive data exposure
+2026-06-25 21:22:32  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Claude | High-volume data exfiltration risk: 122.1KB to Claude — possible sensitive data exposure
+2026-06-25 21:22:32  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Claude | 122.1KB
+2026-06-25 21:22:32  [WARNING]  API unreachable: Not Found
+2026-06-25 21:22:32  [WARNING]  API unreachable — incident queued (4 pending)
+2026-06-25 21:22:35  [INFO]  [SIM] Sarah opens ChatGPT — normal use (WATCH)
+2026-06-25 21:23:18  [INFO]  Retrying 4 queued incident(s)...
+2026-06-25 21:23:18  [WARNING]  API unreachable: Not Found
+2026-06-25 21:23:18  [WARNING]  Retry: API still unreachable, 4 remaining in queue
+2026-06-25 21:23:18  [WARNING]  Heartbeat failed (2x): Not Found
+2026-06-25 21:24:18  [INFO]  Retrying 4 queued incident(s)...
+2026-06-25 21:24:18  [WARNING]  API unreachable: Not Found
+2026-06-25 21:24:18  [WARNING]  Retry: API still unreachable, 4 remaining in queue
+2026-06-25 21:24:19  [WARNING]  Heartbeat failed (3x): Not Found
+2026-06-25 21:24:19  [ERROR]  Shield has lost contact with Syphir API after 3 attempts. Dashboard will show device as offline. Incidents are still being queued locally.
+2026-06-25 21:25:18  [INFO]  Retrying 4 queued incident(s)...
+2026-06-25 21:25:18  [WARNING]  API unreachable: Not Found
+2026-06-25 21:25:18  [WARNING]  Retry: API still unreachable, 4 remaining in queue
+2026-06-25 21:25:19  [WARNING]  Heartbeat failed (4x): Not Found
+2026-06-25 21:25:27  [INFO]  Shutting down Syphir Shield...
+2026-06-25 21:25:27  [INFO]  Heartbeat stopped
+2026-06-25 21:25:27  [INFO]  Goodbye.
+2026-06-25 22:15:06  [INFO]  ==================================================
+2026-06-25 22:15:06  [INFO]    Syphir Shield — Starting up
+2026-06-25 22:15:06  [INFO]  ==================================================
+2026-06-25 22:15:06  [INFO]  Device key : SYP-NET-XXXX-XXXX
+2026-06-25 22:15:06  [INFO]  Org        : SYP-XXXX-XXXX-XXXX
+2026-06-25 22:15:06  [INFO]  API        : https://syphir-api.onrender.com
+2026-06-25 22:15:06  [INFO]  AI tools   : 26 domains loaded
+2026-06-25 22:15:06  [INFO]  Warn at    : 30KB
+2026-06-25 22:15:06  [INFO]  Critical at: 100KB
+2026-06-25 22:15:06  [INFO]  Loaded 4 queued incidents from disk
+2026-06-25 22:15:06  [INFO]  Offline retry worker started
+2026-06-25 22:15:06  [INFO]  Heartbeat started — pinging every 60s
+2026-06-25 22:15:06  [INFO]  DNS monitor started (simulation mode)
+2026-06-25 22:15:06  [INFO]  Shield is active. Monitoring network traffic.
+2026-06-25 22:15:06  [INFO]  --------------------------------------------------
+2026-06-25 22:15:06  [INFO]  SIMULATION MODE ON — injecting test events
+2026-06-25 22:15:06  [WARNING]  Heartbeat failed (1x): Not Found
+2026-06-25 22:15:08  [INFO]  [SIM] John opens Claude — small query (should be WATCH)
+2026-06-25 22:15:11  [INFO]  [SIM] John sends another message — still normal
+2026-06-25 22:15:14  [INFO]  [SIM] John pastes a large document — threshold approaching
+2026-06-25 22:15:17  [INFO]  [SIM] John sends another large payload — WARN triggered
+2026-06-25 22:15:17  [WARNING]  WARN  | Elevated data volume detected: 43.9KB sent to Claude in 9s
+2026-06-25 22:15:17  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Claude | Elevated data volume detected: 43.9KB sent to Claude in 9s
+2026-06-25 22:15:17  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Claude | 43.9KB
+2026-06-25 22:15:17  [WARNING]  API unreachable: Not Found
+2026-06-25 22:15:17  [WARNING]  API unreachable — incident queued (5 pending)
+2026-06-25 22:15:20  [INFO]  [SIM] Massive data dump — CRITICAL triggered
+2026-06-25 22:15:20  [ERROR]  CRIT  | High-volume data exfiltration risk: 122.1KB to Claude — possible sensitive data exposure
+2026-06-25 22:15:20  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Claude | High-volume data exfiltration risk: 122.1KB to Claude — possible sensitive data exposure
+2026-06-25 22:15:20  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Claude | 122.1KB
+2026-06-25 22:15:20  [WARNING]  API unreachable: Not Found
+2026-06-25 22:15:20  [WARNING]  API unreachable — incident queued (6 pending)
+2026-06-25 22:15:23  [INFO]  [SIM] Sarah opens ChatGPT — normal use (WATCH)
+2026-06-25 22:16:05  [INFO]  Shutting down Syphir Shield...
+2026-06-25 22:16:05  [INFO]  Heartbeat stopped
+2026-06-25 22:16:05  [INFO]  Goodbye.
+2026-06-26 21:34:39  [INFO]  ========================================================
+2026-06-26 21:34:39  [INFO]    Syphir Shield — Starting up
+2026-06-26 21:34:39  [INFO]  ========================================================
+2026-06-26 21:34:39  [INFO]  Device key   : SYP-NET-XXXX-XXXX
+2026-06-26 21:34:39  [INFO]  Org          : SYP-XXXX-XXXX-XXXX
+2026-06-26 21:34:39  [INFO]  API          : https://syphir-api.onrender.com
+2026-06-26 21:34:39  [INFO]  AI tools     : 26 domains
+2026-06-26 21:34:39  [INFO]  General      : 58 domains
+2026-06-26 21:34:39  [INFO]  C2 domains   : 9 known
+2026-06-26 21:34:39  [INFO]  Signatures   : 12 loaded
+2026-06-26 21:34:39  [INFO]  AI warn      : 30KB
+2026-06-26 21:34:39  [INFO]  AI critical  : 100KB
+2026-06-26 21:34:39  [INFO]  Loaded 6 queued incidents from disk
+2026-06-26 21:34:39  [INFO]  Offline retry worker started
+2026-06-26 21:34:39  [INFO]  Firewall in STUB mode — commands will be printed, not executed
+2026-06-26 21:34:39  [INFO]  Intrusion detector loaded — 9 C2 domains, 5 bad IP ranges, 12 signatures
+2026-06-26 21:34:39  [INFO]  Heartbeat started — pinging every 60s
+2026-06-26 21:34:39  [INFO]  Firewall started
+2026-06-26 21:34:39  [INFO]  Intrusion detector started
+2026-06-26 21:34:39  [INFO]  DNS monitor starting in simulation mode
+2026-06-26 21:34:39  [WARNING]  THREAT [MEDIUM] New device on network | 192.168.1.71 | Unknown device 192.168.1.71 appeared on network
+2026-06-26 21:34:39  [INFO]  DNS listener started (simulation mode)
+2026-06-26 21:34:39  [INFO]  Packet inspector starting in simulation mode
+2026-06-26 21:34:39  [INFO]  New device registered: 192.168.1.71
+2026-06-26 21:34:39  [INFO]  Packet flow simulator started
+2026-06-26 21:34:39  [INFO]  Network monitor started — AI + General + IDS active
+2026-06-26 21:34:39  [INFO]  ========================================================
+2026-06-26 21:34:39  [INFO]    Shield active — all systems running
+2026-06-26 21:34:39  [INFO]    AI monitoring     : ON
+2026-06-26 21:34:39  [INFO]    General monitoring: ON
+2026-06-26 21:34:39  [INFO]    Intrusion detection: ON
+2026-06-26 21:34:39  [INFO]    Active firewall   : ON (stub)
+2026-06-26 21:34:39  [INFO]    Confidence scoring: ON (no false positives)
+2026-06-26 21:34:39  [INFO]  ========================================================
+2026-06-26 21:34:39  [INFO]  SIMULATION MODE — injecting test events in 2s
+2026-06-26 21:34:39  [WARNING]  Heartbeat failed (1x): Not Found
+2026-06-26 21:34:40  [WARNING]  THREAT [MEDIUM] New device on network | 192.168.1.42 | Unknown device 192.168.1.42 appeared on network
+2026-06-26 21:34:40  [INFO]  New device registered: 192.168.1.42
+2026-06-26 21:34:41  [INFO]  [SIM] John opens Claude — small query (WATCH)
+2026-06-26 21:34:44  [INFO]  [SIM] John sends another message — still normal
+2026-06-26 21:34:47  [INFO]  [SIM] John pastes large document — threshold approaching
+2026-06-26 21:34:48  [WARNING]  THREAT [MEDIUM] New device on network | 192.168.1.55 | Unknown device 192.168.1.55 appeared on network
+2026-06-26 21:34:48  [INFO]  New device registered: 192.168.1.55
+2026-06-26 21:34:50  [INFO]  [SIM] Large payload — WARN triggered
+2026-06-26 21:34:50  [WARNING]  WARN  | Elevated data volume: 43.9KB to Claude in 9s
+2026-06-26 21:34:50  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Claude | Elevated data volume: 43.9KB to Claude in 9s
+2026-06-26 21:34:50  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Claude | 43.9KB
+2026-06-26 21:34:50  [WARNING]  API unreachable: Not Found
+2026-06-26 21:34:50  [WARNING]  API unreachable — incident queued (7 pending)
+2026-06-26 21:34:54  [INFO]  [SIM] Massive dump — CRITICAL triggered
+2026-06-26 21:34:54  [ERROR]  CRIT  | High-volume data exfiltration risk: 129.5KB to Claude
+2026-06-26 21:34:54  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Claude | High-volume data exfiltration risk: 129.5KB to Claude
+2026-06-26 21:34:54  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Claude | 129.5KB
+2026-06-26 21:34:54  [WARNING]  API unreachable: Not Found
+2026-06-26 21:34:54  [WARNING]  API unreachable — incident queued (8 pending)
+2026-06-26 21:34:57  [INFO]  [SIM] Sarah opens ChatGPT — normal (WATCH)
+2026-06-26 21:34:58  [WARNING]  THREAT [MEDIUM] New device on network | 192.168.1.63 | Unknown device 192.168.1.63 appeared on network
+2026-06-26 21:34:58  [INFO]  New device registered: 192.168.1.63
+2026-06-26 21:35:00  [INFO]  [SIM] Mike uploads to WeTransfer — general WARN
+2026-06-26 21:35:00  [WARNING]  WARN  | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-06-26 21:35:00  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> WeTransfer | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-06-26 21:35:00  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> WeTransfer | 7812.5KB
+2026-06-26 21:35:00  [WARNING]  API unreachable: Not Found
+2026-06-26 21:35:00  [WARNING]  API unreachable — incident queued (9 pending)
+2026-06-26 21:35:03  [INFO]  [SIM] Lisa posts to Pastebin — data transfer flag
+2026-06-26 21:35:03  [WARNING]  THREAT [MEDIUM] Connection to known C2 | 192.168.1.71 | 192.168.1.71 connected to known C2 domain pastebin.com — Pastebin — C2 config hosting
+2026-06-26 21:35:03  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 146.5KB to Pastebin
+2026-06-26 21:35:03  [INFO]  DISPATCH | risk=high | 192.168.1.71 -> Pastebin | After-hours High-volume data_transfer transfer: 146.5KB to Pastebin
+2026-06-26 21:35:03  [INFO]  Reporting [HIGH] | 192.168.1.71 -> Pastebin | 146.5KB
+2026-06-26 21:35:03  [WARNING]  API unreachable: Not Found
+2026-06-26 21:35:03  [WARNING]  API unreachable — incident queued (10 pending)
+2026-06-26 21:35:06  [INFO]  [SIM] John hits ngrok — C2 domain (high confidence ISOLATE)
+2026-06-26 21:35:09  [INFO]  [SIM] External SSH brute force (BLOCK)
+2026-06-26 21:35:27  [WARNING]  WARN  | Elevated data volume: 49.8KB to ChatGPT in 47s
+2026-06-26 21:35:27  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> ChatGPT | Elevated data volume: 49.8KB to ChatGPT in 47s
+2026-06-26 21:35:27  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> ChatGPT | 49.8KB
+2026-06-26 21:35:27  [WARNING]  API unreachable: Not Found
+2026-06-26 21:35:27  [WARNING]  API unreachable — incident queued (11 pending)
+2026-06-26 21:35:32  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.63 | 192.168.1.63 scanned 10 unique IPs in 60s
+2026-06-26 21:35:36  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 320.9KB to Pastebin
+2026-06-26 21:35:36  [INFO]  DISPATCH | risk=high | 192.168.1.63 -> Pastebin | After-hours High-volume data_transfer transfer: 320.9KB to Pastebin
+2026-06-26 21:35:36  [INFO]  Reporting [HIGH] | 192.168.1.63 -> Pastebin | 320.9KB
+2026-06-26 21:35:36  [WARNING]  API unreachable: Not Found
+2026-06-26 21:35:36  [WARNING]  API unreachable — incident queued (12 pending)
+2026-06-26 21:35:37  [WARNING]  WARN  | After-hours Data Transfer transfer: 327.8KB to Pastebin in 2s
+2026-06-26 21:35:37  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> Pastebin | After-hours Data Transfer transfer: 327.8KB to Pastebin in 2s
+2026-06-26 21:35:37  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> Pastebin | 327.8KB
+2026-06-26 21:35:37  [WARNING]  API unreachable: Not Found
+2026-06-26 21:35:37  [WARNING]  API unreachable — incident queued (13 pending)
+2026-06-26 21:35:39  [INFO]  Retrying 13 queued incident(s)...
+2026-06-26 21:35:40  [WARNING]  API unreachable: Not Found
+2026-06-26 21:35:40  [WARNING]  Retry: API still unreachable, 13 remaining in queue
+2026-06-26 21:35:40  [WARNING]  Heartbeat failed (2x): Not Found
+2026-06-26 21:35:44  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.55 | 192.168.1.55 scanned 10 unique IPs in 60s
+2026-06-26 21:35:55  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.42 | 192.168.1.42 scanned 10 unique IPs in 60s
+2026-06-26 21:36:09  [WARNING]  WARN  | Elevated data volume: 50.5KB to ChatGPT in 45s
+2026-06-26 21:36:09  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> ChatGPT | Elevated data volume: 50.5KB to ChatGPT in 45s
+2026-06-26 21:36:09  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> ChatGPT | 50.5KB
+2026-06-26 21:36:09  [WARNING]  API unreachable: Not Found
+2026-06-26 21:36:09  [WARNING]  API unreachable — incident queued (14 pending)
+2026-06-26 21:36:13  [WARNING]  WARN  | After-hours Data Transfer transfer: 50.2KB to Pastebin in 8s
+2026-06-26 21:36:13  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Pastebin | After-hours Data Transfer transfer: 50.2KB to Pastebin in 8s
+2026-06-26 21:36:13  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Pastebin | 50.2KB
+2026-06-26 21:36:13  [WARNING]  API unreachable: Not Found
+2026-06-26 21:36:13  [WARNING]  API unreachable — incident queued (15 pending)
+2026-06-26 21:36:13  [ERROR]  CRIT  | High-volume data exfiltration risk: 111.3KB to DeepSeek
+2026-06-26 21:36:13  [INFO]  DISPATCH | risk=high | 192.168.1.63 -> DeepSeek | High-volume data exfiltration risk: 111.3KB to DeepSeek
+2026-06-26 21:36:13  [INFO]  Reporting [HIGH] | 192.168.1.63 -> DeepSeek | 111.3KB
+2026-06-26 21:36:14  [WARNING]  API unreachable: Not Found
+2026-06-26 21:36:14  [WARNING]  API unreachable — incident queued (16 pending)
+2026-06-26 21:36:40  [INFO]  Retrying 16 queued incident(s)...
+2026-06-26 21:36:40  [WARNING]  Heartbeat failed (3x): Not Found
+2026-06-26 21:36:40  [ERROR]  Shield has lost contact with Syphir API after 3 attempts. Dashboard will show device as offline. Incidents are still being queued locally.
+2026-06-26 21:36:40  [WARNING]  API unreachable: Not Found
+2026-06-26 21:36:40  [WARNING]  Retry: API still unreachable, 16 remaining in queue
+2026-06-26 21:36:52  [WARNING]  WARN  | Elevated data volume: 113.2KB to DeepSeek in 105s
+2026-06-26 21:36:52  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> DeepSeek | Elevated data volume: 113.2KB to DeepSeek in 105s
+2026-06-26 21:36:52  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> DeepSeek | 113.2KB
+2026-06-26 21:36:52  [WARNING]  API unreachable: Not Found
+2026-06-26 21:36:52  [WARNING]  API unreachable — incident queued (17 pending)
+2026-06-26 21:37:10  [WARNING]  WARN  | After-hours Data Transfer transfer: 2366.9KB to Pastebin in 127s
+2026-06-26 21:37:10  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> Pastebin | After-hours Data Transfer transfer: 2366.9KB to Pastebin in 127s
+2026-06-26 21:37:10  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Pastebin | 2366.9KB
+2026-06-26 21:37:10  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:10  [WARNING]  API unreachable — incident queued (18 pending)
+2026-06-26 21:37:12  [WARNING]  WARN  | Elevated data volume: 34.6KB to ChatGPT in 131s
+2026-06-26 21:37:12  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> ChatGPT | Elevated data volume: 34.6KB to ChatGPT in 131s
+2026-06-26 21:37:12  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> ChatGPT | 34.6KB
+2026-06-26 21:37:12  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:12  [WARNING]  API unreachable — incident queued (19 pending)
+2026-06-26 21:37:15  [ERROR]  CRIT  | High-volume data exfiltration risk: 158.0KB to Perplexity
+2026-06-26 21:37:15  [INFO]  DISPATCH | risk=high | 192.168.1.71 -> Perplexity | High-volume data exfiltration risk: 158.0KB to Perplexity
+2026-06-26 21:37:15  [INFO]  Reporting [HIGH] | 192.168.1.71 -> Perplexity | 158.0KB
+2026-06-26 21:37:15  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:15  [WARNING]  API unreachable — incident queued (20 pending)
+2026-06-26 21:37:30  [WARNING]  WARN  | After-hours Personal Email transfer: 1422.6KB to Temp Mail in 1s
+2026-06-26 21:37:30  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Temp Mail | After-hours Personal Email transfer: 1422.6KB to Temp Mail in 1s
+2026-06-26 21:37:30  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Temp Mail | 1422.6KB
+2026-06-26 21:37:31  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:31  [WARNING]  API unreachable — incident queued (21 pending)
+2026-06-26 21:37:31  [WARNING]  WARN  | Elevated data volume: 164.2KB to Perplexity in 16s
+2026-06-26 21:37:31  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> Perplexity | Elevated data volume: 164.2KB to Perplexity in 16s
+2026-06-26 21:37:31  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Perplexity | 164.2KB
+2026-06-26 21:37:31  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:31  [WARNING]  API unreachable — incident queued (22 pending)
+2026-06-26 21:37:35  [WARNING]  WARN  | Elevated data volume: 79.4KB to ChatGPT in 158s
+2026-06-26 21:37:35  [INFO]  DISPATCH | risk=medium | 192.168.1.55 -> ChatGPT | Elevated data volume: 79.4KB to ChatGPT in 158s
+2026-06-26 21:37:35  [INFO]  Reporting [MEDIUM] | 192.168.1.55 -> ChatGPT | 79.4KB
+2026-06-26 21:37:35  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:35  [WARNING]  API unreachable — incident queued (23 pending)
+2026-06-26 21:37:40  [INFO]  Retrying 23 queued incident(s)...
+2026-06-26 21:37:40  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:40  [WARNING]  Retry: API still unreachable, 23 remaining in queue
+2026-06-26 21:37:40  [WARNING]  Heartbeat failed (4x): Not Found
+2026-06-26 21:37:44  [ERROR]  CRIT  | High-volume data exfiltration risk: 151.9KB to Microsoft Copilot
+2026-06-26 21:37:44  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Microsoft Copilot | High-volume data exfiltration risk: 151.9KB to Microsoft Copilot
+2026-06-26 21:37:44  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Microsoft Copilot | 151.9KB
+2026-06-26 21:37:45  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:45  [WARNING]  API unreachable — incident queued (24 pending)
+2026-06-26 21:37:45  [WARNING]  WARN  | After-hours Personal Email transfer: 1313.4KB to Temp Mail in 173s
+2026-06-26 21:37:45  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> Temp Mail | After-hours Personal Email transfer: 1313.4KB to Temp Mail in 173s
+2026-06-26 21:37:45  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> Temp Mail | 1313.4KB
+2026-06-26 21:37:45  [WARNING]  API unreachable: Not Found
+2026-06-26 21:37:45  [WARNING]  API unreachable — incident queued (25 pending)
+2026-06-26 21:37:46  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.71 | 192.168.1.71 scanned 10 unique IPs in 60s
+2026-06-26 21:37:53  [INFO]  Shutting down Syphir Shield...
+2026-06-26 21:37:53  [INFO]  DNS monitor stopped — 115 total queries seen
+2026-06-26 21:37:53  [INFO]  Heartbeat stopped
+2026-06-26 21:37:53  [INFO]  Goodbye.
+2026-06-26 21:41:26  [INFO]  ========================================================
+2026-06-26 21:41:26  [INFO]    Syphir Shield — Starting up
+2026-06-26 21:41:26  [INFO]  ========================================================
+2026-06-26 21:41:26  [INFO]  Device key   : SYP-NET-XXXX-XXXX
+2026-06-26 21:41:26  [INFO]  Org          : SYP-XXXX-XXXX-XXXX
+2026-06-26 21:41:26  [INFO]  API          : https://syphir-api.onrender.com
+2026-06-26 21:41:26  [INFO]  AI tools     : 26 domains
+2026-06-26 21:41:26  [INFO]  General      : 58 domains
+2026-06-26 21:41:26  [INFO]  C2 domains   : 9 known
+2026-06-26 21:41:26  [INFO]  Signatures   : 12 loaded
+2026-06-26 21:41:26  [INFO]  AI warn      : 30KB
+2026-06-26 21:41:26  [INFO]  AI critical  : 100KB
+2026-06-26 21:41:26  [INFO]  Loaded 25 queued incidents from disk
+2026-06-26 21:41:26  [INFO]  Offline retry worker started
+2026-06-26 21:41:26  [INFO]  Firewall in STUB mode — commands will be printed, not executed
+2026-06-26 21:41:26  [INFO]  Device registry loaded — 4 known devices
+2026-06-26 21:41:26  [INFO]  Intrusion detector loaded — 9 C2 domains, 5 bad IP ranges, 12 signatures
+2026-06-26 21:41:26  [INFO]  Heartbeat started — pinging every 60s
+2026-06-26 21:41:26  [INFO]  Firewall started
+2026-06-26 21:41:26  [INFO]  Intrusion detector started
+2026-06-26 21:41:26  [INFO]  DNS monitor starting in simulation mode
+2026-06-26 21:41:26  [INFO]  DNS listener started (simulation mode)
+2026-06-26 21:41:26  [INFO]  Packet inspector starting in simulation mode
+2026-06-26 21:41:26  [INFO]  Packet flow simulator started
+2026-06-26 21:41:26  [INFO]  Network monitor started — AI + General + IDS active
+2026-06-26 21:41:26  [INFO]  ========================================================
+2026-06-26 21:41:26  [INFO]    Shield active — all systems running
+2026-06-26 21:41:26  [INFO]    AI monitoring     : ON
+2026-06-26 21:41:26  [INFO]    General monitoring: ON
+2026-06-26 21:41:26  [INFO]    Intrusion detection: ON
+2026-06-26 21:41:26  [INFO]    Active firewall   : ON (stub)
+2026-06-26 21:41:26  [INFO]    Confidence scoring: ON (no false positives)
+2026-06-26 21:41:26  [INFO]  ========================================================
+2026-06-26 21:41:26  [INFO]  SIMULATION MODE — injecting test events in 2s
+2026-06-26 21:41:26  [WARNING]  Heartbeat failed (1x): Not Found
+2026-06-26 21:41:28  [INFO]  [SIM] John opens Claude — small query (WATCH)
+2026-06-26 21:41:31  [INFO]  [SIM] John sends another message — still normal
+2026-06-26 21:41:34  [INFO]  [SIM] John pastes large document — threshold approaching
+2026-06-26 21:41:37  [WARNING]  WARN  | Elevated data volume: 74.4KB to Gemini in 1s
+2026-06-26 21:41:37  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> Gemini | Elevated data volume: 74.4KB to Gemini in 1s
+2026-06-26 21:41:37  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Gemini | 74.4KB
+2026-06-26 21:41:37  [WARNING]  API unreachable: Not Found
+2026-06-26 21:41:37  [WARNING]  API unreachable — incident queued (26 pending)
+2026-06-26 21:41:37  [INFO]  [SIM] Large payload — WARN triggered
+2026-06-26 21:41:37  [WARNING]  WARN  | Elevated data volume: 43.9KB to Claude in 9s
+2026-06-26 21:41:37  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Claude | Elevated data volume: 43.9KB to Claude in 9s
+2026-06-26 21:41:37  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Claude | 43.9KB
+2026-06-26 21:41:37  [WARNING]  API unreachable: Not Found
+2026-06-26 21:41:37  [WARNING]  API unreachable — incident queued (27 pending)
+2026-06-26 21:41:40  [INFO]  [SIM] Massive dump — CRITICAL triggered
+2026-06-26 21:41:40  [ERROR]  CRIT  | High-volume data exfiltration risk: 122.1KB to Claude
+2026-06-26 21:41:40  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Claude | High-volume data exfiltration risk: 122.1KB to Claude
+2026-06-26 21:41:40  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Claude | 122.1KB
+2026-06-26 21:41:40  [WARNING]  API unreachable: Not Found
+2026-06-26 21:41:40  [WARNING]  API unreachable — incident queued (28 pending)
+2026-06-26 21:41:43  [INFO]  [SIM] Sarah opens ChatGPT — normal (WATCH)
+2026-06-26 21:41:46  [INFO]  [SIM] Mike uploads to WeTransfer — general WARN
+2026-06-26 21:41:46  [WARNING]  WARN  | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-06-26 21:41:46  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> WeTransfer | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-06-26 21:41:46  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> WeTransfer | 7812.5KB
+2026-06-26 21:41:47  [WARNING]  API unreachable: Not Found
+2026-06-26 21:41:47  [WARNING]  API unreachable — incident queued (29 pending)
+2026-06-26 21:41:50  [INFO]  [SIM] Lisa posts to Pastebin — data transfer flag
+2026-06-26 21:41:50  [WARNING]  THREAT [MEDIUM] Connection to known C2 | 192.168.1.71 | 192.168.1.71 connected to known C2 domain pastebin.com — Pastebin — C2 config hosting
+2026-06-26 21:41:50  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 173.5KB to Pastebin
+2026-06-26 21:41:50  [INFO]  DISPATCH | risk=high | 192.168.1.71 -> Pastebin | After-hours High-volume data_transfer transfer: 173.5KB to Pastebin
+2026-06-26 21:41:50  [INFO]  Reporting [HIGH] | 192.168.1.71 -> Pastebin | 173.5KB
+2026-06-26 21:41:50  [WARNING]  API unreachable: Not Found
+2026-06-26 21:41:50  [WARNING]  API unreachable — incident queued (30 pending)
+2026-06-26 21:41:53  [INFO]  [SIM] John hits ngrok — C2 domain (high confidence ISOLATE)
+2026-06-26 21:41:56  [INFO]  [SIM] External SSH brute force (BLOCK)
+2026-06-26 21:42:05  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.71 | 192.168.1.71 scanned 10 unique IPs in 60s
+2026-06-26 21:42:06  [ERROR]  CRIT  | High-volume data exfiltration risk: 123.0KB to Microsoft Copilot
+2026-06-26 21:42:06  [INFO]  DISPATCH | risk=high | 192.168.1.63 -> Microsoft Copilot | High-volume data exfiltration risk: 123.0KB to Microsoft Copilot
+2026-06-26 21:42:06  [INFO]  Reporting [HIGH] | 192.168.1.63 -> Microsoft Copilot | 123.0KB
+2026-06-26 21:42:06  [WARNING]  API unreachable: Not Found
+2026-06-26 21:42:06  [WARNING]  API unreachable — incident queued (31 pending)
+2026-06-26 21:42:15  [WARNING]  WARN  | After-hours Personal Email transfer: 1067.0KB to Temp Mail in 1s
+2026-06-26 21:42:15  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Temp Mail | After-hours Personal Email transfer: 1067.0KB to Temp Mail in 1s
+2026-06-26 21:42:15  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Temp Mail | 1067.0KB
+2026-06-26 21:42:15  [WARNING]  API unreachable: Not Found
+2026-06-26 21:42:15  [WARNING]  API unreachable — incident queued (32 pending)
+2026-06-26 21:42:26  [INFO]  Retrying 32 queued incident(s)...
+2026-06-26 21:42:26  [WARNING]  API unreachable: Not Found
+2026-06-26 21:42:26  [WARNING]  Retry: API still unreachable, 32 remaining in queue
+2026-06-26 21:42:26  [WARNING]  Heartbeat failed (2x): Not Found
+2026-06-26 21:42:48  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.42 | 192.168.1.42 scanned 10 unique IPs in 60s
+2026-06-26 21:42:53  [WARNING]  WARN  | After-hours Data Transfer transfer: 73.8KB to Pastebin in 86s
+2026-06-26 21:42:53  [INFO]  DISPATCH | risk=medium | 192.168.1.55 -> Pastebin | After-hours Data Transfer transfer: 73.8KB to Pastebin in 86s
+2026-06-26 21:42:53  [INFO]  Reporting [MEDIUM] | 192.168.1.55 -> Pastebin | 73.8KB
+2026-06-26 21:42:54  [WARNING]  API unreachable: Not Found
+2026-06-26 21:42:54  [WARNING]  API unreachable — incident queued (33 pending)
+2026-06-26 21:43:06  [WARNING]  WARN  | After-hours Data Transfer transfer: 177.1KB to Pastebin in 94s
+2026-06-26 21:43:06  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> Pastebin | After-hours Data Transfer transfer: 177.1KB to Pastebin in 94s
+2026-06-26 21:43:06  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Pastebin | 177.1KB
+2026-06-26 21:43:06  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:06  [WARNING]  API unreachable — incident queued (34 pending)
+2026-06-26 21:43:16  [ERROR]  CRIT  | After-hours High-volume personal_email transfer: 4251.6KB to Temp Mail
+2026-06-26 21:43:16  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Temp Mail | After-hours High-volume personal_email transfer: 4251.6KB to Temp Mail
+2026-06-26 21:43:16  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Temp Mail | 4251.6KB
+2026-06-26 21:43:16  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:16  [WARNING]  API unreachable — incident queued (35 pending)
+2026-06-26 21:43:26  [WARNING]  WARN  | Elevated data volume: 50.5KB to Gemini in 5s
+2026-06-26 21:43:26  [INFO]  DISPATCH | risk=medium | 192.168.1.55 -> Gemini | Elevated data volume: 50.5KB to Gemini in 5s
+2026-06-26 21:43:26  [INFO]  Reporting [MEDIUM] | 192.168.1.55 -> Gemini | 50.5KB
+2026-06-26 21:43:26  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:26  [WARNING]  API unreachable — incident queued (36 pending)
+2026-06-26 21:43:26  [INFO]  Retrying 36 queued incident(s)...
+2026-06-26 21:43:26  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:26  [WARNING]  Retry: API still unreachable, 36 remaining in queue
+2026-06-26 21:43:26  [WARNING]  Heartbeat failed (3x): Not Found
+2026-06-26 21:43:26  [ERROR]  Shield has lost contact with Syphir API after 3 attempts. Dashboard will show device as offline. Incidents are still being queued locally.
+2026-06-26 21:43:29  [WARNING]  WARN  | Elevated data volume: 136.6KB to Microsoft Copilot in 116s
+2026-06-26 21:43:29  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> Microsoft Copilot | Elevated data volume: 136.6KB to Microsoft Copilot in 116s
+2026-06-26 21:43:29  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> Microsoft Copilot | 136.6KB
+2026-06-26 21:43:29  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:29  [WARNING]  API unreachable — incident queued (37 pending)
+2026-06-26 21:43:34  [WARNING]  WARN  | Elevated data volume: 42.0KB to ChatGPT in 25s
+2026-06-26 21:43:34  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> ChatGPT | Elevated data volume: 42.0KB to ChatGPT in 25s
+2026-06-26 21:43:34  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> ChatGPT | 42.0KB
+2026-06-26 21:43:34  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:34  [WARNING]  API unreachable — incident queued (38 pending)
+2026-06-26 21:43:42  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 2076.0KB to Pastebin
+2026-06-26 21:43:42  [INFO]  DISPATCH | risk=high | 192.168.1.63 -> Pastebin | After-hours High-volume data_transfer transfer: 2076.0KB to Pastebin
+2026-06-26 21:43:42  [INFO]  Reporting [HIGH] | 192.168.1.63 -> Pastebin | 2076.0KB
+2026-06-26 21:43:42  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:42  [WARNING]  API unreachable — incident queued (39 pending)
+2026-06-26 21:43:43  [WARNING]  THREAT [HIGH] Bulk outbound data exfiltration | 192.168.1.42 | 192.168.1.42 sent 7.4MB outbound in 60s
+2026-06-26 21:43:43  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 4330.7KB to Pastebin
+2026-06-26 21:43:43  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Pastebin | After-hours High-volume data_transfer transfer: 4330.7KB to Pastebin
+2026-06-26 21:43:43  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Pastebin | 4330.7KB
+2026-06-26 21:43:43  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:43  [WARNING]  API unreachable — incident queued (40 pending)
+2026-06-26 21:43:44  [WARNING]  WARN  | Elevated data volume: 63.7KB to Claude in 131s
+2026-06-26 21:43:44  [INFO]  DISPATCH | risk=medium | 192.168.1.55 -> Claude | Elevated data volume: 63.7KB to Claude in 131s
+2026-06-26 21:43:44  [INFO]  Reporting [MEDIUM] | 192.168.1.55 -> Claude | 63.7KB
+2026-06-26 21:43:44  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:44  [WARNING]  API unreachable — incident queued (41 pending)
+2026-06-26 21:43:47  [WARNING]  WARN  | Elevated data volume: 39.6KB to ChatGPT in 130s
+2026-06-26 21:43:47  [INFO]  DISPATCH | risk=medium | 192.168.1.55 -> ChatGPT | Elevated data volume: 39.6KB to ChatGPT in 130s
+2026-06-26 21:43:47  [INFO]  Reporting [MEDIUM] | 192.168.1.55 -> ChatGPT | 39.6KB
+2026-06-26 21:43:47  [WARNING]  API unreachable: Not Found
+2026-06-26 21:43:47  [WARNING]  API unreachable — incident queued (42 pending)
+2026-06-26 21:43:51  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.55 | 192.168.1.55 scanned 10 unique IPs in 60s
+2026-06-26 21:43:56  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.63 | 192.168.1.63 scanned 10 unique IPs in 60s
+2026-06-26 21:44:03  [WARNING]  WARN  | Elevated data volume: 32.1KB to Gemini in 149s
+2026-06-26 21:44:03  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> Gemini | Elevated data volume: 32.1KB to Gemini in 149s
+2026-06-26 21:44:03  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> Gemini | 32.1KB
+2026-06-26 21:44:03  [WARNING]  API unreachable: Not Found
+2026-06-26 21:44:03  [WARNING]  API unreachable — incident queued (43 pending)
+2026-06-26 21:44:22  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 451.6KB to Pastebin
+2026-06-26 21:44:22  [INFO]  DISPATCH | risk=high | 192.168.1.55 -> Pastebin | After-hours High-volume data_transfer transfer: 451.6KB to Pastebin
+2026-06-26 21:44:22  [INFO]  Reporting [HIGH] | 192.168.1.55 -> Pastebin | 451.6KB
+2026-06-26 21:44:22  [WARNING]  API unreachable: Not Found
+2026-06-26 21:44:22  [WARNING]  API unreachable — incident queued (44 pending)
+2026-06-26 21:44:26  [INFO]  Retrying 44 queued incident(s)...
+2026-06-26 21:44:27  [WARNING]  API unreachable: Not Found
+2026-06-26 21:44:27  [WARNING]  Retry: API still unreachable, 44 remaining in queue
+2026-06-26 21:44:27  [WARNING]  Heartbeat failed (4x): Not Found
+2026-06-26 21:44:37  [WARNING]  WARN  | After-hours Data Transfer transfer: 2104.9KB to Pastebin in 56s
+2026-06-26 21:44:37  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> Pastebin | After-hours Data Transfer transfer: 2104.9KB to Pastebin in 56s
+2026-06-26 21:44:37  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> Pastebin | 2104.9KB
+2026-06-26 21:44:38  [WARNING]  API unreachable: Not Found
+2026-06-26 21:44:38  [WARNING]  API unreachable — incident queued (45 pending)
+2026-06-26 21:44:48  [WARNING]  WARN  | After-hours Data Transfer transfer: 7277.2KB to Pastebin in 120s
+2026-06-26 21:44:48  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Pastebin | After-hours Data Transfer transfer: 7277.2KB to Pastebin in 120s
+2026-06-26 21:44:48  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Pastebin | 7277.2KB
+2026-06-26 21:44:48  [WARNING]  API unreachable: Not Found
+2026-06-26 21:44:48  [WARNING]  API unreachable — incident queued (46 pending)
+2026-06-26 21:45:07  [ERROR]  CRIT  | High-volume data exfiltration risk: 107.2KB to ChatGPT
+2026-06-26 21:45:07  [INFO]  DISPATCH | risk=high | 192.168.1.55 -> ChatGPT | High-volume data exfiltration risk: 107.2KB to ChatGPT
+2026-06-26 21:45:07  [INFO]  Reporting [HIGH] | 192.168.1.55 -> ChatGPT | 107.2KB
+2026-06-26 21:45:08  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:08  [WARNING]  API unreachable — incident queued (47 pending)
+2026-06-26 21:45:27  [WARNING]  WARN  | Elevated data volume: 79.0KB to ChatGPT in 231s
+2026-06-26 21:45:27  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> ChatGPT | Elevated data volume: 79.0KB to ChatGPT in 231s
+2026-06-26 21:45:27  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> ChatGPT | 79.0KB
+2026-06-26 21:45:27  [INFO]  Retrying 47 queued incident(s)...
+2026-06-26 21:45:27  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:27  [WARNING]  API unreachable — incident queued (47 pending)
+2026-06-26 21:45:27  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:27  [WARNING]  Retry: API still unreachable, 48 remaining in queue
+2026-06-26 21:45:27  [WARNING]  Heartbeat failed (5x): Not Found
+2026-06-26 21:45:28  [WARNING]  WARN  | After-hours Personal Email transfer: 2355.8KB to Temp Mail in 110s
+2026-06-26 21:45:28  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> Temp Mail | After-hours Personal Email transfer: 2355.8KB to Temp Mail in 110s
+2026-06-26 21:45:28  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Temp Mail | 2355.8KB
+2026-06-26 21:45:28  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:28  [WARNING]  API unreachable — incident queued (49 pending)
+2026-06-26 21:45:38  [WARNING]  WARN  | Elevated data volume: 33.2KB to ChatGPT in 182s
+2026-06-26 21:45:38  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> ChatGPT | Elevated data volume: 33.2KB to ChatGPT in 182s
+2026-06-26 21:45:38  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> ChatGPT | 33.2KB
+2026-06-26 21:45:38  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:38  [WARNING]  API unreachable — incident queued (50 pending)
+2026-06-26 21:45:46  [ERROR]  CRIT  | High-volume data exfiltration risk: 128.2KB to Claude
+2026-06-26 21:45:46  [INFO]  DISPATCH | risk=high | 192.168.1.63 -> Claude | High-volume data exfiltration risk: 128.2KB to Claude
+2026-06-26 21:45:46  [INFO]  Reporting [HIGH] | 192.168.1.63 -> Claude | 128.2KB
+2026-06-26 21:45:46  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:46  [WARNING]  API unreachable — incident queued (51 pending)
+2026-06-26 21:45:49  [WARNING]  WARN  | Elevated data volume: 129.5KB to Claude in 212s
+2026-06-26 21:45:49  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> Claude | Elevated data volume: 129.5KB to Claude in 212s
+2026-06-26 21:45:49  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> Claude | 129.5KB
+2026-06-26 21:45:49  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:49  [WARNING]  API unreachable — incident queued (52 pending)
+2026-06-26 21:45:50  [WARNING]  WARN  | Elevated data volume: 30.9KB to Claude in 243s
+2026-06-26 21:45:50  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> Claude | Elevated data volume: 30.9KB to Claude in 243s
+2026-06-26 21:45:50  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Claude | 30.9KB
+2026-06-26 21:45:50  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:50  [WARNING]  API unreachable — incident queued (53 pending)
+2026-06-26 21:45:56  [WARNING]  WARN  | Elevated data volume: 69.7KB to Gemini in 195s
+2026-06-26 21:45:56  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Gemini | Elevated data volume: 69.7KB to Gemini in 195s
+2026-06-26 21:45:56  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Gemini | 69.7KB
+2026-06-26 21:45:57  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:57  [WARNING]  API unreachable — incident queued (54 pending)
+2026-06-26 21:45:58  [WARNING]  WARN  | After-hours Personal Email transfer: 2132.0KB to Temp Mail in 189s
+2026-06-26 21:45:58  [INFO]  DISPATCH | risk=medium | 192.168.1.55 -> Temp Mail | After-hours Personal Email transfer: 2132.0KB to Temp Mail in 189s
+2026-06-26 21:45:58  [INFO]  Reporting [MEDIUM] | 192.168.1.55 -> Temp Mail | 2132.0KB
+2026-06-26 21:45:58  [WARNING]  API unreachable: Not Found
+2026-06-26 21:45:58  [WARNING]  API unreachable — incident queued (55 pending)
+2026-06-26 21:46:25  [INFO]  Shutting down Syphir Shield...
+2026-06-26 21:46:25  [INFO]  DNS monitor stopped — 167 total queries seen
+2026-06-26 21:46:25  [INFO]  Heartbeat stopped
+2026-06-26 21:46:25  [INFO]  Goodbye.
+2026-06-26 21:52:16  [INFO]  ========================================================
+2026-06-26 21:52:16  [INFO]    Syphir Shield — Starting up
+2026-06-26 21:52:16  [INFO]  ========================================================
+2026-06-26 21:52:16  [INFO]  Device key   : SYP-NET-XXXX-XXXX
+2026-06-26 21:52:16  [INFO]  Org          : SYP-XXXX-XXXX-XXXX
+2026-06-26 21:52:16  [INFO]  API          : https://syphir-api.onrender.com
+2026-06-26 21:52:16  [INFO]  AI tools     : 26 domains
+2026-06-26 21:52:16  [INFO]  General      : 58 domains
+2026-06-26 21:52:16  [INFO]  C2 domains   : 9 known
+2026-06-26 21:52:16  [INFO]  Signatures   : 12 loaded
+2026-06-26 21:52:16  [INFO]  AI warn      : 30KB
+2026-06-26 21:52:16  [INFO]  AI critical  : 100KB
+2026-06-26 21:52:16  [INFO]  Loaded 55 queued incidents from disk
+2026-06-26 21:52:16  [INFO]  Offline retry worker started
+2026-06-26 21:52:16  [INFO]  Firewall in STUB mode — commands will be printed, not executed
+2026-06-26 21:52:16  [INFO]  Device registry loaded — 4 known devices
+2026-06-26 21:52:16  [INFO]  Intrusion detector loaded — 9 C2 domains, 5 bad IP ranges, 12 signatures
+2026-06-26 21:52:16  [INFO]  Heartbeat started — pinging every 60s
+2026-06-26 21:52:16  [INFO]  Firewall started
+2026-06-26 21:52:16  [INFO]  Blocker started
+2026-06-26 21:52:16  [INFO]  Intrusion detector started
+2026-06-26 21:52:16  [INFO]  DNS monitor starting in simulation mode
+2026-06-26 21:52:16  [INFO]  DNS listener started (simulation mode)
+2026-06-26 21:52:16  [INFO]  Packet inspector starting in simulation mode
+2026-06-26 21:52:16  [WARNING]  WARN  | Elevated data volume: 50.4KB to ChatGPT in 1s
+2026-06-26 21:52:16  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> ChatGPT | Elevated data volume: 50.4KB to ChatGPT in 1s
+2026-06-26 21:52:16  [INFO]  Packet flow simulator started
+2026-06-26 21:52:16  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> ChatGPT | 50.4KB
+2026-06-26 21:52:16  [INFO]  Network monitor started — AI + General + IDS active
+2026-06-26 21:52:16  [INFO]  ========================================================
+2026-06-26 21:52:16  [INFO]    Shield active — all systems running
+2026-06-26 21:52:16  [INFO]    AI monitoring     : ON
+2026-06-26 21:52:16  [INFO]    General monitoring: ON
+2026-06-26 21:52:16  [INFO]    Intrusion detection: ON
+2026-06-26 21:52:16  [INFO]    Active firewall   : ON (stub)
+2026-06-26 21:52:16  [INFO]    Confidence scoring: ON (no false positives)
+2026-06-26 21:52:16  [INFO]  ========================================================
+2026-06-26 21:52:16  [INFO]  SIMULATION MODE — injecting test events in 2s
+2026-06-26 21:52:16  [WARNING]  Heartbeat failed (1x): Not Found
+2026-06-26 21:52:16  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:16  [WARNING]  API unreachable — incident queued (56 pending)
+2026-06-26 21:52:18  [INFO]  [SIM] John opens Claude — small query (WATCH)
+2026-06-26 21:52:20  [WARNING]  WARN  | After-hours Data Transfer transfer: 33.2KB to Pastebin in 1s
+2026-06-26 21:52:20  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Pastebin | After-hours Data Transfer transfer: 33.2KB to Pastebin in 1s
+2026-06-26 21:52:20  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Pastebin | 33.2KB
+2026-06-26 21:52:21  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:21  [WARNING]  API unreachable — incident queued (57 pending)
+2026-06-26 21:52:21  [INFO]  [SIM] John sends another message — still normal
+2026-06-26 21:52:24  [INFO]  [SIM] John pastes large document — threshold approaching
+2026-06-26 21:52:24  [WARNING]  WARN  | Elevated data volume: 29.4KB to DeepSeek in 1s
+2026-06-26 21:52:24  [INFO]  DISPATCH | risk=medium | 192.168.1.71 -> DeepSeek | Elevated data volume: 29.4KB to DeepSeek in 1s
+2026-06-26 21:52:24  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> DeepSeek | 29.4KB
+2026-06-26 21:52:24  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:24  [WARNING]  API unreachable — incident queued (58 pending)
+2026-06-26 21:52:27  [INFO]  [SIM] Large payload — WARN triggered
+2026-06-26 21:52:27  [WARNING]  WARN  | Elevated data volume: 43.9KB to Claude in 9s
+2026-06-26 21:52:27  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Claude | Elevated data volume: 43.9KB to Claude in 9s
+2026-06-26 21:52:27  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Claude | 43.9KB
+2026-06-26 21:52:27  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:27  [WARNING]  API unreachable — incident queued (59 pending)
+2026-06-26 21:52:30  [INFO]  [SIM] Massive dump — CRITICAL triggered
+2026-06-26 21:52:30  [ERROR]  CRIT  | High-volume data exfiltration risk: 122.1KB to Claude
+2026-06-26 21:52:30  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Claude | High-volume data exfiltration risk: 122.1KB to Claude
+2026-06-26 21:52:30  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Claude | 122.1KB
+2026-06-26 21:52:30  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:30  [WARNING]  API unreachable — incident queued (60 pending)
+2026-06-26 21:52:34  [INFO]  [SIM] Sarah opens ChatGPT — normal (WATCH)
+2026-06-26 21:52:36  [WARNING]  WARN  | Elevated data volume: 91.5KB to Gemini in 1s
+2026-06-26 21:52:36  [INFO]  DISPATCH | risk=medium | 192.168.1.55 -> Gemini | Elevated data volume: 91.5KB to Gemini in 1s
+2026-06-26 21:52:36  [INFO]  Reporting [MEDIUM] | 192.168.1.55 -> Gemini | 91.5KB
+2026-06-26 21:52:37  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:37  [WARNING]  API unreachable — incident queued (61 pending)
+2026-06-26 21:52:37  [INFO]  [SIM] Mike uploads to WeTransfer — general WARN
+2026-06-26 21:52:37  [WARNING]  WARN  | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-06-26 21:52:37  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> WeTransfer | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-06-26 21:52:37  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> WeTransfer | 7812.5KB
+2026-06-26 21:52:37  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:37  [WARNING]  API unreachable — incident queued (62 pending)
+2026-06-26 21:52:40  [INFO]  [SIM] Lisa posts to Pastebin — data transfer flag
+2026-06-26 21:52:40  [WARNING]  THREAT [MEDIUM] Connection to known C2 | 192.168.1.71 | 192.168.1.71 connected to known C2 domain pastebin.com — Pastebin — C2 config hosting
+2026-06-26 21:52:40  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 146.5KB to Pastebin
+2026-06-26 21:52:40  [INFO]  DISPATCH | risk=high | 192.168.1.71 -> Pastebin | After-hours High-volume data_transfer transfer: 146.5KB to Pastebin
+2026-06-26 21:52:40  [INFO]  Reporting [HIGH] | 192.168.1.71 -> Pastebin | 146.5KB
+2026-06-26 21:52:40  [INFO]  CONFIDENCE SCORE: 100/100 → ISOLATE | Connection to known C2 | 192.168.1.71
+2026-06-26 21:52:40  [INFO]    scoring: +40 known C2 domain: pastebin.com
+2026-06-26 21:52:40  [INFO]    scoring: +55 signature AS012
+2026-06-26 21:52:40  [INFO]    scoring: +15 after-hours activity (04:xx)
+2026-06-26 21:52:40  [INFO]    scoring: +10 one other signature on same device
+2026-06-26 21:52:40  [INFO]    scoring: +10 unusual hour for this device
+2026-06-26 21:52:40  [INFO]    scoring: -10 new device, baseline not established yet
+2026-06-26 21:52:40  [INFO]  Acting on scored threat [MEDIUM] AS012 — Connection to known C2 | response=isolate_and_alert
+2026-06-26 21:52:40  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Network — Connection to known C2 | 0.0KB
+2026-06-26 21:52:40  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:40  [WARNING]  API unreachable — incident queued (63 pending)
+2026-06-26 21:52:40  [INFO]  [STUB] Keep Shield->device open for 192.168.1.71: iptables -I FORWARD -s 10.0.0.1 -d 192.168.1.71 -j ACCEPT
+2026-06-26 21:52:40  [INFO]  [STUB] Keep device->Shield open for 192.168.1.71: iptables -I FORWARD -s 192.168.1.71 -d 10.0.0.1 -j ACCEPT
+2026-06-26 21:52:40  [INFO]  [STUB] Block all outbound from 192.168.1.71: iptables -I FORWARD -s 192.168.1.71 -j DROP
+2026-06-26 21:52:40  [INFO]  [STUB] Block all inbound to 192.168.1.71: iptables -I FORWARD -d 192.168.1.71 -j DROP
+2026-06-26 21:52:40  [WARNING]  Device ISOLATED: 192.168.1.71 — cut off from network. Shield connection preserved.
+2026-06-26 21:52:40  [ERROR]  ISOLATED: 192.168.1.71 — AS012: Connection to known C2
+2026-06-26 21:52:40  [INFO]  Response complete — actions: logged, admin_notified, isolated_192.168.1.71, employee_notified
+2026-06-26 21:52:40  [INFO]  Investigation case opened: CASE-20260627-045240-192168171 for 192.168.1.71
+2026-06-26 21:52:40  [INFO]  Containment scored 100/100 → isolate for Connection to known C2
+2026-06-26 21:52:40  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:40  [WARNING]  API unreachable — incident queued (64 pending)
+2026-06-26 21:52:43  [INFO]  [SIM] John hits ngrok — C2 domain (high confidence ISOLATE)
+2026-06-26 21:52:43  [INFO]  CONFIDENCE SCORE: 100/100 → ISOLATE | C2 domain connection | 192.168.1.42
+2026-06-26 21:52:43  [INFO]    scoring: +40 known C2 domain: ngrok.io
+2026-06-26 21:52:43  [INFO]    scoring: +55 signature AS012
+2026-06-26 21:52:43  [INFO]    scoring: +15 after-hours activity (04:xx)
+2026-06-26 21:52:43  [INFO]    scoring: +10 one other signature on same device
+2026-06-26 21:52:43  [INFO]    scoring: +10 unusual hour for this device
+2026-06-26 21:52:43  [INFO]    scoring: +10 critical risk rating
+2026-06-26 21:52:43  [INFO]    scoring: -10 new device, baseline not established yet
+2026-06-26 21:52:43  [INFO]  Acting on scored threat [CRITICAL] AS012 — C2 domain connection | response=isolate_and_alert
+2026-06-26 21:52:43  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Network — C2 domain connection | 0.0KB
+2026-06-26 21:52:43  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:43  [WARNING]  API unreachable — incident queued (65 pending)
+2026-06-26 21:52:43  [INFO]  [STUB] Keep Shield->device open for 192.168.1.42: iptables -I FORWARD -s 10.0.0.1 -d 192.168.1.42 -j ACCEPT
+2026-06-26 21:52:43  [INFO]  [STUB] Keep device->Shield open for 192.168.1.42: iptables -I FORWARD -s 192.168.1.42 -d 10.0.0.1 -j ACCEPT
+2026-06-26 21:52:43  [INFO]  [STUB] Block all outbound from 192.168.1.42: iptables -I FORWARD -s 192.168.1.42 -j DROP
+2026-06-26 21:52:43  [INFO]  [STUB] Block all inbound to 192.168.1.42: iptables -I FORWARD -d 192.168.1.42 -j DROP
+2026-06-26 21:52:43  [WARNING]  Device ISOLATED: 192.168.1.42 — cut off from network. Shield connection preserved.
+2026-06-26 21:52:43  [ERROR]  ISOLATED: 192.168.1.42 — AS012: C2 domain connection
+2026-06-26 21:52:43  [INFO]  Response complete — actions: logged, admin_notified, isolated_192.168.1.42, employee_notified
+2026-06-26 21:52:43  [INFO]  Investigation case opened: CASE-20260627-045243-192168142 for 192.168.1.42
+2026-06-26 21:52:43  [INFO]  Containment scored 100/100 → isolate for C2 domain connection
+2026-06-26 21:52:46  [INFO]  [SIM] External SSH brute force (BLOCK)
+2026-06-26 21:52:46  [INFO]  CONFIDENCE SCORE: 75/100 → BLOCK | Brute force SSH | 203.0.113.5
+2026-06-26 21:52:46  [INFO]    scoring: +40 signature AS003
+2026-06-26 21:52:46  [INFO]    scoring: +15 after-hours activity (04:xx)
+2026-06-26 21:52:46  [INFO]    scoring: +10 one other signature on same device
+2026-06-26 21:52:46  [INFO]    scoring: +10 unusual hour for this device
+2026-06-26 21:52:46  [INFO]    scoring: +10 critical risk rating
+2026-06-26 21:52:46  [INFO]    scoring: -10 new device, baseline not established yet
+2026-06-26 21:52:46  [INFO]  Acting on scored threat [CRITICAL] AS003 — Brute force SSH | response=block_and_alert
+2026-06-26 21:52:46  [INFO]  Reporting [HIGH] | 203.0.113.5 -> Network — Brute force SSH | 0.0KB
+2026-06-26 21:52:46  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:46  [WARNING]  API unreachable — incident queued (66 pending)
+2026-06-26 21:52:46  [INFO]  Response complete — actions: logged, admin_notified
+2026-06-26 21:52:46  [INFO]  Containment scored 75/100 → block for Brute force SSH
+2026-06-26 21:52:59  [ERROR]  CRIT  | High-volume data exfiltration risk: 150.0KB to Perplexity
+2026-06-26 21:52:59  [INFO]  DISPATCH | risk=high | 192.168.1.71 -> Perplexity | High-volume data exfiltration risk: 150.0KB to Perplexity
+2026-06-26 21:52:59  [INFO]  Reporting [HIGH] | 192.168.1.71 -> Perplexity | 150.0KB
+2026-06-26 21:52:59  [WARNING]  API unreachable: Not Found
+2026-06-26 21:52:59  [WARNING]  API unreachable — incident queued (67 pending)
+2026-06-26 21:53:04  [WARNING]  WARN  | After-hours Personal Email transfer: 766.1KB to Temp Mail in 3s
+2026-06-26 21:53:04  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> Temp Mail | After-hours Personal Email transfer: 766.1KB to Temp Mail in 3s
+2026-06-26 21:53:04  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> Temp Mail | 766.1KB
+2026-06-26 21:53:05  [WARNING]  API unreachable: Not Found
+2026-06-26 21:53:05  [WARNING]  API unreachable — incident queued (68 pending)
+2026-06-26 21:53:13  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.63 | 192.168.1.63 scanned 10 unique IPs in 60s
+2026-06-26 21:53:13  [INFO]  CONFIDENCE SCORE: 50/100 → WARN | Port scan — horizontal | 192.168.1.63
+2026-06-26 21:53:13  [INFO]    scoring: +25 signature AS001
+2026-06-26 21:53:13  [INFO]    scoring: +15 after-hours activity (04:xx)
+2026-06-26 21:53:13  [INFO]    scoring: +10 one other signature on same device
+2026-06-26 21:53:13  [INFO]    scoring: +10 unusual hour for this device
+2026-06-26 21:53:13  [INFO]    scoring: -10 new device, baseline not established yet
+2026-06-26 21:53:13  [INFO]  Acting on scored threat [HIGH] AS001 — Port scan — horizontal | response=alert
+2026-06-26 21:53:13  [INFO]  Reporting [HIGH] | 192.168.1.63 -> Network — Port scan — horizontal | 0.0KB
+2026-06-26 21:53:13  [WARNING]  API unreachable: Not Found
+2026-06-26 21:53:13  [WARNING]  API unreachable — incident queued (69 pending)
+2026-06-26 21:53:13  [INFO]  Response complete — actions: logged, admin_notified
+2026-06-26 21:53:13  [INFO]  Containment scored 50/100 → warn for Port scan — horizontal
+2026-06-26 21:53:16  [INFO]  Retrying 69 queued incident(s)...
+2026-06-26 21:53:16  [WARNING]  API unreachable: Not Found
+2026-06-26 21:53:16  [WARNING]  Retry: API still unreachable, 69 remaining in queue
+2026-06-26 21:53:16  [WARNING]  Heartbeat failed (2x): Not Found
+2026-06-26 21:53:16  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.71 | 192.168.1.71 scanned 10 unique IPs in 60s
+2026-06-26 21:53:17  [INFO]  CONFIDENCE SCORE: 60/100 → WARN | Port scan — horizontal | 192.168.1.71
+2026-06-26 21:53:17  [INFO]    scoring: +25 signature AS001
+2026-06-26 21:53:17  [INFO]    scoring: +15 after-hours activity (04:xx)
+2026-06-26 21:53:17  [INFO]    scoring: +20 multiple signatures on same device: ['AS012', 'AS001']
+2026-06-26 21:53:17  [INFO]    scoring: +10 unusual hour for this device
+2026-06-26 21:53:17  [INFO]    scoring: -10 new device, baseline not established yet
+2026-06-26 21:53:17  [INFO]  Acting on scored threat [HIGH] AS001 — Port scan — horizontal | response=alert
+2026-06-26 21:53:17  [INFO]  Reporting [HIGH] | 192.168.1.71 -> Network — Port scan — horizontal | 0.0KB
+2026-06-26 21:53:17  [WARNING]  API unreachable: Not Found
+2026-06-26 21:53:17  [WARNING]  API unreachable — incident queued (70 pending)
+2026-06-26 21:53:17  [INFO]  Response complete — actions: logged, admin_notified
+2026-06-26 21:53:17  [INFO]  Containment scored 60/100 → warn for Port scan — horizontal
+2026-06-26 21:53:40  [INFO]  Shutting down Syphir Shield...
+2026-06-26 21:53:40  [INFO]  DNS monitor stopped — 42 total queries seen
+2026-06-26 21:53:40  [INFO]  Heartbeat stopped
+2026-06-26 21:53:40  [INFO]  Goodbye.

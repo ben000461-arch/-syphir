@@ -1,0 +1,13 @@
+{
+  "device_key": "SYP-NET-XXXX-XXXX",
+  "org_key": "SYP-XXXX-XXXX-XXXX",
+  "api_url": "https://syphir-api.onrender.com",
+  "device_name": "Syphir Shield",
+  "firmware_version": "1.0.0",
+  "simulation_mode": true,
+  "_notes": {
+    "simulation_mode": "Set to true to run on Mac without hardware. Injects test events so you can see the decision engine working.",
+    "device_key": "Filled in automatically by install.sh on first boot.",
+    "org_key": "The organization's Syphir license key."
+  }
+}

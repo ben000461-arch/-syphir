@@ -1,0 +1,15 @@
+{
+  "blocked_ips": {},
+  "isolated_devices": {
+    "192.168.1.71": {
+      "reason": "AS012: Connection to known C2",
+      "isolated_at": "2026-06-27T04:52:40.448717",
+      "signature_id": "AS012"
+    },
+    "192.168.1.42": {
+      "reason": "AS012: C2 domain connection",
+      "isolated_at": "2026-06-27T04:52:43.928310",
+      "signature_id": "AS012"
+    }
+  }
+}

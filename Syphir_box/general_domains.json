@@ -1,0 +1,279 @@
+{
+  "version": "1.0",
+  "updated": "2026-06-25",
+
+  "cloud_storage": [
+    {
+      "domain": "dropbox.com",
+      "name": "Dropbox",
+      "risk_weight": 1.2,
+      "notes": "Large file uploads — watch for bulk data exfiltration"
+    },
+    {
+      "domain": "drive.google.com",
+      "name": "Google Drive",
+      "risk_weight": 1.0,
+      "notes": "Common legitimate use — flag only on very high volume"
+    },
+    {
+      "domain": "onedrive.live.com",
+      "name": "OneDrive Personal",
+      "risk_weight": 1.1,
+      "notes": "Personal OneDrive — different from corporate SharePoint"
+    },
+    {
+      "domain": "wetransfer.com",
+      "name": "WeTransfer",
+      "risk_weight": 1.5,
+      "notes": "Anonymous file transfer — high risk, rarely used for legitimate work"
+    },
+    {
+      "domain": "box.com",
+      "name": "Box",
+      "risk_weight": 0.9,
+      "notes": "Often used legitimately — lower weight"
+    },
+    {
+      "domain": "mega.nz",
+      "name": "MEGA",
+      "risk_weight": 1.8,
+      "notes": "Encrypted anonymous storage — very high risk weight"
+    },
+    {
+      "domain": "mediafire.com",
+      "name": "MediaFire",
+      "risk_weight": 1.6,
+      "notes": "Public file hosting — rarely legitimate in business context"
+    },
+    {
+      "domain": "sendspace.com",
+      "name": "SendSpace",
+      "risk_weight": 1.7,
+      "notes": "Anonymous file transfer"
+    },
+    {
+      "domain": "filebin.net",
+      "name": "FileBin",
+      "risk_weight": 1.9,
+      "notes": "Temporary public file hosting — very high risk"
+    },
+    {
+      "domain": "transfer.sh",
+      "name": "Transfer.sh",
+      "risk_weight": 2.0,
+      "notes": "Command-line file transfer — almost never legitimate in SMB"
+    }
+  ],
+
+  "personal_email": [
+    {
+      "domain": "mail.google.com",
+      "name": "Gmail",
+      "risk_weight": 0.8,
+      "notes": "Common — flag only on high attachment volume during work hours"
+    },
+    {
+      "domain": "smtp.gmail.com",
+      "name": "Gmail SMTP",
+      "risk_weight": 1.3,
+      "notes": "Outbound email sending — watch for bulk sends"
+    },
+    {
+      "domain": "outlook.live.com",
+      "name": "Outlook Personal",
+      "risk_weight": 0.9,
+      "notes": "Personal Outlook — distinct from corporate Exchange"
+    },
+    {
+      "domain": "mail.yahoo.com",
+      "name": "Yahoo Mail",
+      "risk_weight": 1.0,
+      "notes": "Personal email — unusual in professional context"
+    },
+    {
+      "domain": "protonmail.com",
+      "name": "ProtonMail",
+      "risk_weight": 1.4,
+      "notes": "Encrypted anonymous email — elevated risk in corporate setting"
+    },
+    {
+      "domain": "tutanota.com",
+      "name": "Tutanota",
+      "risk_weight": 1.5,
+      "notes": "Encrypted email — very unusual in SMB context"
+    },
+    {
+      "domain": "guerrillamail.com",
+      "name": "Guerrilla Mail",
+      "risk_weight": 2.0,
+      "notes": "Disposable email — red flag"
+    },
+    {
+      "domain": "temp-mail.org",
+      "name": "Temp Mail",
+      "risk_weight": 2.0,
+      "notes": "Disposable email — red flag"
+    }
+  ],
+
+  "data_transfer": [
+    {
+      "domain": "pastebin.com",
+      "name": "Pastebin",
+      "risk_weight": 1.8,
+      "notes": "Public text dump — common exfiltration vector for code and credentials"
+    },
+    {
+      "domain": "gist.github.com",
+      "name": "GitHub Gist",
+      "risk_weight": 1.2,
+      "notes": "Public code snippets — watch for credential dumps"
+    },
+    {
+      "domain": "hastebin.com",
+      "name": "Hastebin",
+      "risk_weight": 1.7,
+      "notes": "Anonymous text sharing"
+    },
+    {
+      "domain": "dpaste.com",
+      "name": "DPaste",
+      "risk_weight": 1.6,
+      "notes": "Anonymous text sharing"
+    },
+    {
+      "domain": "justpaste.it",
+      "name": "JustPaste",
+      "risk_weight": 1.7,
+      "notes": "Anonymous text sharing"
+    },
+    {
+      "domain": "controlc.com",
+      "name": "ControlC",
+      "risk_weight": 1.8,
+      "notes": "Clipboard sharing service — high risk"
+    }
+  ],
+
+  "messaging": [
+    {
+      "domain": "telegram.org",
+      "name": "Telegram",
+      "risk_weight": 1.3,
+      "notes": "Encrypted messaging — file sharing capability is a concern"
+    },
+    {
+      "domain": "signal.org",
+      "name": "Signal",
+      "risk_weight": 1.0,
+      "notes": "Encrypted messaging — less common exfiltration vector"
+    },
+    {
+      "domain": "discord.com",
+      "name": "Discord",
+      "risk_weight": 1.2,
+      "notes": "File sharing + messaging — unusual in professional context"
+    },
+    {
+      "domain": "whatsapp.com",
+      "name": "WhatsApp",
+      "risk_weight": 0.9,
+      "notes": "Common messaging — flag only on high file transfer volume"
+    }
+  ],
+
+  "data_brokers": [
+    {
+      "domain": "spokeo.com",
+      "name": "Spokeo",
+      "risk_weight": 1.5,
+      "notes": "Data broker — client data research concern"
+    },
+    {
+      "domain": "intelius.com",
+      "name": "Intelius",
+      "risk_weight": 1.5,
+      "notes": "People search / data broker"
+    },
+    {
+      "domain": "beenverified.com",
+      "name": "BeenVerified",
+      "risk_weight": 1.4,
+      "notes": "Background check / data broker"
+    },
+    {
+      "domain": "whitepages.com",
+      "name": "Whitepages",
+      "risk_weight": 1.2,
+      "notes": "People search"
+    }
+  ],
+
+  "suspicious_tools": [
+    {
+      "domain": "ngrok.io",
+      "name": "ngrok",
+      "risk_weight": 2.0,
+      "notes": "Tunnel tool — can expose internal systems to internet. Almost never legitimate in SMB."
+    },
+    {
+      "domain": "serveo.net",
+      "name": "Serveo",
+      "risk_weight": 2.0,
+      "notes": "Reverse SSH tunnel — red flag"
+    },
+    {
+      "domain": "portmap.io",
+      "name": "Portmap",
+      "risk_weight": 2.0,
+      "notes": "Port forwarding service — red flag"
+    },
+    {
+      "domain": "requestbin.com",
+      "name": "RequestBin",
+      "risk_weight": 1.8,
+      "notes": "HTTP request inspector — can capture data being sent"
+    },
+    {
+      "domain": "hookbin.com",
+      "name": "HookBin",
+      "risk_weight": 1.8,
+      "notes": "Webhook capture — exfiltration concern"
+    },
+    {
+      "domain": "webhook.site",
+      "name": "Webhook.site",
+      "risk_weight": 1.9,
+      "notes": "Live webhook inspector — high exfiltration risk"
+    }
+  ],
+
+  "excluded_domains": [
+    "google.com",
+    "googleapis.com",
+    "gstatic.com",
+    "microsoft.com",
+    "office.com",
+    "office365.com",
+    "sharepoint.com",
+    "live.com",
+    "zoom.us",
+    "slack.com",
+    "github.com",
+    "stackoverflow.com",
+    "amazon.com",
+    "aws.amazon.com",
+    "cloudflare.com",
+    "fastly.net",
+    "akamai.net",
+    "cdn.net",
+    "fonts.googleapis.com",
+    "accounts.google.com"
+  ],
+
+  "notes": {
+    "risk_weight": "Multiplies against base thresholds. 1.0 = standard. 2.0 = half the normal threshold triggers a warning.",
+    "excluded_domains": "These domains are never flagged regardless of volume — standard business infrastructure.",
+    "philosophy": "Flag unusual behavior, not normal work. A lawyer using Gmail occasionally is fine. A lawyer uploading 50MB to WeTransfer at 11pm is not."
+  }
+}

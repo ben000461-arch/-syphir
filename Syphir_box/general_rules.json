@@ -1,0 +1,200 @@
+{
+  "version": "1.0",
+  "updated": "2026-06-25",
+
+  "session_window_minutes": 15,
+
+  "category_thresholds": {
+    "cloud_storage": {
+      "warn_bytes":     10485760,
+      "critical_bytes": 52428800,
+      "warn_queries":   50,
+      "critical_queries": 150,
+      "_notes": {
+        "warn_bytes":     "10MB — a reasonable document upload. Above this starts to look like bulk export.",
+        "critical_bytes": "50MB — bulk data export. Multiple large files or a database dump.",
+        "philosophy":     "Cloud storage is normal. Only flag genuinely large transfers."
+      }
+    },
+    "personal_email": {
+      "warn_bytes":     2097152,
+      "critical_bytes": 10485760,
+      "warn_queries":   30,
+      "critical_queries": 80,
+      "_notes": {
+        "warn_bytes":     "2MB — a few attachments. Normal personal email use.",
+        "critical_bytes": "10MB — bulk forwarding of files to personal email.",
+        "philosophy":     "Personal email during work hours is fine. Forwarding large files is not."
+      }
+    },
+    "data_transfer": {
+      "warn_bytes":     102400,
+      "critical_bytes": 512000,
+      "warn_queries":   5,
+      "critical_queries": 15,
+      "_notes": {
+        "warn_bytes":     "100KB to Pastebin/Hastebin etc — already concerning. These sites have almost no legitimate large-file use.",
+        "critical_bytes": "500KB — serious exfiltration concern.",
+        "philosophy":     "Pastebin and similar have almost no legitimate large-transfer use in a law firm or HR company. Low thresholds."
+      }
+    },
+    "messaging": {
+      "warn_bytes":     5242880,
+      "critical_bytes": 20971520,
+      "warn_queries":   100,
+      "critical_queries": 300,
+      "_notes": {
+        "warn_bytes":     "5MB — file sharing via messaging. Could be legitimate.",
+        "critical_bytes": "20MB — bulk file transfer via messaging app.",
+        "philosophy":     "Messaging is common. Only flag when file transfer volume is very high."
+      }
+    },
+    "data_brokers": {
+      "warn_bytes":     51200,
+      "critical_bytes": 204800,
+      "warn_queries":   10,
+      "critical_queries": 30,
+      "_notes": {
+        "warn_bytes":     "50KB to a data broker — already worth noting.",
+        "critical_bytes": "200KB — bulk lookup or upload to data broker.",
+        "philosophy":     "Data brokers have very limited legitimate use. Low thresholds."
+      }
+    },
+    "suspicious_tools": {
+      "warn_bytes":     1024,
+      "critical_bytes": 10240,
+      "warn_queries":   2,
+      "critical_queries": 5,
+      "_notes": {
+        "warn_bytes":     "1KB to ngrok/webhook.site — flag immediately. No legitimate business use.",
+        "critical_bytes": "10KB — active data exfiltration via tunnel.",
+        "philosophy":     "Near-zero tolerance. Any significant traffic to these tools is a security incident."
+      }
+    }
+  },
+
+  "behavior_rules": [
+    {
+      "id": "GR001",
+      "name": "Normal cloud storage use",
+      "description": "Routine document uploads and downloads — expected business behavior.",
+      "condition": "bytes < cloud_storage.warn_bytes AND category == cloud_storage",
+      "action": "watch",
+      "notify_employee": false,
+      "log_incident": false
+    },
+    {
+      "id": "GR002",
+      "name": "Large cloud storage transfer",
+      "description": "Volume consistent with bulk file export. Could be legitimate backup or data theft.",
+      "condition": "bytes >= cloud_storage.warn_bytes AND category == cloud_storage",
+      "action": "warn",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "Large file transfer detected to {domain} ({volume}). If this includes client data, please ensure it complies with your data handling policy."
+    },
+    {
+      "id": "GR003",
+      "name": "Critical cloud storage exfiltration",
+      "description": "Volume consistent with database export or bulk client file transfer.",
+      "condition": "bytes >= cloud_storage.critical_bytes AND category == cloud_storage",
+      "action": "critical",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "high",
+      "message": "High-volume transfer to {domain} detected ({volume}). Your IT administrator has been notified."
+    },
+    {
+      "id": "GR004",
+      "name": "Personal email file forwarding",
+      "description": "Attachments being sent to personal email above normal volume.",
+      "condition": "bytes >= personal_email.warn_bytes AND category == personal_email",
+      "action": "warn",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "Elevated file transfer to personal email ({domain}) detected. Please ensure no client data is being forwarded."
+    },
+    {
+      "id": "GR005",
+      "name": "Pastebin / text dump",
+      "description": "Data being sent to a public text sharing service. Classic exfiltration vector.",
+      "condition": "bytes >= data_transfer.warn_bytes AND category == data_transfer",
+      "action": "warn",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "Data transfer to {domain} detected. Public paste sites are not approved for business data."
+    },
+    {
+      "id": "GR006",
+      "name": "Suspicious tool detected",
+      "description": "Traffic to tunnel, webhook capture, or port forwarding service. Near-zero tolerance.",
+      "condition": "bytes >= suspicious_tools.warn_bytes AND category == suspicious_tools",
+      "action": "critical",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "high",
+      "message": "Suspicious network tool detected: {domain}. This has been flagged as a security incident."
+    },
+    {
+      "id": "GR007",
+      "name": "Data broker access",
+      "description": "Employee accessing a people-search or data broker site with significant data volume.",
+      "condition": "bytes >= data_brokers.warn_bytes AND category == data_brokers",
+      "action": "warn",
+      "notify_employee": false,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "Access to data broker service {domain} logged for compliance review."
+    },
+    {
+      "id": "GR008",
+      "name": "High-risk tool — risk weight multiplier",
+      "description": "Domains with risk_weight above 1.5 trigger at proportionally lower thresholds.",
+      "condition": "bytes >= (category_warn_bytes / risk_weight) AND risk_weight >= 1.5",
+      "action": "warn",
+      "notify_employee": true,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "Transfer to high-risk domain {domain} flagged for review."
+    },
+    {
+      "id": "GR009",
+      "name": "After-hours large transfer",
+      "description": "Large data transfer outside business hours (before 7am or after 8pm). Elevated concern.",
+      "condition": "bytes >= (category_warn_bytes * 0.5) AND hour NOT IN [7..20]",
+      "action": "warn",
+      "notify_employee": false,
+      "log_incident": true,
+      "risk_level": "medium",
+      "message": "After-hours data transfer to {domain} logged."
+    }
+  ],
+
+  "cooldown": {
+    "warn_cooldown_minutes":     20,
+    "critical_cooldown_minutes": 60,
+    "_notes": "Non-AI transfers get longer cooldowns — file transfers are naturally longer operations."
+  },
+
+  "time_based_rules": {
+    "business_hours_start": 7,
+    "business_hours_end":   20,
+    "after_hours_multiplier": 0.5,
+    "_notes": "After-hours transfers trigger at 50% of the normal threshold. A 5MB upload to Dropbox at 11pm is more suspicious than the same upload at 2pm."
+  },
+
+  "excluded_categories": [
+    "normal"
+  ],
+
+  "logging": {
+    "log_watch_events":    false,
+    "log_warn_events":     true,
+    "log_critical_events": true,
+    "log_to_file":         true,
+    "log_file":            "syphir.log"
+  }
+}

@@ -59,6 +59,37 @@ nav {
 }
 .nav-btn:hover { background: var(--accent-light); }
 
+/* ── PROFILE MENU (logged-in nav state) ── */
+.profile-wrap { position: relative; }
+.profile-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; font-weight: 700; font-size: 0.85rem; font-family: inherit;
+  display: flex; align-items: center; justify-content: center;
+  transition: box-shadow 0.15s;
+}
+.profile-btn:hover { box-shadow: 0 0 0 3px rgba(91,79,232,0.25); }
+.profile-dropdown {
+  display: none; position: absolute; top: 46px; right: 0; min-width: 200px;
+  background: var(--surface2); border: 1px solid var(--border-hover);
+  border-radius: 10px; padding: 6px; z-index: 250;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+}
+.profile-dropdown.open { display: block; }
+.profile-dropdown-email {
+  padding: 8px 10px 10px; font-size: 0.78rem; color: var(--muted);
+  border-bottom: 1px solid var(--border); margin-bottom: 6px; word-break: break-all;
+}
+.profile-dropdown a, .profile-dropdown button {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+  background: none; border: none; color: var(--text); font-size: 0.87rem;
+  font-family: inherit; padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  text-decoration: none; transition: background 0.12s;
+}
+.profile-dropdown a:hover, .profile-dropdown button:hover { background: rgba(255,255,255,0.06); }
+.profile-dropdown button.danger { color: var(--danger); }
+.profile-dropdown svg { width: 15px; height: 15px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; }
+
 /* ── MODAL ── */
 .modal-overlay {
   display: none; position: fixed; inset: 0; z-index: 500;

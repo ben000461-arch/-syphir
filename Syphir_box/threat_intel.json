@@ -1,0 +1,289 @@
+{
+  "version": "1.0",
+  "updated": "2026-06-25",
+  "description": "Syphir Shield threat intelligence — known malicious IPs, C2 servers, attack patterns, and malicious domains. Updated periodically. On the Pi this pulls from live threat feeds.",
+
+  "malicious_ip_ranges": [
+    {
+      "range": "185.220.0.0/16",
+      "label": "Tor exit nodes — anonymized traffic",
+      "risk": "high",
+      "category": "anonymizer"
+    },
+    {
+      "range": "198.96.155.0/24",
+      "label": "Known Tor relay",
+      "risk": "high",
+      "category": "anonymizer"
+    },
+    {
+      "range": "45.142.212.0/24",
+      "label": "Known botnet C2 range",
+      "risk": "critical",
+      "category": "c2"
+    },
+    {
+      "range": "194.165.16.0/24",
+      "label": "Known attack infrastructure",
+      "risk": "critical",
+      "category": "attack_infra"
+    },
+    {
+      "range": "91.108.4.0/22",
+      "label": "Telegram infrastructure — monitor for C2 abuse",
+      "risk": "medium",
+      "category": "monitoring"
+    }
+  ],
+
+  "known_c2_domains": [
+    {
+      "domain": "raw.githubusercontent.com",
+      "label": "GitHub raw — common malware payload delivery",
+      "risk": "medium",
+      "category": "payload_delivery",
+      "notes": "Legitimate but heavily abused for malware staging. Flag unusual access patterns."
+    },
+    {
+      "domain": "pastebin.com",
+      "label": "Pastebin — C2 config hosting",
+      "risk": "medium",
+      "category": "c2_config",
+      "notes": "Attackers host C2 configs here. Cross-reference with volume."
+    },
+    {
+      "domain": "api.telegram.org",
+      "label": "Telegram Bot API — C2 channel",
+      "risk": "high",
+      "category": "c2_channel",
+      "notes": "Increasingly used as C2 channel. Bots can exfiltrate data and receive commands."
+    },
+    {
+      "domain": "discord.com/api",
+      "label": "Discord API — C2 channel",
+      "risk": "high",
+      "category": "c2_channel",
+      "notes": "Discord webhooks used for C2 and data exfiltration."
+    },
+    {
+      "domain": "ngrok.io",
+      "label": "ngrok — reverse tunnel C2",
+      "risk": "critical",
+      "category": "tunnel_c2",
+      "notes": "Primary tool for establishing reverse shells through firewalls."
+    },
+    {
+      "domain": "serveo.net",
+      "label": "Serveo — reverse SSH tunnel",
+      "risk": "critical",
+      "category": "tunnel_c2"
+    },
+    {
+      "domain": "webhook.site",
+      "label": "Webhook.site — data exfiltration",
+      "risk": "high",
+      "category": "exfil"
+    },
+    {
+      "domain": "burpcollaborator.net",
+      "label": "Burp Collaborator — pentesting C2",
+      "risk": "high",
+      "category": "pentest_c2",
+      "notes": "Legitimate pentesting tool — flag if not expected"
+    },
+    {
+      "domain": "interactsh.com",
+      "label": "Interactsh — OOB interaction",
+      "risk": "high",
+      "category": "pentest_c2"
+    }
+  ],
+
+  "attack_signatures": [
+    {
+      "id": "AS001",
+      "name": "Port scan — horizontal",
+      "description": "Single source IP connecting to many different destination IPs on the same port. Classic network reconnaissance.",
+      "detection": {
+        "type": "connection_pattern",
+        "unique_destinations_per_minute": 10,
+        "same_port": true
+      },
+      "risk": "high",
+      "response": "block_and_alert"
+    },
+    {
+      "id": "AS002",
+      "name": "Port scan — vertical",
+      "description": "Single source IP connecting to many ports on the same destination. Service enumeration.",
+      "detection": {
+        "type": "connection_pattern",
+        "unique_ports_per_minute": 15,
+        "same_destination": true
+      },
+      "risk": "high",
+      "response": "block_and_alert"
+    },
+    {
+      "id": "AS003",
+      "name": "Brute force — SSH",
+      "description": "Repeated connection attempts to port 22. Password spraying or credential stuffing.",
+      "detection": {
+        "type": "repeated_connections",
+        "port": 22,
+        "attempts_per_minute": 5
+      },
+      "risk": "critical",
+      "response": "block_and_alert"
+    },
+    {
+      "id": "AS004",
+      "name": "Brute force — RDP",
+      "description": "Repeated connection attempts to port 3389. Common Windows remote desktop attack.",
+      "detection": {
+        "type": "repeated_connections",
+        "port": 3389,
+        "attempts_per_minute": 5
+      },
+      "risk": "critical",
+      "response": "block_and_alert"
+    },
+    {
+      "id": "AS005",
+      "name": "Lateral movement — internal SSH",
+      "description": "Device on LAN attempting SSH connections to other LAN devices. Possible worm or insider threat.",
+      "detection": {
+        "type": "lateral_movement",
+        "protocol": "SSH",
+        "internal_to_internal": true,
+        "unique_targets": 3
+      },
+      "risk": "critical",
+      "response": "isolate_and_alert"
+    },
+    {
+      "id": "AS006",
+      "name": "C2 beacon — regular interval",
+      "description": "Device making connections to the same external IP at very regular intervals. Classic C2 beaconing.",
+      "detection": {
+        "type": "beacon_pattern",
+        "interval_variance_seconds": 5,
+        "min_occurrences": 6
+      },
+      "risk": "critical",
+      "response": "isolate_and_alert"
+    },
+    {
+      "id": "AS007",
+      "name": "DNS tunneling",
+      "description": "Unusually high volume of DNS queries or very long DNS hostnames. Data exfiltration via DNS.",
+      "detection": {
+        "type": "dns_anomaly",
+        "queries_per_minute": 60,
+        "or_hostname_length": 50
+      },
+      "risk": "high",
+      "response": "block_and_alert"
+    },
+    {
+      "id": "AS008",
+      "name": "Reverse shell attempt",
+      "description": "Outbound connection on unusual high port after receiving inbound packet. Possible reverse shell.",
+      "detection": {
+        "type": "reverse_shell_pattern",
+        "outbound_port_range": [4000, 9999],
+        "preceded_by_inbound": true
+      },
+      "risk": "critical",
+      "response": "isolate_and_alert"
+    },
+    {
+      "id": "AS009",
+      "name": "Data exfiltration — bulk outbound",
+      "description": "Single device sending unusually large volume outbound in a short window. Possible bulk data theft.",
+      "detection": {
+        "type": "volume_anomaly",
+        "bytes_per_minute": 5242880,
+        "direction": "outbound"
+      },
+      "risk": "high",
+      "response": "alert"
+    },
+    {
+      "id": "AS010",
+      "name": "After-hours network activity",
+      "description": "Device generating significant network traffic outside business hours when office should be empty.",
+      "detection": {
+        "type": "time_anomaly",
+        "outside_hours": [7, 20],
+        "bytes_threshold": 1048576
+      },
+      "risk": "medium",
+      "response": "alert"
+    },
+    {
+      "id": "AS011",
+      "name": "New device on network",
+      "description": "Unknown MAC/IP address appeared on the network. Could be unauthorized device or attacker pivot.",
+      "detection": {
+        "type": "new_device",
+        "not_in_known_devices": true
+      },
+      "risk": "medium",
+      "response": "alert"
+    },
+    {
+      "id": "AS012",
+      "name": "Connection to known C2",
+      "description": "Device connecting to a known command and control domain or IP range.",
+      "detection": {
+        "type": "threat_intel_match",
+        "source": "known_c2_domains"
+      },
+      "risk": "critical",
+      "response": "isolate_and_alert"
+    }
+  ],
+
+  "known_devices": [],
+
+  "response_actions": {
+    "alert": {
+      "description": "Log incident and notify admin. No blocking.",
+      "notify_admin": true,
+      "block_ip":     false,
+      "isolate":      false
+    },
+    "block_and_alert": {
+      "description": "Block the source IP and notify admin.",
+      "notify_admin": true,
+      "block_ip":     true,
+      "isolate":      false
+    },
+    "isolate_and_alert": {
+      "description": "Isolate the affected LAN device and notify admin immediately.",
+      "notify_admin":   true,
+      "block_ip":       true,
+      "isolate":        true,
+      "deploy_agent":   true,
+      "agent_mode":     "defend",
+      "agent_stealth":  true
+    }
+  },
+
+  "whitelist_ips": [
+    "127.0.0.1",
+    "::1"
+  ],
+
+  "whitelist_domains": [
+    "google.com",
+    "microsoft.com",
+    "apple.com",
+    "icloud.com",
+    "amazonaws.com",
+    "cloudflare.com",
+    "akamai.net",
+    "fastly.net"
+  ]
+}
