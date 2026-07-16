@@ -1787,16 +1787,46 @@ app.post('/auth/provision-email', async (c) => {
       return c.json({ key, org_name: org.name, org_id: org.id, plan: org.plan, is_new: false });
     }
 
-    // ── New signup request — creates a PENDING org, no dashboard access yet ──
-    // Trial + keys only activate once approved from the admin panel.
+    // No org for this email yet — tell the frontend to collect a couple more
+    // details before we create anything. Nothing is written to the DB here.
+    return c.json({ exists: false });
+
+  } catch(err) {
+    console.error('[Auth] provision-email error:', err.message);
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+// ── AUTH: Submit a trial request — creates a PENDING org, no dashboard access yet ──
+// Trial + keys only activate once approved from the admin panel.
+app.post('/auth/signup-request', async (c) => {
+  const { email, business_name, phone } = await c.req.json().catch(() => ({}));
+  if (!email || !email.includes('@')) return c.json({ error: 'Valid email required' }, 400);
+  if (!business_name || !business_name.trim()) return c.json({ error: 'Business name required' }, 400);
+
+  const userEmail = email.toLowerCase().trim();
+  const orgName = business_name.trim();
+  const userPhone = (phone || '').trim();
+
+  try {
+    // Guard against double-submits / racing tabs
+    const existing = await db(
+      `organizations?admin_email=eq.${encodeURIComponent(userEmail)}&select=*`
+    ).catch(() => []);
+    if (existing?.length) {
+      const org = existing[0];
+      if (org.signup_status === 'pending') return c.json({ pending: true, is_new: false, org_id: org.id });
+      if (org.signup_status === 'rejected') return c.json({ error: 'This signup was not approved. Contact syphir26@gmail.com for details.' }, 403);
+      return c.json({ error: 'An account already exists for this email.' }, 409);
+    }
+
     const bizKey = genKey();
     const empKey = genEmpKey();
-    const orgName = userEmail.split('@')[0].replace(/[^a-zA-Z0-9 ]/g,' ').trim() + "'s Organization";
 
     const newOrg = await db('organizations', {
       method: 'POST', prefer: 'return=representation',
       body: JSON.stringify({
-        name: orgName, admin_email: userEmail, plan: 'Demo',
+        name: orgName, admin_email: userEmail, phone: userPhone, plan: 'Demo',
         active: false, signup_status: 'pending',
       }),
     });
@@ -1813,7 +1843,7 @@ app.post('/auth/provision-email', async (c) => {
       body: JSON.stringify({ key: empKey, org_id: orgId, key_type: 'employee', status: 'pending' }),
     });
 
-    console.log(`[Auth] New signup request (pending approval): ${orgName} (${userEmail})`);
+    console.log(`[Auth] New signup request (pending approval): ${orgName} (${userEmail}) ${userPhone}`);
 
     // Confirmation email — no key yet, just a heads-up that it's under review.
     try {
@@ -1833,7 +1863,7 @@ app.post('/auth/provision-email', async (c) => {
     return c.json({ pending: true, is_new: true, org_id: orgId });
 
   } catch(err) {
-    console.error('[Auth] provision-email error:', err.message);
+    console.error('[Auth] signup-request error:', err.message);
     return c.json({ error: err.message }, 500);
   }
 });

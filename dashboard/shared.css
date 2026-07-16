@@ -90,6 +90,31 @@ nav {
 .profile-dropdown button.danger { color: var(--danger); }
 .profile-dropdown svg { width: 15px; height: 15px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; }
 
+/* ── SIDE PANEL (admin: pending signup detail) ── */
+.side-panel-overlay {
+  display: none; position: fixed; inset: 0; z-index: 550;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+}
+.side-panel-overlay.open { display: block; }
+.side-panel {
+  position: fixed; top: 0; right: 0; height: 100vh; width: 100%; max-width: 420px;
+  background: var(--surface); border-left: 1px solid var(--border-hover);
+  box-shadow: -12px 0 40px rgba(0,0,0,0.5); z-index: 551;
+  transform: translateX(100%); transition: transform 0.22s ease;
+  padding: 1.75rem; overflow-y: auto;
+}
+.side-panel-overlay.open .side-panel { transform: translateX(0); }
+.side-panel-close {
+  position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none;
+  color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 4px;
+}
+.side-panel-close:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+.side-panel-label {
+  font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-top: 1.1rem; margin-bottom: 0.3rem;
+}
+.side-panel-value { font-size: 0.95rem; color: var(--text); word-break: break-word; }
+
 /* ── MODAL ── */
 .modal-overlay {
   display: none; position: fixed; inset: 0; z-index: 500;

@@ -96,16 +96,30 @@ document.addEventListener('click', () => {
 
 // ── Panel navigation ──────────────────────────────────────────────────────────
 function showPane(id) {
-  ['pane-main','pane-key','pane-forgot'].forEach(p => {
+  ['pane-main','pane-details','pane-key','pane-forgot'].forEach(p => {
     const el = document.getElementById(p);
     if (el) el.style.display = p === id ? '' : 'none';
   });
 }
 
-// ── Sign in or request a trial by email — the single entry point ─────────────
+// ── Small helper: fetch with a timeout so a slow/cold-starting API doesn't
+// just look like "nothing happened" — it fails fast with a clear message.
+async function fetchWithTimeout(url, opts = {}, ms = 20000) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...opts, signal: controller.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+let _pendingSignupEmail = '';
+
+// ── Step 1: check the email — the single entry point on pane-main ────────────
 // Existing, approved accounts: logs straight into the dashboard.
-// New or still-pending accounts: submits a trial request for manual approval —
-// no dashboard access is granted until it shows up approved on the admin side.
+// Existing, pending accounts: shows the "still under review" message.
+// Unknown emails: moves to pane-details to collect business name + phone.
 async function authContinue() {
   const emailField = document.getElementById('magicEmail');
   const email = (emailField?.value || '').trim().toLowerCase();
@@ -119,27 +133,36 @@ async function authContinue() {
   btn.disabled = true;
   btn.textContent = 'Continuing…';
   if (err) err.textContent = '';
+  if (succ) succ.style.display = 'none';
 
   try {
-    const r = await fetch(`${API}/auth/provision-email`, {
+    const r = await fetchWithTimeout(`${API}/auth/provision-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
     const data = await r.json();
+    btn.disabled = false;
+    btn.textContent = 'Continue →';
 
     if (!r.ok || data.error) {
-      btn.disabled = false;
-      btn.textContent = 'Continue →';
       showModalErr(data.error || 'Could not connect. Try again in a moment.', 'magicErr');
       return;
     }
 
+    if (data.exists === false) {
+      // Brand new email — collect a couple more details before we create anything.
+      _pendingSignupEmail = email;
+      try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
+      const emailPreview = document.getElementById('detailsEmailPreview');
+      if (emailPreview) emailPreview.textContent = email;
+      showPane('pane-details');
+      setTimeout(() => document.getElementById('detailsBizName')?.focus(), 100);
+      return;
+    }
+
     if (data.pending) {
-      // Signup request received — no session, no dashboard access yet.
-      btn.disabled = false;
-      btn.textContent = 'Continue →';
-      if (err) err.textContent = '';
+      // Signup request already on file — no session, no dashboard access yet.
       if (succ) succ.style.display = '';
       try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
       return;
@@ -148,13 +171,64 @@ async function authContinue() {
     // Existing, approved account — straight into the dashboard.
     try { localStorage.setItem('syphir_remembered_email', email); } catch(_) {}
     saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email }, true);
-    btn.disabled = false;
-    btn.textContent = 'Continue →';
     goToDashboard(data.key, data.org_name);
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Continue →';
-    showModalErr('Could not connect. Try again in a moment.', 'magicErr');
+    console.error('Syphir: authContinue failed:', e);
+    if (e.name === 'AbortError') {
+      showModalErr('Still connecting — our server may be waking up. Try again in a few seconds.', 'magicErr');
+    } else {
+      showModalErr('Could not connect. Try again in a moment.', 'magicErr');
+    }
+  }
+}
+
+// ── Step 2: submit business name + phone to actually create the trial request ─
+async function submitSignupDetails() {
+  const bizName = (document.getElementById('detailsBizName')?.value || '').trim();
+  const phone   = (document.getElementById('detailsPhone')?.value || '').trim();
+  const err     = document.getElementById('detailsErr');
+  const succ    = document.getElementById('detailsSuccess');
+  const btn     = document.getElementById('detailsBtn');
+
+  if (!bizName) {
+    if (err) err.textContent = 'Enter your business name.';
+    return;
+  }
+  if (!_pendingSignupEmail) {
+    // Safety net — shouldn't happen, but don't let them submit with no email.
+    showPane('pane-main');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  if (err) err.textContent = '';
+
+  try {
+    const r = await fetchWithTimeout(`${API}/auth/signup-request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _pendingSignupEmail, business_name: bizName, phone }),
+    });
+    const data = await r.json();
+    btn.disabled = false;
+    btn.textContent = 'Request Trial →';
+
+    if (!r.ok || data.error) {
+      if (err) err.textContent = data.error || 'Could not connect. Try again in a moment.';
+      return;
+    }
+
+    if (succ) succ.style.display = '';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Request Trial →';
+    console.error('Syphir: submitSignupDetails failed:', e);
+    if (err) err.textContent = e.name === 'AbortError'
+      ? 'Still connecting — our server may be waking up. Try again in a few seconds.'
+      : 'Could not connect. Try again in a moment.';
   }
 }
 
@@ -249,6 +323,13 @@ function openModal() {
     const field = document.getElementById('magicEmail');
     if (remembered && field) field.value = remembered;
   } catch(_) {}
+  // Reset any stale state from a previous open
+  const detailsSucc = document.getElementById('detailsSuccess');
+  if (detailsSucc) detailsSucc.style.display = 'none';
+  const detailsBiz = document.getElementById('detailsBizName');
+  if (detailsBiz) detailsBiz.value = '';
+  const detailsPhone = document.getElementById('detailsPhone');
+  if (detailsPhone) detailsPhone.value = '';
   setTimeout(() => document.getElementById('magicEmail')?.focus(), 100);
 }
 
@@ -277,6 +358,12 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNavAuthState();
   document.getElementById('magicEmail')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') authContinue();
+  });
+  document.getElementById('detailsBizName')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitSignupDetails();
+  });
+  document.getElementById('detailsPhone')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitSignupDetails();
   });
   document.getElementById('keyInput')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleKey();
