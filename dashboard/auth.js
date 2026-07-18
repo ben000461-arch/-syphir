@@ -53,10 +53,15 @@ const AUTH_MODAL_HTML = `
       </div>
       <div class="err-msg" id="detailsErr"></div>
       <button class="modal-btn" onclick="submitSignupDetails()" id="detailsBtn">Request Trial →</button>
+    </div>
 
-      <div id="detailsSuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#22c55e;line-height:1.5;">
-        ✓ Got it — we review every signup personally. You'll get an email with your dashboard key once it's approved (usually within a day).
-      </div>
+    <!-- ── SUBMITTED panel (trial under review) ── -->
+    <div id="pane-submitted" style="display:none;text-align:center;padding:8px 0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;">✓</div>
+      <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Welcome to Syphir!</h2>
+      <p class="modal-sub" style="margin-bottom:6px;line-height:1.55;">Your trial request is <strong style="color:#22c55e;">under review</strong>.</p>
+      <p class="modal-sub" style="margin-bottom:20px;line-height:1.55;">We personally review every signup. You'll get an email the moment it's approved — with your dashboard key and a link to log in and access your logs.</p>
+      <button class="modal-btn" onclick="closeModal()">Got it</button>
     </div>
 
     <!-- ── LICENSE KEY panel ── -->
@@ -201,7 +206,7 @@ document.addEventListener('click', () => {
 
 // ── Panel navigation ──────────────────────────────────────────────────────────
 function showPane(id) {
-  ['pane-main','pane-details','pane-key','pane-forgot'].forEach(p => {
+  ['pane-main','pane-details','pane-submitted','pane-key','pane-forgot'].forEach(p => {
     const el = document.getElementById(p);
     if (el) el.style.display = p === id ? '' : 'none';
   });
@@ -294,7 +299,6 @@ async function submitSignupDetails() {
   const bizName = (document.getElementById('detailsBizName')?.value || '').trim();
   const phone   = (document.getElementById('detailsPhone')?.value || '').trim();
   const err     = document.getElementById('detailsErr');
-  const succ    = document.getElementById('detailsSuccess');
   const btn     = document.getElementById('detailsBtn');
 
   if (!bizName) {
@@ -317,16 +321,17 @@ async function submitSignupDetails() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: _pendingSignupEmail, business_name: bizName, phone }),
     });
-    const data = await r.json();
+    const data = await r.json().catch(() => ({}));
     btn.disabled = false;
     btn.textContent = 'Request Trial →';
 
     if (!r.ok || data.error) {
-      if (err) err.textContent = data.error || 'Could not connect. Try again in a moment.';
+      if (err) err.textContent = data.error || `Something went wrong (${r.status}). Try again in a moment.`;
       return;
     }
 
-    if (succ) succ.style.display = '';
+    // Success — show the dedicated "trial under review" welcome screen.
+    showPane('pane-submitted');
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Request Trial →';
@@ -429,12 +434,12 @@ function openModal() {
     if (remembered && field) field.value = remembered;
   } catch(_) {}
   // Reset any stale state from a previous open
-  const detailsSucc = document.getElementById('detailsSuccess');
-  if (detailsSucc) detailsSucc.style.display = 'none';
   const detailsBiz = document.getElementById('detailsBizName');
   if (detailsBiz) detailsBiz.value = '';
   const detailsPhone = document.getElementById('detailsPhone');
   if (detailsPhone) detailsPhone.value = '';
+  const detailsErr = document.getElementById('detailsErr');
+  if (detailsErr) detailsErr.textContent = '';
   setTimeout(() => document.getElementById('magicEmail')?.focus(), 100);
 }
 

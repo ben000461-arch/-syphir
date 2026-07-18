@@ -873,16 +873,28 @@ select option{background:var(--bg3);color:var(--text);}
 <script>
 const API = 'https://syphir-api.onrender.com';
 const _SESSION_KEY = 'syphir_session', _SESSION_TTL = 8 * 60 * 60 * 1000;
+const _REMEMBER_KEY = 'syphir_remember', _REMEMBER_TTL = 30 * 24 * 60 * 60 * 1000;
 function getSession() {
   try {
     const s = JSON.parse(sessionStorage.getItem(_SESSION_KEY) || 'null');
-    if (!s || !s.key) return null;
-    if (Date.now() - s.authenticated_at > _SESSION_TTL) { sessionStorage.removeItem(_SESSION_KEY); return null; }
-    return s;
-  } catch(_) { return null; }
+    if (s && s.key && Date.now() - s.authenticated_at <= _SESSION_TTL) return s;
+  } catch(_) {}
+  // Fall back to the 30-day remembered session (shared with auth.js)
+  try {
+    const r = JSON.parse(localStorage.getItem(_REMEMBER_KEY) || 'null');
+    if (r && r.key && Date.now() - r.authenticated_at <= _REMEMBER_TTL) {
+      try { sessionStorage.setItem(_SESSION_KEY, JSON.stringify(r)); } catch(_) {}
+      return r;
+    }
+  } catch(_) {}
+  return null;
 }
 function saveSession(data) {
-  try { sessionStorage.setItem(_SESSION_KEY, JSON.stringify({ ...data, authenticated_at: Date.now() })); } catch(_) {}
+  const payload = { ...data, authenticated_at: Date.now() };
+  // Session (8hr) + remembered (30 days) so the profile icon persists on reopen.
+  try { sessionStorage.setItem(_SESSION_KEY, JSON.stringify(payload)); } catch(_) {}
+  try { localStorage.setItem(_REMEMBER_KEY, JSON.stringify(payload)); } catch(_) {}
+  try { if (data.email) localStorage.setItem('syphir_remembered_email', data.email); } catch(_) {}
 }
 
 const params = new URLSearchParams(window.location.search);

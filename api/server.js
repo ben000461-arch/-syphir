@@ -1059,15 +1059,15 @@ app.post("/admin/approve-signup", async (c) => {
           subject: `You're approved — welcome to Syphir 🛡️`,
           html: `
             <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
-              <div style="font-size:22px;font-weight:700;margin-bottom:8px;">You're in. 🛡️</div>
-              <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">Your Syphir trial is approved and active for the next 7 days. Let's get you started — pick the plan that fits your team and you'll be protecting data in minutes.</p>
-              <a href="https://syphir.vercel.app/dashboard/pricing.html?key=${bizKey}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Get Started →</a>
+              <div style="font-size:22px;font-weight:700;margin-bottom:8px;">Your trial has begun. 🛡️</div>
+              <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">You're approved and your Syphir trial is active for the next 7 days. Log in to access your dashboard and start reviewing your logs.</p>
+              <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Log in to your dashboard →</a>
               <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:20px;">
                 <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY</div>
                 <div style="font-size:20px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
-                <div style="font-size:11px;color:#4a5568;margin-top:8px;">Keep this safe — it's your login.</div>
+                <div style="font-size:11px;color:#4a5568;margin-top:8px;">Keep this safe — it's your login. Or just sign in with this email at <a href="https://syphir.vercel.app" style="color:#4db8f0;">syphir.vercel.app</a>.</div>
               </div>
-              <p style="color:#4a5568;font-size:12px;line-height:1.6;">Already picked a plan? Skip straight to your <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}" style="color:#4db8f0;">dashboard</a>. Questions? Just reply to this email.</p>
+              <p style="color:#4a5568;font-size:12px;line-height:1.6;">Want to pick a plan now? <a href="https://syphir.vercel.app/dashboard/pricing.html?key=${bizKey}" style="color:#4db8f0;">View plans</a>. Questions? Just reply to this email.</p>
             </div>
           `,
         });
@@ -1823,25 +1823,47 @@ app.post('/auth/signup-request', async (c) => {
     const bizKey = genKey();
     const empKey = genEmpKey();
 
-    const newOrg = await db('organizations', {
-      method: 'POST', prefer: 'return=representation',
-      body: JSON.stringify({
-        name: orgName, admin_email: userEmail, phone: userPhone, plan: 'Demo',
-        active: false, signup_status: 'pending',
-      }),
-    });
+    // Create the org. If the optional signup_status/phone columns aren't in the
+    // schema yet, fall back to a minimal insert so signup still works.
+    let newOrg;
+    try {
+      newOrg = await db('organizations', {
+        method: 'POST', prefer: 'return=representation',
+        body: JSON.stringify({
+          name: orgName, admin_email: userEmail, phone: userPhone, plan: 'Demo',
+          active: false, signup_status: 'pending',
+        }),
+      });
+    } catch (colErr) {
+      console.warn('[Auth] Full org insert failed, retrying minimal:', colErr.message);
+      newOrg = await db('organizations', {
+        method: 'POST', prefer: 'return=representation',
+        body: JSON.stringify({
+          name: orgName, admin_email: userEmail, plan: 'Demo', active: false,
+        }),
+      });
+    }
     const orgId = newOrg?.[0]?.id;
     if (!orgId) return c.json({ error: 'Failed to create organization' }, 500);
 
     // Keys are created inactive — validate-key naturally rejects them until approved.
-    await db('license_keys', {
-      method: 'POST', prefer: 'return=minimal',
-      body: JSON.stringify({ key: bizKey, org_id: orgId, key_type: 'business', status: 'pending' }),
-    });
-    await db('license_keys', {
-      method: 'POST', prefer: 'return=minimal',
-      body: JSON.stringify({ key: empKey, org_id: orgId, key_type: 'employee', status: 'pending' }),
-    });
+    // Fall back to 'inactive' if the 'pending' status value isn't accepted.
+    async function makeKey(key, keyType) {
+      try {
+        await db('license_keys', {
+          method: 'POST', prefer: 'return=minimal',
+          body: JSON.stringify({ key, org_id: orgId, key_type: keyType, status: 'pending' }),
+        });
+      } catch (kErr) {
+        console.warn('[Auth] Key insert (pending) failed, retrying inactive:', kErr.message);
+        await db('license_keys', {
+          method: 'POST', prefer: 'return=minimal',
+          body: JSON.stringify({ key, org_id: orgId, key_type: keyType, status: 'inactive' }),
+        });
+      }
+    }
+    await makeKey(bizKey, 'business');
+    await makeKey(empKey, 'employee');
 
     console.log(`[Auth] New signup request (pending approval): ${orgName} (${userEmail}) ${userPhone}`);
 
