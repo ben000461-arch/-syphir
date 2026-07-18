@@ -1,5 +1,110 @@
 // ── SYPHIR AUTH ───────────────────────────────────────────────────────────────
 const API = 'https://syphir-api.onrender.com';
+
+// ── SHARED AUTH MODAL ─────────────────────────────────────────────────────────
+// Single source of truth for the login/signup modal — injected into every page
+// that has an empty <div id="authModalMount"></div>. Edit the markup here once
+// and it's live everywhere; no more hand-syncing copies across HTML files.
+const AUTH_MODAL_HTML = `
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="max-width:400px;">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-logo">
+      <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+      Syphir
+    </div>
+
+    <!-- ── MAIN panel ── -->
+    <div id="pane-main">
+      <h2 style="font-size:1.15rem;font-weight:700;margin-bottom:4px;">Sign in or create your account</h2>
+      <p class="modal-sub" style="margin-bottom:20px;">New here? Request a free 7-day trial — we review every signup personally, no credit card required.</p>
+
+      <!-- Email -->
+      <div class="field">
+        <label>Business email</label>
+        <input type="email" id="magicEmail" placeholder="you@company.com" autocomplete="email"/>
+      </div>
+      <div class="err-msg" id="magicErr"></div>
+      <button class="modal-btn" onclick="authContinue()" id="magicBtn">Continue →</button>
+
+      <div id="magicSuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#22c55e;line-height:1.5;">
+        ✓ Got it — we review every signup personally. You'll get an email with your dashboard key once it's approved (usually within a day).
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:11.5px;">
+        <a href="#" onclick="showPane('pane-key');return false;" style="color:#6366f1;text-decoration:none;">Use license key instead</a>
+        <a href="#" onclick="showPane('pane-forgot');return false;" style="color:#475569;text-decoration:none;">Forgot everything?</a>
+      </div>
+    </div>
+
+    <!-- ── DETAILS panel (new signup) ── -->
+    <div id="pane-details" style="display:none;">
+      <button onclick="showPane('pane-main')" style="background:none;border:none;color:#475569;font-size:12px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back</button>
+      <h2 style="font-size:1.15rem;font-weight:700;margin-bottom:4px;">Tell us about your business</h2>
+      <p class="modal-sub" style="margin-bottom:16px;">Signing up as <strong id="detailsEmailPreview" style="color:#a89af7;"></strong></p>
+
+      <div class="field">
+        <label>Business name</label>
+        <input type="text" id="detailsBizName" placeholder="e.g. Smile Dental Group" autocomplete="organization"/>
+      </div>
+      <div class="field">
+        <label>Phone number</label>
+        <input type="tel" id="detailsPhone" placeholder="(555) 123-4567" autocomplete="tel"/>
+      </div>
+      <div class="err-msg" id="detailsErr"></div>
+      <button class="modal-btn" onclick="submitSignupDetails()" id="detailsBtn">Request Trial →</button>
+
+      <div id="detailsSuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#22c55e;line-height:1.5;">
+        ✓ Got it — we review every signup personally. You'll get an email with your dashboard key once it's approved (usually within a day).
+      </div>
+    </div>
+
+    <!-- ── LICENSE KEY panel ── -->
+    <div id="pane-key" style="display:none;">
+      <button onclick="showPane('pane-main')" style="background:none;border:none;color:#475569;font-size:12px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back</button>
+      <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Enter your license key</h2>
+      <p class="modal-sub" style="margin-bottom:16px;">Found in your welcome email — looks like <strong style="color:#a89af7;">SYP-XXXX-XXXX-XXXX</strong></p>
+      <div class="field">
+        <label>License Key</label>
+        <input class="mono" id="keyInput" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" autocomplete="off"/>
+        <div class="err-msg" id="keyErr"></div>
+      </div>
+      <button class="modal-btn" onclick="handleKey()" id="keyBtn">Open Dashboard →</button>
+      <div style="text-align:center;margin-top:12px;font-size:11.5px;color:#475569;">
+        No key? <a href="#" onclick="showPane('pane-main');return false;" style="color:#6366f1;text-decoration:none;">Sign in with email</a>
+      </div>
+    </div>
+
+    <!-- ── FORGOT panel ── -->
+    <div id="pane-forgot" style="display:none;">
+      <button onclick="showPane('pane-main')" style="background:none;border:none;color:#475569;font-size:12px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back</button>
+      <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Account recovery</h2>
+      <p class="modal-sub" style="margin-bottom:16px;">We'll look up your account and resend your dashboard key to your email.</p>
+      <div class="field">
+        <label>Email you signed up with</label>
+        <input type="email" id="recoveryEmail" placeholder="you@company.com" autocomplete="email"/>
+        <div class="err-msg" id="recoveryErr"></div>
+      </div>
+      <button class="modal-btn" onclick="handleRecovery()" id="recoveryBtn">Send recovery email</button>
+      <div id="recoverySuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#22c55e;line-height:1.5;">
+        ✓ If that email has an account, we've sent your dashboard key and a sign-in link.
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:11.5px;color:#475569;">
+        Still stuck? Email us at <a href="mailto:syphir26@gmail.com" style="color:#6366f1;text-decoration:none;">syphir26@gmail.com</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+`;
+
+(function mountAuthModal() {
+  const mount = document.getElementById('authModalMount');
+  if (mount && !document.getElementById('loginModal')) {
+    mount.outerHTML = AUTH_MODAL_HTML;
+  }
+})();
+
 const SESSION_KEY   = 'syphir_session';
 const REMEMBER_KEY  = 'syphir_remember';
 const SESSION_TTL   = 8 * 60 * 60 * 1000;   // 8 hours
