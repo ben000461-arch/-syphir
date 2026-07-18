@@ -526,6 +526,41 @@ app.use("/*", cors({
   credentials: false,
 }));
 
+// ── RATE LIMITING ──────────────────────────────────────────────────────────
+// Lightweight in-memory limiter. Tracks requests per IP per bucket in a plain
+// Map and prunes expired entries. No external service needed. Returns true when
+// the request should be blocked (caller responds 429). Real users never hit the
+// caps; this just stops brute-force and spam.
+const _rlStore = new Map();
+function isRateLimited(c, bucket, max, windowMs) {
+  const ip =
+    (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
+    c.req.header("x-real-ip") ||
+    "unknown";
+  const now = Date.now();
+  const mapKey = `${bucket}:${ip}`;
+  let entry = _rlStore.get(mapKey);
+  if (!entry || now > entry.reset) {
+    entry = { count: 0, reset: now + windowMs };
+    _rlStore.set(mapKey, entry);
+  }
+  entry.count++;
+  // Opportunistic cleanup so the Map doesn't grow unbounded
+  if (_rlStore.size > 5000) {
+    for (const [k, v] of _rlStore) { if (now > v.reset) _rlStore.delete(k); }
+  }
+  return entry.count > max;
+}
+
+// ── ADMIN AUTH ─────────────────────────────────────────────────────────────
+// Single source of truth for admin checks. Fails closed: if ADMIN_SECRET is
+// unset (empty), NO request is authorized — even one sending an empty header.
+function requireAdmin(c) {
+  if (!ADMIN_SECRET) return false;                       // env not configured → deny all
+  const provided = c.req.header("X-Admin-Secret");
+  return !!provided && provided === ADMIN_SECRET;
+}
+
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
   return c.json({ status: "ok", service: "Syphir API", version: "2.11.0", db: "supabase" });
@@ -534,12 +569,13 @@ app.get("/health", (c) => {
 // ── ADMIN PING ─────────────────────────────────────────────────────────────
 app.get("/admin/ping", (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   return c.json({ ok: true });
 });
 
 // ── VALIDATE KEY ───────────────────────────────────────────────────────────
 app.post("/validate-key", async (c) => {
+  if (isRateLimited(c, "validate-key", 30, 60_000)) return c.json({ valid: false, message: "Too many attempts. Slow down." }, 429);
   const { key, context, email } = await c.req.json().catch(() => ({}));
   if (!key) return c.json({ valid: false, message: "key is required" }, 400);
   try {
@@ -578,6 +614,7 @@ app.post("/validate-key", async (c) => {
 
 // ── SCAN ───────────────────────────────────────────────────────────────────
 app.post("/scan", async (c) => {
+  if (isRateLimited(c, "scan", 120, 60_000)) return c.json({ valid: false, message: "Rate limit exceeded." }, 429);
   const { text, key, user_email, ai_tool, url } = await c.req.json().catch(() => ({}));
   if (!key) return c.json({ valid: false, message: "key is required" }, 400);
   let org;
@@ -677,6 +714,8 @@ app.post("/log-incident", async (c) => {
 // ── EMP KEY ────────────────────────────────────────────────────────────────
 app.get("/emp-key/:org_id", async (c) => {
   const { org_id } = c.req.param();
+  const key = c.req.query("key");
+  if (!(await keyOwnsOrg(key, org_id))) return c.json({ error: "Unauthorized" }, 401);
   try {
     const rows = await db(`license_keys?org_id=eq.${encodeURIComponent(org_id)}&key_type=eq.employee&status=eq.active&select=key`);
     if (!rows || rows.length === 0) return c.json({ emp_key: null });
@@ -789,7 +828,7 @@ app.patch("/org/:org_id", async (c) => {
 // ── LIST ALL ORGS (admin only) ─────────────────────────────────────────────
 app.get("/admin/orgs", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   try {
     const orgs = await db("organizations?select=*&order=created_at.desc");
     const keys = await db("license_keys?status=eq.active&select=*");
@@ -810,9 +849,25 @@ app.get("/admin/orgs", async (c) => {
   }
 });
 
-// ── INCIDENTS ──────────────────────────────────────────────────────────────
+// ── Verify a license key actually belongs to the requested org_id.
+// Returns true only if the key is active and maps to that org. This stops
+// anyone from reading another org's data by guessing its org_id.
+async function keyOwnsOrg(key, orgId) {
+  if (!key || !orgId) return false;
+  try {
+    const rows = await db(
+      `license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=org_id`
+    );
+    return !!(rows && rows.length && rows[0].org_id === orgId);
+  } catch (_) {
+    return false;
+  }
+}
+
 app.get("/incidents/:org_id", async (c) => {
   const { org_id } = c.req.param();
+  const key = c.req.query("key");
+  if (!(await keyOwnsOrg(key, org_id))) return c.json({ error: "Unauthorized" }, 401);
   try {
     const incidents = await db(`incidents?org_id=eq.${encodeURIComponent(org_id)}&order=timestamp.desc&limit=100`);
     return c.json({ incidents: incidents || [], total: incidents?.length || 0 });
@@ -823,6 +878,8 @@ app.get("/incidents/:org_id", async (c) => {
 
 app.get("/stats/:org_id", async (c) => {
   const { org_id } = c.req.param();
+  const key = c.req.query("key");
+  if (!(await keyOwnsOrg(key, org_id))) return c.json({ error: "Unauthorized" }, 401);
   try {
     const incidents = await db(`incidents?org_id=eq.${encodeURIComponent(org_id)}&select=risk_level,resolved`);
     const list = incidents || [];
@@ -849,6 +906,8 @@ app.patch("/incidents/:id/resolve", async (c) => {
 // ── TEAM ───────────────────────────────────────────────────────────────────
 app.get("/team/:org_id", async (c) => {
   const { org_id } = c.req.param();
+  const key = c.req.query("key");
+  if (!(await keyOwnsOrg(key, org_id))) return c.json({ error: "Unauthorized" }, 401);
   try {
     const users = await db(`users?org_id=eq.${encodeURIComponent(org_id)}&order=invited_at.desc`);
     return c.json({ users: users || [] });
@@ -915,7 +974,7 @@ app.post("/invite-user", async (c) => {
 // ── ADMIN: CREATE ORG ──────────────────────────────────────────────────────
 app.post("/admin/create-org", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   const { name, email, plan, status, key, emp_key } = await c.req.json().catch(() => ({}));
   if (!name || !key) return c.json({ error: "name and key are required" }, 400);
 
@@ -980,6 +1039,7 @@ app.post("/admin/create-org", async (c) => {
 
 // ── CONTACT SUBMISSION ────────────────────────────────────────────────────
 app.post("/contact", async (c) => {
+  if (isRateLimited(c, "contact", 5, 60_000)) return c.json({ error: "Too many messages. Try again shortly." }, 429);
   const { name, email, company, message } = await c.req.json().catch(() => ({}));
   if (!name || !email || !message) return c.json({ error: "name, email, and message are required" }, 400);
   try {
@@ -1001,6 +1061,7 @@ app.post("/contact", async (c) => {
 
 // ── NODE WAITLIST: public signup ──────────────────────────────────────────
 app.post("/node-waitlist", async (c) => {
+  if (isRateLimited(c, "node-waitlist", 5, 60_000)) return c.json({ error: "Too many attempts. Try again shortly." }, 429);
   const { email } = await c.req.json().catch(() => ({}));
   const userEmail = (email || "").trim().toLowerCase();
   if (!userEmail || !userEmail.includes("@")) return c.json({ error: "Valid email required" }, 400);
@@ -1030,7 +1091,7 @@ app.post("/node-waitlist", async (c) => {
 // ── ADMIN: LIST NODE WAITLIST ─────────────────────────────────────────────
 app.get("/admin/node-waitlist", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   try {
     const entries = await db("node_waitlist?select=*&order=created_at.desc");
     return c.json({ waitlist: entries || [] });
@@ -1042,7 +1103,7 @@ app.get("/admin/node-waitlist", async (c) => {
 // ── ADMIN: LIST CONTACT SUBMISSIONS ───────────────────────────────────────
 app.get("/admin/submissions", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   try {
     const submissions = await db("contact_submissions?select=*&order=submitted_at.desc");
     return c.json({ submissions: submissions || [] });
@@ -1054,7 +1115,7 @@ app.get("/admin/submissions", async (c) => {
 // ── ADMIN: LIST PENDING SELF-SERVE SIGNUPS ────────────────────────────────
 app.get("/admin/pending-signups", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   try {
     const orgs = await db("organizations?signup_status=eq.pending&select=*&order=created_at.desc");
     return c.json({ signups: orgs || [] });
@@ -1066,7 +1127,7 @@ app.get("/admin/pending-signups", async (c) => {
 // ── ADMIN: APPROVE A PENDING SIGNUP — activates the 7-day trial ──────────
 app.post("/admin/approve-signup", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   const { org_id } = await c.req.json().catch(() => ({}));
   if (!org_id) return c.json({ error: "org_id required" }, 400);
 
@@ -1124,7 +1185,7 @@ app.post("/admin/approve-signup", async (c) => {
 // ── ADMIN: REJECT A PENDING SIGNUP ────────────────────────────────────────
 app.post("/admin/reject-signup", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   const { org_id } = await c.req.json().catch(() => ({}));
   if (!org_id) return c.json({ error: "org_id required" }, 400);
 
@@ -1149,7 +1210,7 @@ app.post("/admin/reject-signup", async (c) => {
 // ── ADMIN: DEDUP ORGS ─────────────────────────────────────────────────────
 app.post("/admin/dedup-orgs", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   try {
     const orgs = await db("organizations?select=*&order=created_at.asc");
     const keys = await db("license_keys?status=eq.active&select=*");
@@ -1183,7 +1244,7 @@ app.post("/admin/dedup-orgs", async (c) => {
 // ── ADMIN: UPDATE ORG ─────────────────────────────────────────────────────
 app.patch("/admin/update-org", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
 
   const { org_id, name, admin_email, plan, status } = await c.req.json().catch(() => ({}));
   if (!org_id) return c.json({ error: "org_id is required" }, 400);
@@ -1222,7 +1283,7 @@ app.patch("/admin/update-org", async (c) => {
 // ── ADMIN: REMOVE ORG ──────────────────────────────────────────────────────
 app.delete("/admin/remove-org/:key", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   const { key } = c.req.param();
   try {
     // Look up org_id (check all key statuses so already-inactive keys still resolve)
@@ -1724,7 +1785,7 @@ async function sendExpiryNoticesToAllOrgs() {
 // ── ADMIN: Clear expiry — for paid orgs or manual overrides ────────────────
 app.post("/admin/clear-expiry", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   const { org_id, key } = await c.req.json().catch(() => ({}));
 
   // Resolve org_id from key if not provided directly
@@ -1754,7 +1815,7 @@ app.post("/admin/clear-expiry", async (c) => {
 // ── WEEKLY REPORTS ─────────────────────────────────────────────────────────
 app.post("/admin/send-weekly-reports", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   const body = await c.req.json().catch(() => ({}));
   return c.json(await sendWeeklyReportsToAllOrgs(body.org_id || null));
 });
@@ -1762,14 +1823,14 @@ app.post("/admin/send-weekly-reports", async (c) => {
 // ── EXPIRY WARNINGS ─────────────────────────────────────────────────────────
 app.post("/admin/send-expiry-warnings", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   return c.json(await sendExpiryWarningsToAllOrgs());
 });
 
 // ── EXPIRY NOTICES ──────────────────────────────────────────────────────────
 app.post("/admin/send-expiry-notices", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
-  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
   return c.json(await sendExpiryNoticesToAllOrgs());
 });
 
@@ -1794,6 +1855,7 @@ app.post('/validate-key-by-email', async (c) => {
 // ── AUTH: Provision by email only (no Supabase token needed) ────────────────
 // Used by the simple "sign in with email" flow — no magic link wait.
 app.post('/auth/provision-email', async (c) => {
+  if (isRateLimited(c, "provision-email", 20, 60_000)) return c.json({ error: "Too many attempts. Slow down." }, 429);
   const { email } = await c.req.json().catch(() => ({}));
   if (!email || !email.includes('@')) return c.json({ error: 'Valid email required' }, 400);
 
@@ -1840,6 +1902,7 @@ app.post('/auth/provision-email', async (c) => {
 // ── AUTH: Submit a trial request — creates a PENDING org, no dashboard access yet ──
 // Trial + keys only activate once approved from the admin panel.
 app.post('/auth/signup-request', async (c) => {
+  if (isRateLimited(c, "signup-request", 10, 60_000)) return c.json({ error: "Too many attempts. Try again shortly." }, 429);
   const { email, business_name, phone } = await c.req.json().catch(() => ({}));
   if (!email || !email.includes('@')) return c.json({ error: 'Valid email required' }, 400);
   if (!business_name || !business_name.trim()) return c.json({ error: 'Business name required' }, 400);
@@ -2083,6 +2146,7 @@ app.post('/auth/provision', async (c) => {
 
 // ── AUTH: Account recovery — resend key to email ─────────────────────────────
 app.post('/auth/recover', async (c) => {
+  if (isRateLimited(c, "recover", 5, 60_000)) return c.json({ error: "Too many attempts. Try again shortly." }, 429);
   const { email } = await c.req.json().catch(() => ({}));
   if (!email) return c.json({ sent: false }, 400);
 

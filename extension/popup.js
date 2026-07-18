@@ -97,7 +97,7 @@ async function showActive(orgName, key) {
     const orgRes = await fetch(`${API}/org/${key}`);
     const org    = await orgRes.json();
     if (org && org.id) {
-      const s = await (await fetch(`${API}/stats/${org.id}`)).json();
+      const s = await (await fetch(`${API}/stats/${org.id}?key=${encodeURIComponent(key)}`)).json();
       document.getElementById("stTotal").textContent = s.total_incidents || 0;
       document.getElementById("stHigh").textContent  = s.high_risk       || 0;
       document.getElementById("stMed").textContent   = s.medium_risk     || 0;
