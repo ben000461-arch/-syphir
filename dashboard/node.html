@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syphir Node — Network Security Appliance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0b0e14;--bg2:#111318;--bg3:#16191f;--bg4:#1c1f27;
+  --border:#1e2230;--border2:#252a38;
+  --blue:#3b82f6;--blue-l:#60a5fa;--blue-d:#1d4ed8;--blue-g:rgba(59,130,246,0.08);
+  --green:#22c55e;--red:#ef4444;--yellow:#eab308;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--text4:#2d3748;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+a{color:inherit;text-decoration:none;}
+
+/* Top bar */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(11,14,20,0.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-0.01em;}
+.back-link{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--text2);
+  padding:7px 14px;border:1px solid var(--border2);border-radius:8px;transition:all 0.15s;}
+.back-link:hover{color:var(--text);border-color:var(--text3);}
+
+.wrap{max-width:1000px;margin:0 auto;padding:0 28px;}
+
+/* Hero */
+.hero{padding:88px 0 72px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:"";position:absolute;top:-120px;left:50%;transform:translateX(-50%);
+  width:620px;height:620px;background:radial-gradient(circle,rgba(59,130,246,0.14),transparent 62%);
+  pointer-events:none;z-index:0;}
+.hero > *{position:relative;z-index:1;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(59,130,246,0.25);
+  padding:6px 14px;border-radius:100px;margin-bottom:26px;}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--blue-l);animation:pulse 2.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+.hero h1{font-size:52px;font-weight:800;letter-spacing:-0.03em;line-height:1.04;margin-bottom:22px;}
+.hero h1 em{font-style:normal;background:linear-gradient(120deg,var(--blue-l),#a78bfa);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.hero p{font-size:17px;color:var(--text2);max-width:560px;margin:0 auto 34px;line-height:1.6;}
+.hero-cta{display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;
+  padding:13px 26px;border-radius:10px;font-size:14px;font-weight:600;transition:background 0.15s;}
+.btn-primary:hover{background:var(--blue-d);}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;color:var(--text);
+  padding:13px 24px;border:1px solid var(--border2);border-radius:10px;font-size:14px;font-weight:600;transition:border-color 0.15s;}
+.btn-ghost:hover{border-color:var(--text3);}
+
+/* Section */
+.section{padding:64px 0;border-top:1px solid var(--border);}
+.section-head{text-align:center;margin-bottom:48px;}
+.section-head .kicker{font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.section-head h2{font-size:32px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;}
+.section-head p{font-size:15px;color:var(--text2);max-width:520px;margin:0 auto;}
+
+/* Feature grid */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:26px;transition:border-color 0.15s;}
+.card:hover{border-color:var(--border2);}
+.card-icon{width:40px;height:40px;border-radius:10px;background:var(--blue-g);border:1px solid rgba(59,130,246,0.2);
+  display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:16px;}
+.card h3{font-size:16px;font-weight:700;margin-bottom:8px;}
+.card p{font-size:13.5px;color:var(--text2);line-height:1.6;}
+
+/* How it works */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:step;}
+.step{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:26px;position:relative;}
+.step-num{font-size:12px;font-weight:700;color:var(--blue-l);font-family:'JetBrains Mono',monospace;margin-bottom:14px;}
+.step h3{font-size:15px;font-weight:700;margin-bottom:7px;}
+.step p{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* Bundle */
+.bundle{background:linear-gradient(160deg,var(--bg2),var(--bg));border:1px solid var(--border2);
+  border-radius:18px;padding:40px;text-align:center;max-width:520px;margin:0 auto;}
+.bundle-price{font-size:40px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;}
+.bundle-price span{font-size:16px;font-weight:500;color:var(--text3);}
+.bundle-sub{font-size:14px;color:var(--text2);margin-bottom:24px;}
+.bundle-list{list-style:none;text-align:left;max-width:340px;margin:0 auto 28px;display:flex;flex-direction:column;gap:11px;}
+.bundle-list li{display:flex;gap:11px;font-size:13.5px;color:var(--text2);}
+.bundle-list .check{color:var(--green);flex-shrink:0;font-weight:700;}
+
+/* Footer CTA */
+.foot{padding:72px 0 88px;text-align:center;border-top:1px solid var(--border);}
+.foot h2{font-size:30px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px;}
+.foot p{font-size:15px;color:var(--text2);margin-bottom:28px;}
+.foot-note{font-size:12px;color:var(--text3);margin-top:20px;}
+
+@media (max-width:720px){
+  .hero h1{font-size:36px;}
+  .grid,.steps{grid-template-columns:1fr;}
+  .hero{padding:60px 0 48px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="app.html" class="brand">
+    <svg width="24" height="24" viewBox="0 0 16 16" fill="url(#sygrad)" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sygrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5AC8A8"/><stop offset="100%" stop-color="#3E7BE8"/></linearGradient></defs><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg> Syphir
+  </a>
+  <a href="app.html" class="back-link">← Back to dashboard</a>
+</div>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span>Coming Soon</span>
+    <h1>Meet <em>Syphir Node</em></h1>
+    <p>The browser extension protects what your team types into AI tools. Syphir Node protects everything else — a dedicated security appliance that plugs into your network and watches what the browser can't see.</p>
+    <div class="hero-cta">
+      <a href="mailto:syphir26@gmail.com?subject=Syphir%20Node%20waitlist" class="btn-primary">Join the waitlist →</a>
+      <a href="app.html" class="btn-ghost">Back to dashboard</a>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">What it unlocks</div>
+      <h2>Network-level protection</h2>
+      <p>Two dashboard sections come alive the moment your Node is online — the same ones you're previewing now.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">⬡</div>
+        <h3>Network Security</h3>
+        <p>Live threat detection across every device on your network. Spot port scans, brute-force attempts, data exfiltration, and connections to known malicious servers — then isolate the device with one click, without cutting its Shield connection.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⌘</div>
+        <h3>Intel commands</h3>
+        <p>Run security actions in plain English straight from your dashboard. "Isolate John's computer." "Block that IP." "Show me what talked to the internet last hour." The Node carries out the command and reports back.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">◉</div>
+        <h3>Sees what the browser can't</h3>
+        <p>The extension only sees browser activity. The Node watches every device — laptops, phones, printers, anything on the network — so shadow devices and background traffic stop being blind spots.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3>Runs on-site, privately</h3>
+        <p>Monitoring happens on the device in your office. No mirroring your whole network to the cloud — the Node processes traffic locally and sends only the alerts that matter to your dashboard.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Setup</div>
+      <h2>Plug it in. That's it.</h2>
+      <p>No IT project, no rewiring. Built for small teams without a security team.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Plug in the Node</h3>
+        <p>Connect it to power and your router. It provisions itself and links to your Syphir account automatically.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Enter your routing number</h3>
+        <p>Type the code from the sticker on the bottom of the box into your dashboard. Network Security and Intel switch on.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Watch it work</h3>
+        <p>Threats show up live, scored by confidence before any action is taken. Isolate, block, or investigate from the dashboard.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Pricing</div>
+      <h2>One device. One subscription.</h2>
+    </div>
+    <div class="bundle">
+      <div class="bundle-price">$499 <span>device, one-time</span></div>
+      <div class="bundle-sub">+ $249/mo Complete Bundle</div>
+      <ul class="bundle-list">
+        <li><span class="check">✓</span> Syphir Node appliance, pre-configured</li>
+        <li><span class="check">✓</span> Network Security + Intel dashboard access</li>
+        <li><span class="check">✓</span> Browser extension for your whole team</li>
+        <li><span class="check">✓</span> Live threat feed and one-click device isolation</li>
+        <li><span class="check">✓</span> Setup help — you're online the day it arrives</li>
+      </ul>
+      <a href="mailto:syphir26@gmail.com?subject=Syphir%20Node%20waitlist" class="btn-primary">Join the waitlist →</a>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <div class="wrap">
+    <h2>Be first when Node ships</h2>
+    <p>We're onboarding early customers now. Join the waitlist and we'll reach out with launch pricing.</p>
+    <a href="mailto:syphir26@gmail.com?subject=Syphir%20Node%20waitlist" class="btn-primary">Join the waitlist →</a>
+    <div class="foot-note">Already a Syphir customer? Your browser protection is live today — Node adds network coverage on top.</div>
+  </div>
+</div>
+
+</body>
+</html>
