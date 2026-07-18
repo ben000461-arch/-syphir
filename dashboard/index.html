@@ -3,201 +3,733 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Syphir — AI Data Protection for Small Business</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Syphir Admin — Business Management</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
-<style>
-  .hero-glow { position: absolute; top: 8%; left: 50%; transform: translateX(-50%); width: 700px; height: 450px; background: radial-gradient(ellipse, rgba(91,79,232,0.13) 0%, transparent 70%); pointer-events: none; }
-  .hero-glow2 { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 500px; height: 250px; background: radial-gradient(ellipse, rgba(0,214,143,0.07) 0%, transparent 70%); pointer-events: none; }
-  .pulse-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
-  .badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(91,79,232,0.12); border: 1px solid rgba(91,79,232,0.25); color: #a89af7; font-size: 0.78rem; font-weight: 500; padding: 0.3rem 1rem; border-radius: 100px; margin-bottom: 1.75rem; }
-  .steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 2px; margin-top: 2.5rem; }
-  .step { background: var(--surface); padding: 1.75rem; position: relative; }
-  .step:first-child { border-radius: 12px 0 0 12px; }
-  .step:last-child { border-radius: 0 12px 12px 0; }
-  .step-num { font-size: 2.25rem; font-weight: 700; color: rgba(91,79,232,0.18); line-height: 1; margin-bottom: 0.85rem; font-family: 'JetBrains Mono', monospace; }
-  .step-icon { width: 38px; height: 38px; background: rgba(91,79,232,0.12); border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.85rem; }
-  .step-icon svg { width: 19px; height: 19px; stroke: var(--accent-light); fill: none; stroke-width: 1.5; }
-  .step h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
-  .step p { color: var(--muted); font-size: 0.84rem; line-height: 1.6; }
-  .step-conn { position: absolute; top: 50%; right: -1px; transform: translateY(-50%); width: 2px; height: 36px; background: linear-gradient(to bottom, transparent, var(--accent), transparent); }
-  .flow-box { background: var(--surface); border: 1px solid rgba(91,79,232,0.18); border-radius: 14px; padding: 2rem; }
-  .flow-item { display: flex; gap: 1.1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
-  .flow-item:last-child { border-bottom: none; }
-  .flow-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(91,79,232,0.15); border: 1px solid rgba(91,79,232,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #a89af7; flex-shrink: 0; }
-  .flow-text h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; }
-  .flow-text p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
-  .flow-text code { background: var(--black); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.78rem; color: var(--accent2); font-family: 'JetBrains Mono', monospace; }
-  .industries { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.75rem; }
-  .ind-tag { background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 0.4rem 1rem; font-size: 0.84rem; color: var(--muted); }
-  .cta-box { background: linear-gradient(135deg, rgba(91,79,232,0.1), rgba(0,214,143,0.05)); border: 1px solid rgba(91,79,232,0.18); border-radius: 18px; padding: 3.5rem 2.5rem; text-align: center; max-width: 1080px; margin: 0 auto 5rem; }
-  .cta-box h2 { font-size: clamp(1.6rem, 3.5vw, 2.25rem); font-weight: 700; margin-bottom: 0.75rem; letter-spacing: -0.015em; }
-  .cta-box p { color: var(--muted); margin-bottom: 1.75rem; }
-  .cta-row { display: flex; gap: 0.75rem; max-width: 400px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
-  .cta-input { flex: 1; min-width: 200px; background: var(--black); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; color: var(--text); font-size: 0.9rem; outline: none; font-family: inherit; transition: border-color 0.15s; }
-  .cta-input:focus { border-color: var(--accent); }
-  .cta-input::placeholder { color: var(--muted2); }
-  .cta-submit { background: var(--accent); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background 0.15s; }
-  .cta-submit:hover { background: var(--accent-light); }
-</style>
 </head>
 <body>
 
-<!-- MODAL -->
-<div id="authModalMount"></div>
+<div id="adminGate" style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:var(--surface); border:1px solid rgba(91,79,232,0.3); border-radius:18px; padding:2.5rem; width:100%; max-width:380px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:2rem; font-weight:700; font-size:1.1rem;">
+      <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+      Syphir Admin
+    </div>
+    <h2 style="font-size:1.3rem; font-weight:700; margin-bottom:0.4rem; letter-spacing:-0.01em;">Admin Access</h2>
+    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1.5rem;">Enter your admin key to manage businesses.</p>
+    <div class="field">
+      <label>Admin Key</label>
+      <input class="mono" id="adminKeyIn" placeholder="SYP-ADMIN-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" style="width:100%; background:var(--black); border:1px solid var(--border); border-radius:8px; padding:0.75rem 1rem; color:var(--text); font-size:0.9rem; font-family:'JetBrains Mono',monospace; outline:none; transition:border-color 0.15s; letter-spacing:0.04em;">
+      <div id="adminGateErr" style="color:var(--danger); font-size:0.8rem; margin-top:0.4rem; display:none;"></div>
+    </div>
+    <button onclick="checkAdminKey()" style="width:100%; background:var(--accent); color:white; border:none; padding:0.85rem; border-radius:8px; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; margin-top:0.25rem; transition:background 0.15s;" onmouseover="this.style.background='#7b6df7'" onmouseout="this.style.background='var(--accent)'">
+      Enter Admin Panel →
+    </button>
+    <div style="text-align:center; margin-top:1rem;">
+      <a href="index.html" style="color:var(--muted); font-size:0.82rem; text-decoration:none;">← Back to site</a>
+    </div>
+  </div>
+</div>
 
-<!-- NAV -->
+<div id="adminPanel" style="display:none;">
 <nav>
   <a href="index.html" class="nav-logo">
     <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
     Syphir
   </a>
   <div class="nav-links">
-    <a href="how-it-works.html">How it works</a>
-    <a href="features.html">Features</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="contact.html">Contact</a>
+    <a href="index.html">Site</a>
+    <a href="admin.html" class="active">Admin Panel</a>
   </div>
-  <div id="navAuthSlot">
-    <button class="nav-btn" onclick="openModal()">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      Dashboard Login
-    </button>
-  </div>
+  <button class="nav-btn" onclick="window.location.href='index.html'" style="background:var(--surface2); color:var(--muted); border:1px solid var(--border);">Sign Out</button>
 </nav>
 
-<!-- HERO -->
-<div style="position:relative; overflow:hidden;">
-  <div class="hero-glow"></div>
-  <div class="hero-glow2"></div>
-  <div class="page-hero">
-    <div class="badge"><span class="pulse-dot"></span> Real-time AI data protection</div>
-    <h1>Stop sensitive data from<br>leaking into <em>AI tools</em></h1>
-    <p>Syphir detects when employees paste patient records, SSNs, credit cards, or API keys into ChatGPT, Claude, Grok, and more — and alerts them instantly.</p>
-    <div class="hero-actions">
-      <button class="btn btn-primary" onclick="openModal()">Access Dashboard</button>
-      <a href="how-it-works.html" class="btn btn-outline">See how it works</a>
+<div class="admin-wrap">
+  <div class="admin-header">
+    <div>
+      <h1>Business Management</h1>
+      <p style="color:var(--muted); font-size:0.88rem; margin-top:0.25rem;">Add, manage, and provision license keys for all organizations.</p>
     </div>
-    <div class="hero-proof">
-      <span>🔒 SOC 2 ready</span>
-      <div class="proof-sep"></div>
-      <span>⚡ Installs in 2 minutes</span>
-      <div class="proof-sep"></div>
-      <span>🏢 Any team. Any industry.</span>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button onclick="cleanDuplicates()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.45rem 0.85rem; border-radius:7px; font-size:0.8rem; cursor:pointer; font-family:inherit;">🧹 Clean Dupes</button>
+      <span class="admin-badge">🔐 Admin · Benny Gomez</span>
     </div>
   </div>
-</div>
 
-<!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-track">
-    <span class="ticker-item"><span class="ticker-dot"></span>ChatGPT</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Claude</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Grok</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Gemini</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Copilot</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Perplexity</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>ChatGPT</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Claude</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Grok</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Gemini</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Copilot</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Perplexity</span>
-  </div>
-</div>
+  <!-- Stats -->
+  <div class="admin-stats" id="adminStats"></div>
 
-<!-- HOW IT WORKS PREVIEW -->
-<div class="section">
-  <div class="section-eyebrow">How it works</div>
-  <div class="section-title">Three steps. Zero friction.</div>
-  <p class="section-sub">Deploys in minutes with no IT department. Employees install once, Syphir runs silently in the background.</p>
-  <div class="steps-row">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div class="step-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
-      <h3>Business gets a license key</h3>
-      <p>Your unique key links every employee to your org's dashboard automatically.</p>
-      <div class="step-conn"></div>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></div>
-      <h3>Share one install link with staff</h3>
-      <p>Employees click it and install in 60 seconds. Key is pre-baked — no typing required.</p>
-      <div class="step-conn"></div>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg></div>
-      <h3>All incidents flow to your dashboard</h3>
-      <p>Every detection shows up only in your org — completely isolated from other businesses.</p>
-    </div>
-  </div>
-  <div style="text-align:center; margin-top:2rem;">
-    <a href="how-it-works.html" class="btn btn-outline">Full walkthrough →</a>
-  </div>
-</div>
-
-<!-- INDUSTRIES -->
-<div class="section" style="padding-top:0;">
-  <div class="section-eyebrow">Built for every team</div>
-  <div class="section-title">High-stakes fields need<br>high-stakes protection</div>
-  <p class="section-sub">One data leak can trigger regulatory action, lawsuits, and lost client trust.</p>
-  <div class="industries">
-    <span class="ind-tag">🦷 Dental & Medical</span>
-    <span class="ind-tag">⚖️ Law Firms</span>
-    <span class="ind-tag">📊 Finance & Accounting</span>
-    <span class="ind-tag">🏥 Healthcare</span>
-    <span class="ind-tag">🏛️ Financial Advisors</span>
-    <span class="ind-tag">🏢 HR Departments</span>
-  </div>
-  <div style="margin-top:2.5rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start;">
-    <div class="notif-card">
-      <div class="notif-badge">!</div>
-      <div class="notif-icon-wrap"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+  <!-- Add Business Form -->
+  <div class="add-biz-form">
+    <h3>Add New Business</h3>
+    <div class="form-row">
       <div>
-        <div class="notif-title">Sensitive data detected</div>
-        <div class="notif-body">SSN and patient DOB found in your ChatGPT prompt. Remove before sending.</div>
-        <div class="notif-time">Just now · High risk</div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Business Name</label>
+        <input class="form-input" id="newBizName" placeholder="e.g. Smile Dental Group">
+      </div>
+      <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Admin Email</label>
+        <input class="form-input" id="newBizEmail" type="email" placeholder="admin@theirdomain.com">
+      </div>
+      <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Plan</label>
+        <select class="form-select" id="newBizPlan">
+          <option value="Starter">Starter — $129/mo</option>
+          <option value="Professional" selected>Professional — $299/mo</option>
+          <option value="Institution">Institution — $599/mo</option>
+          <option value="Demo">Free Demo / Pilot</option>
+        </select>
       </div>
     </div>
-    <div style="flex:1; min-width:240px; color:var(--muted); font-size:0.9rem; line-height:1.75; padding-top:0.25rem;">
-      Employees see this before their prompt is submitted. They can remove the content or acknowledge and proceed — every action is logged to your dashboard.
+    <div class="form-row">
+      <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Status</label>
+        <select class="form-select" id="newBizStatus">
+          <option value="demo">Demo / Pilot</option>
+          <option value="active">Active (Paying)</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Custom Key (optional)</label>
+        <input class="form-input" id="newBizKey" placeholder="Leave blank to auto-generate" style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button class="add-btn" onclick="addBusiness()" style="width:100%;">+ Add Business</button>
+      </div>
+    </div>
+    <div id="addErr" style="color:var(--danger); font-size:0.82rem; margin-top:0.5rem; display:none;"></div>
+  </div>
+
+  <!-- Business Table -->
+  <div class="biz-table" id="bizTable">
+    <div class="biz-table-head">
+      <div>Business</div>
+      <div>Admin Email</div>
+      <div>License Key</div>
+      <div>Status</div>
+      <div>Actions</div>
+    </div>
+    <div id="bizRows"></div>
+  </div>
+
+  <!-- Contact Submissions -->
+  <div class="add-biz-form" style="margin-top:2rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h3 style="margin:0;">Contact Submissions</h3>
+      <button onclick="loadSubmissions()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.35rem 0.75rem; border-radius:6px; font-size:0.78rem; cursor:pointer; font-family:inherit;">↻ Refresh</button>
+    </div>
+    <div id="submissionsContainer"></div>
+  </div>
+
+  <!-- Pending Signups (self-serve, awaiting approval) -->
+  <div class="add-biz-form" style="margin-top:2rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h3 style="margin:0;">Pending Signups <span id="pendingCount" style="color:var(--warning); font-weight:700;"></span></h3>
+      <button onclick="loadPendingSignups()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.35rem 0.75rem; border-radius:6px; font-size:0.78rem; cursor:pointer; font-family:inherit;">↻ Refresh</button>
+    </div>
+    <p style="color:var(--muted); font-size:0.82rem; margin-bottom:1rem; margin-top:-0.5rem;">Self-serve trial requests from the site. Approve to activate their 7-day trial and send their dashboard key.</p>
+    <div id="pendingSignupsContainer"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ── EDIT ORG MODAL ─────────────────────────────────────────────────── -->
+<div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:500; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:2rem; width:100%; max-width:480px; position:relative;">
+    <button onclick="closeEditModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer; padding:0.25rem 0.5rem; border-radius:4px;">✕</button>
+    <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.25rem;">Edit Business</h3>
+    <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem;" id="editModalSub">Updating org details in Supabase.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Business Name</label>
+        <input id="editName" class="form-input" style="width:100%;" placeholder="Org name">
+      </div>
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Admin Email</label>
+        <input id="editEmail" class="form-input" style="width:100%;" type="email" placeholder="admin@example.com">
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Plan</label>
+        <select id="editPlan" class="form-select" style="width:100%;">
+          <option value="Demo">Demo</option>
+          <option value="Starter">Starter — $129/mo</option>
+          <option value="Professional">Professional — $299/mo</option>
+          <option value="Institution">Institution — $599/mo</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Status</label>
+        <select id="editStatus" class="form-select" style="width:100%;">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.5rem;">
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Dashboard Key (read only)</label>
+        <input id="editKeyDisplay" class="form-input" style="width:100%; opacity:0.5; cursor:not-allowed; font-family:'JetBrains Mono',monospace; font-size:0.75rem;" readonly>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:5px;">Employee Key (read only)</label>
+        <input id="editEmpKeyDisplay" class="form-input" style="width:100%; opacity:0.5; cursor:not-allowed; font-family:'JetBrains Mono',monospace; font-size:0.75rem;" readonly>
+      </div>
+    </div>
+    <div id="editErr" style="color:var(--danger); font-size:0.82rem; margin-bottom:0.75rem; display:none;"></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button onclick="closeEditModal()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.6rem 1.1rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; font-family:inherit;">Cancel</button>
+      <button id="editSaveBtn" onclick="saveEdit()" style="background:var(--accent); color:white; border:none; padding:0.6rem 1.4rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; font-family:inherit;">Save Changes</button>
+    </div>
+
+<!-- ── PENDING SIGNUP SIDE PANEL ─────────────────────────────────────────── -->
+<div id="signupPanelOverlay" class="side-panel-overlay" onclick="if(event.target===this) closeSignupPanel()">
+  <div class="side-panel">
+    <button class="side-panel-close" onclick="closeSignupPanel()">✕</button>
+    <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:1rem; margin-bottom:0.25rem;">
+      <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+      Pending Signup
+    </div>
+    <p style="color:var(--muted); font-size:0.82rem;">Review the request, then approve or reject.</p>
+
+    <div class="side-panel-label">Business Name</div>
+    <div class="side-panel-value" id="spName">—</div>
+
+    <div class="side-panel-label">Admin Email</div>
+    <div class="side-panel-value"><a id="spEmail" href="#" style="color:var(--accent); text-decoration:none;">—</a></div>
+
+    <div class="side-panel-label">Phone Number</div>
+    <div class="side-panel-value" id="spPhone">—</div>
+
+    <div class="side-panel-label">Requested</div>
+    <div class="side-panel-value" id="spRequested">—</div>
+
+    <div style="display:flex; gap:8px; margin-top:2rem;">
+      <button id="spApproveBtn" onclick="approveSignup(_spOrgId)" style="flex:1; background:rgba(0,214,143,0.12); border:1px solid rgba(0,214,143,0.3); color:#00d68f; padding:0.7rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; font-family:inherit;">✓ Approve Trial</button>
+      <button id="spRejectBtn" onclick="rejectSignup(_spOrgId)" style="flex:1; background:rgba(255,77,109,0.1); border:1px solid rgba(255,77,109,0.25); color:var(--danger); padding:0.7rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; font-family:inherit;">✕ Reject</button>
     </div>
   </div>
 </div>
 
-<!-- CTA -->
-<div class="cta-box" id="contact">
-  <h2>Start protecting your team today</h2>
-  <p>Free 30-day pilot. No credit card required. Live in 5 minutes.</p>
-  <div class="cta-row">
-    <input type="email" class="cta-input" placeholder="you@yourcompany.com" id="ctaEmail">
-    <button class="cta-submit" onclick="handleCTA()">Request pilot →</button>
   </div>
-  <p style="margin-top:0.85rem; font-size:0.78rem; color:var(--muted2);">Thousands of teams across every industry protected by Syphir.</p>
 </div>
 
-<footer>
-  <div class="footer-links">
-    <a href="how-it-works.html">How it works</a>
-    <a href="features.html">Features</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="contact.html">Contact</a>
-    <a href="terms.html">Terms</a>
-    <a href="privacy.html">Privacy</a>
-    <a href="mailto:syphir26@gmail.com">syphir26@gmail.com</a>
-  </div>
-  <p>© 2025 Syphir · All rights reserved.</p>
-</footer>
+<div class="toast" id="toast"></div>
 
-<script src="auth.js"></script>
+<!-- ── CONFIRM MODAL ──────────────────────────────────────────────────────── -->
+<div id="adminConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:600;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)adminConfirmCancel()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem;width:min(420px,90vw);position:relative;">
+    <p id="adminConfirmMsg" style="color:var(--text);font-size:0.92rem;line-height:1.55;margin:0 0 1.5rem;"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="adminConfirmCancel()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:0.6rem 1.1rem;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+      <button id="adminConfirmOkBtn" style="background:var(--danger,#e53e3e);color:#fff;border:none;padding:0.6rem 1.4rem;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="auth.js?v=2.2.0"></script>
 <script>
-function handleCTA() {
-  const e = document.getElementById('ctaEmail').value;
-  if (!e || !e.includes('@')) { alert('Please enter a valid email.'); return; }
-  alert('Thanks! We\'ll reach out to ' + e + ' within 24 hours.');
+let _adminSecret = null;
+let _bizMap = {};
+
+const apiFetch = (url, opts = {}) => fetch(url, { cache: 'no-store', ...opts });
+
+function _saveAdminSession(secret) {
+  sessionStorage.setItem('syphir_admin_session', JSON.stringify({ secret, saved_at: Date.now() }));
+}
+function _loadAdminSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('syphir_admin_session') || 'null');
+    if (!s || !s.secret) return null;
+    if (Date.now() - s.saved_at > 8 * 60 * 60 * 1000) { sessionStorage.removeItem('syphir_admin_session'); return null; }
+    return s.secret;
+  } catch(_) { return null; }
+}
+
+async function checkAdminKey() {
+  const val = document.getElementById('adminKeyIn').value.trim();
+  const err = document.getElementById('adminGateErr');
+  const btn = document.querySelector('#adminGate button');
+  if (!val) { err.textContent = 'Enter your admin key.'; err.style.display = 'block'; return; }
+  btn.textContent = 'Verifying…'; btn.disabled = true;
+  err.style.display = 'none';
+  try {
+    const res = await fetch(`${API}/admin/orgs`, { cache: 'no-store', headers: { 'X-Admin-Secret': val } });
+    if (res.ok) {
+      _adminSecret = val;
+      _saveAdminSession(val);
+      document.getElementById('adminGate').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      renderAdmin();
+    } else {
+      err.textContent = 'Invalid admin key.';
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Network error — try again.';
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = 'Enter Admin Panel →'; btn.disabled = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('adminKeyIn');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAdminKey(); });
+  document.getElementById('editModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('editModal')) closeEditModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeEditModal(); adminConfirmCancel(); closeSignupPanel(); } });
+  const saved = _loadAdminSession();
+  if (saved) {
+    _adminSecret = saved;
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    renderAdmin();
+  }
+});
+
+async function renderAdmin() {
+  const container = document.getElementById('bizRows');
+  container.innerHTML = '<div class="empty-state" style="padding:1.5rem; text-align:center; color:var(--muted);">Loading from Supabase…</div>';
+  try {
+    const res = await apiFetch(`${API}/admin/orgs?_t=${Date.now()}`, { headers: { 'X-Admin-Secret': _adminSecret } });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const bizList = data.orgs || [];
+    const active = bizList.filter(b => !b.expires_at && b.key_status === 'active').length;
+    const demos  = bizList.filter(b =>  b.expires_at && b.key_status === 'active').length;
+    document.getElementById('adminStats').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Total Businesses</div><div class="stat-value">${bizList.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Active (Paying)</div><div class="stat-value" style="color:var(--accent2)">${active}</div></div>
+      <div class="stat-card"><div class="stat-label">Demo / Pilot</div><div class="stat-value" style="color:var(--warning)">${demos}</div></div>
+      <div class="stat-card"><div class="stat-label">MRR Estimate</div><div class="stat-value">$${mrr(bizList)}</div></div>
+    `;
+    if (bizList.length === 0) {
+      container.innerHTML = '<div class="empty-state">No businesses yet. Add one above.</div>';
+      return;
+    }
+    container.innerHTML = bizList.map(b => {
+      const status = b.key_status === 'inactive' ? 'inactive' : (b.expires_at ? 'demo' : 'active');
+      const added  = b.created_at ? b.created_at.split('T')[0] : '—';
+      return `
+        <div class="biz-row">
+          <div>
+            <div class="biz-name">${b.name}</div>
+            <div style="font-size:0.75rem; color:var(--muted2); margin-top:2px;">${b.plan||'Demo'} · Added ${added}</div>
+          </div>
+          <div class="biz-email">${b.admin_email||'—'}</div>
+          <div>
+            <span class="biz-key" onclick="copyKey('${b.key||''}')" title="Click to copy">${b.key||'—'}</span>
+            ${b.emp_key ? `<div style="margin-top:2px; font-size:0.7rem; color:var(--muted); font-family:monospace;">emp: ${b.emp_key}</div>` : ''}
+            ${(b.emp_key || b.key) ? `<div style="margin-top:4px;"><a href="install.html?key=${b.emp_key || b.key}" target="_blank" style="font-size:0.72rem; color:var(--muted); text-decoration:none;">📎 Install link</a></div>` : ''}
+          </div>
+          <div><span class="status-pill ${status}">${status}</span></div>
+          <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button onclick="editBiz('${b.key||b.id}')" title="Edit" style="background:rgba(91,79,232,0.12); border:1px solid rgba(91,79,232,0.25); color:#a89af7; padding:5px 8px; border-radius:6px; font-size:0.82rem; cursor:pointer; font-family:inherit; transition:background 0.15s;" onmouseover="this.style.background='rgba(91,79,232,0.22)'" onmouseout="this.style.background='rgba(91,79,232,0.12)'">✏</button>
+            <button onclick="resetTrial('${b.key||b.id}')" title="Reset Trial (+7 days)" style="background:rgba(0,214,143,0.1); border:1px solid rgba(0,214,143,0.25); color:#00d68f; padding:5px 8px; border-radius:6px; font-size:0.82rem; cursor:pointer; font-family:inherit; transition:background 0.15s;" onmouseover="this.style.background='rgba(0,214,143,0.2)'" onmouseout="this.style.background='rgba(0,214,143,0.1)'">🔄</button>
+            <button class="remove-btn" onclick="removeBiz('${b.key||b.id}')" title="Remove">🗑</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    // Populate map for edit modal lookups
+    _bizMap = {};
+    bizList.forEach(b => { _bizMap[b.key || b.id] = b; });
+  } catch(err) {
+    container.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
+  } finally {
+    loadSubmissions();
+    loadPendingSignups();
+  }
+}
+
+function mrr(list) {
+  const prices = { Starter:129, Professional:299, Institution:599, Demo:0 };
+  return list.filter(b => !b.expires_at && b.key_status === 'active')
+    .reduce((s, b) => s + (prices[b.plan]||0), 0).toLocaleString();
+}
+
+async function addBusiness() {
+  const name      = document.getElementById('newBizName').value.trim();
+  const email     = document.getElementById('newBizEmail').value.trim();
+  const plan      = document.getElementById('newBizPlan').value;
+  const status    = document.getElementById('newBizStatus').value;
+  const customKey = document.getElementById('newBizKey').value.trim().toUpperCase();
+  const err       = document.getElementById('addErr');
+
+  if (!name || !email) { err.textContent='Business name and email are required.'; err.style.display='block'; return; }
+  if (!email.includes('@')) { err.textContent='Enter a valid email address.'; err.style.display='block'; return; }
+
+  const key    = customKey || generateKey();
+  const empKey = generateEmpKey();
+  err.style.display = 'none';
+
+  const btn = document.querySelector('.add-btn');
+  btn.textContent = 'Saving to Supabase…';
+  btn.disabled = true;
+
+  try {
+    const res = await apiFetch(`${API}/admin/create-org`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
+      body: JSON.stringify({ name, email, plan, status, key, emp_key: empKey })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      err.textContent = data.error || 'Failed to create business.';
+      err.style.display = 'block';
+      return;
+    }
+    document.getElementById('newBizName').value  = '';
+    document.getElementById('newBizEmail').value = '';
+    document.getElementById('newBizKey').value   = '';
+    await renderAdmin();
+    showToast('✓ ' + name + ' added · Key: ' + key);
+  } catch(e) {
+    err.textContent = 'API error: ' + e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = '+ Add Business';
+    btn.disabled = false;
+  }
+}
+
+async function removeBiz(keyOrId) {
+  const ok = await adminConfirm('Permanently delete this business and all its keys from Supabase? This cannot be undone.');
+  if (!ok) return;
+  try {
+    const res = await apiFetch(`${API}/admin/remove-org/${encodeURIComponent(keyOrId)}`, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Secret': _adminSecret }
+    });
+    const data = await res.json();
+    if (data.success) {
+      await renderAdmin();
+      showToast('Business removed.');
+    } else {
+      showToast('Remove failed: ' + (data.error || 'unknown error'));
+    }
+  } catch(e) {
+    showToast('API error: ' + e.message);
+  }
+}
+
+async function resetTrial(keyOrId) {
+  const b = _bizMap[keyOrId];
+  const orgName = b ? b.name : keyOrId;
+  const ok = await adminConfirm(`Reset trial for "${orgName}"?\n\nThis will reactivate all license keys for 7 days from today.`);
+  if (!ok) return;
+  const orgId = b ? b.id : null;
+  if (!orgId) { showToast('Cannot find org ID — refresh and try again.'); return; }
+  try {
+    const res = await apiFetch(`${API}/orgs/${encodeURIComponent(orgId)}/upgrade`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
+      body: JSON.stringify({ plan: b.plan || 'Demo', reset_trial: true })
+    });
+    const data = await res.json();
+    if (data.success) {
+      await renderAdmin();
+      showToast(`✓ Trial reset — keys reactivated for ${orgName}`);
+    } else {
+      showToast('Reset failed: ' + (data.error || 'unknown error'));
+    }
+  } catch(e) {
+    showToast('API error: ' + e.message);
+  }
+}
+
+async function cleanDuplicates() {
+  const ok = await adminConfirm('Scan Supabase for duplicate org names and deactivate extras?');
+  if (!ok) return;
+  try {
+    const res = await apiFetch(`${API}/admin/dedup-orgs`, {
+      method: 'POST',
+      headers: { 'X-Admin-Secret': _adminSecret }
+    });
+    const data = await res.json();
+    if (data.success) {
+      await renderAdmin();
+      showToast(data.count > 0 ? `✓ Removed ${data.count} duplicate(s)` : '✓ No duplicates found');
+    } else {
+      showToast('Dedup failed: ' + (data.error || 'unknown'));
+    }
+  } catch(e) {
+    showToast('API error: ' + e.message);
+  }
+}
+
+function copyKey(key) {
+  if (!key) return;
+  navigator.clipboard.writeText(key).then(() => showToast('Copied: ' + key));
+}
+
+// ── EDIT ORG ──────────────────────────────────────────────────────────────
+let _editOrgId = null;
+
+function editBiz(keyOrId) {
+  const b = _bizMap[keyOrId];
+  if (!b) { showToast('Business data not loaded — refresh and try again'); return; }
+  _editOrgId = b.id;
+  document.getElementById('editModalSub').textContent = 'Editing: ' + b.name;
+  document.getElementById('editName').value = b.name || '';
+  document.getElementById('editEmail').value = b.admin_email || '';
+  document.getElementById('editKeyDisplay').value = b.key || '—';
+  document.getElementById('editEmpKeyDisplay').value = b.emp_key || '—';
+
+  const planSel = document.getElementById('editPlan');
+  const plan = b.plan || 'Demo';
+  planSel.value = plan;
+  if (!planSel.value) planSel.value = 'Demo'; // fallback if plan not in list
+
+  const statusSel = document.getElementById('editStatus');
+  const derivedStatus = b.key_status === 'inactive' ? 'inactive' : 'active';
+  statusSel.value = derivedStatus;
+
+  const errEl = document.getElementById('editErr');
+  errEl.style.display = 'none';
+  errEl.textContent = '';
+  document.getElementById('editSaveBtn').textContent = 'Save Changes';
+  document.getElementById('editSaveBtn').disabled = false;
+
+  const modal = document.getElementById('editModal');
+  modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+  _editOrgId = null;
+}
+
+async function saveEdit() {
+  if (!_editOrgId) return;
+  const name        = document.getElementById('editName').value.trim();
+  const admin_email = document.getElementById('editEmail').value.trim();
+  const plan        = document.getElementById('editPlan').value;
+  const status      = document.getElementById('editStatus').value;
+  const errEl       = document.getElementById('editErr');
+  const btn         = document.getElementById('editSaveBtn');
+
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Business name is required.'; errEl.style.display = 'block'; return; }
+  if (!admin_email || !admin_email.includes('@')) { errEl.textContent = 'Valid email is required.'; errEl.style.display = 'block'; return; }
+
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+
+  try {
+    const res = await apiFetch(`${API}/admin/update-org`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
+      body: JSON.stringify({ org_id: _editOrgId, name, admin_email, plan, status })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      errEl.textContent = data.error || 'Save failed — try again';
+      errEl.style.display = 'block';
+      btn.textContent = 'Save Changes';
+      btn.disabled = false;
+      return;
+    }
+    closeEditModal();
+    await renderAdmin();
+    showToast('✓ ' + name + ' updated');
+  } catch(e) {
+    errEl.textContent = 'API error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Save Changes';
+    btn.disabled = false;
+  }
+}
+
+let _adminConfirmResolve = null;
+function adminConfirm(msg) {
+  return new Promise(resolve => {
+    _adminConfirmResolve = resolve;
+    document.getElementById('adminConfirmMsg').textContent = msg;
+    document.getElementById('adminConfirmModal').style.display = 'flex';
+    document.getElementById('adminConfirmOkBtn').onclick = () => { document.getElementById('adminConfirmModal').style.display = 'none'; resolve(true); };
+  });
+}
+function adminConfirmCancel() {
+  document.getElementById('adminConfirmModal').style.display = 'none';
+  if (_adminConfirmResolve) { _adminConfirmResolve(false); _adminConfirmResolve = null; }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show', 'success');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function loadSubmissions() {
+  const el = document.getElementById('submissionsContainer');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:0.75rem 0; color:var(--muted); font-size:0.82rem;">Loading…</div>';
+  try {
+    const res = await apiFetch(`${API}/admin/submissions?_t=${Date.now()}`, {
+      headers: { 'X-Admin-Secret': _adminSecret }
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const list = data.submissions || [];
+    if (list.length === 0) {
+      el.innerHTML = '<div class="empty-state">No submissions yet.</div>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Name</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Email</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Company</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Message</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(s => `
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 10px;font-weight:600;white-space:nowrap;">${s.name}</td>
+                <td style="padding:10px;"><a href="mailto:${s.email}" style="color:var(--accent);text-decoration:none;">${s.email}</a></td>
+                <td style="padding:10px;color:var(--muted2);">${s.company || '—'}</td>
+                <td style="padding:10px;color:var(--muted2);max-width:260px;white-space:pre-wrap;word-break:break-word;">${s.message}</td>
+                <td style="padding:10px;color:var(--muted);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${new Date(s.submitted_at).toLocaleString()}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(err) {
+    el.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
+  }
+}
+
+let _pendingMap = {};
+let _spOrgId = null;
+
+async function loadPendingSignups() {
+  const el = document.getElementById('pendingSignupsContainer');
+  const countEl = document.getElementById('pendingCount');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:0.75rem 0; color:var(--muted); font-size:0.82rem;">Loading…</div>';
+  try {
+    const res = await apiFetch(`${API}/admin/pending-signups?_t=${Date.now()}`, {
+      headers: { 'X-Admin-Secret': _adminSecret }
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const list = data.signups || [];
+    _pendingMap = {};
+    list.forEach(s => { _pendingMap[s.id] = s; });
+    if (countEl) countEl.textContent = list.length ? `(${list.length})` : '';
+    if (list.length === 0) {
+      el.innerHTML = '<div class="empty-state">No pending signups right now.</div>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Business</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Email</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Phone</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Requested</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(s => `
+              <tr style="border-bottom:1px solid var(--border); cursor:pointer;" id="pending-row-${s.id}" onclick="openSignupPanel('${s.id}')" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+                <td style="padding:10px;font-weight:600;white-space:nowrap;">${s.name}</td>
+                <td style="padding:10px;"><a href="mailto:${s.admin_email}" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;">${s.admin_email}</a></td>
+                <td style="padding:10px;color:var(--muted2);white-space:nowrap;">${s.phone || '—'}</td>
+                <td style="padding:10px;color:var(--muted);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${s.created_at ? new Date(s.created_at).toLocaleString() : '—'}</td>
+                <td style="padding:10px;white-space:nowrap;">
+                  <button onclick="event.stopPropagation();approveSignup('${s.id}')" style="background:rgba(0,214,143,0.12); border:1px solid rgba(0,214,143,0.3); color:#00d68f; padding:5px 10px; border-radius:6px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; margin-right:6px;">✓ Approve</button>
+                  <button onclick="event.stopPropagation();rejectSignup('${s.id}')" style="background:rgba(255,77,109,0.1); border:1px solid rgba(255,77,109,0.25); color:var(--danger); padding:5px 10px; border-radius:6px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit;">✕ Reject</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(err) {
+    el.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
+  }
+}
+
+function openSignupPanel(orgId) {
+  const s = _pendingMap[orgId];
+  if (!s) return;
+  _spOrgId = orgId;
+  document.getElementById('spName').textContent = s.name || '—';
+  const emailEl = document.getElementById('spEmail');
+  emailEl.textContent = s.admin_email || '—';
+  emailEl.href = s.admin_email ? `mailto:${s.admin_email}` : '#';
+  document.getElementById('spPhone').textContent = s.phone || '—';
+  document.getElementById('spRequested').textContent = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
+  document.getElementById('signupPanelOverlay').classList.add('open');
+}
+
+function closeSignupPanel() {
+  document.getElementById('signupPanelOverlay').classList.remove('open');
+  _spOrgId = null;
+}
+
+async function approveSignup(orgId) {
+  const ok = await adminConfirm('Approve this signup?\n\nThis activates their 7-day trial and emails them their dashboard key.');
+  if (!ok) return;
+  try {
+    const res = await apiFetch(`${API}/admin/approve-signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
+      body: JSON.stringify({ org_id: orgId }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('Approved — trial activated and welcome email sent.');
+      closeSignupPanel();
+      loadPendingSignups();
+      renderAdmin();
+    } else {
+      showToast('Failed: ' + (data.error || 'Unknown error'));
+    }
+  } catch(e) {
+    showToast('API error: ' + e.message);
+  }
+}
+
+async function rejectSignup(orgId) {
+  const ok = await adminConfirm('Reject this signup?\n\nThey will not get dashboard access.');
+  if (!ok) return;
+  try {
+    const res = await apiFetch(`${API}/admin/reject-signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
+      body: JSON.stringify({ org_id: orgId }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('Signup rejected.');
+      closeSignupPanel();
+      loadPendingSignups();
+    } else {
+      showToast('Failed: ' + (data.error || 'Unknown error'));
+    }
+  } catch(e) {
+    showToast('API error: ' + e.message);
+  }
 }
 </script>
 </body>
