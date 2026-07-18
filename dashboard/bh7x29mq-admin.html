@@ -135,6 +135,16 @@
     <div id="pendingSignupsContainer"></div>
   </div>
 
+  <!-- Node Waitlist -->
+  <div class="add-biz-form" style="margin-top:2rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h3 style="margin:0;">Node Waitlist <span id="waitlistCount" style="color:var(--accent-light); font-weight:700;"></span></h3>
+      <button onclick="loadNodeWaitlist()" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.35rem 0.75rem; border-radius:6px; font-size:0.78rem; cursor:pointer; font-family:inherit;">↻ Refresh</button>
+    </div>
+    <p style="color:var(--muted); font-size:0.82rem; margin-bottom:1rem; margin-top:-0.5rem;">People who joined the Syphir Node waitlist from the site. Warm hardware leads — reach out when Node ships.</p>
+    <div id="nodeWaitlistContainer"></div>
+  </div>
+
 </div>
 </div>
 
@@ -348,6 +358,47 @@ async function renderAdmin() {
   } finally {
     loadSubmissions();
     loadPendingSignups();
+    loadNodeWaitlist();
+  }
+}
+
+async function loadNodeWaitlist() {
+  const el = document.getElementById('nodeWaitlistContainer');
+  const countEl = document.getElementById('waitlistCount');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:0.75rem 0; color:var(--muted); font-size:0.82rem;">Loading…</div>';
+  try {
+    const res = await apiFetch(`${API}/admin/node-waitlist?_t=${Date.now()}`, {
+      headers: { 'X-Admin-Secret': _adminSecret }
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const list = data.waitlist || [];
+    if (countEl) countEl.textContent = list.length ? `(${list.length})` : '';
+    if (list.length === 0) {
+      el.innerHTML = '<div class="empty-state">No waitlist signups yet.</div>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Email</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Joined</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(w => `
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px;"><a href="mailto:${w.email}" style="color:var(--accent);text-decoration:none;">${w.email}</a></td>
+                <td style="padding:10px;color:var(--muted);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${w.created_at ? new Date(w.created_at).toLocaleString() : '—'}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(err) {
+    el.innerHTML = `<div class="empty-state" style="color:var(--danger);">Failed to load: ${err.message}</div>`;
   }
 }
 

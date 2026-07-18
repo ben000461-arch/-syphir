@@ -999,6 +999,46 @@ app.post("/contact", async (c) => {
   }
 });
 
+// ── NODE WAITLIST: public signup ──────────────────────────────────────────
+app.post("/node-waitlist", async (c) => {
+  const { email } = await c.req.json().catch(() => ({}));
+  const userEmail = (email || "").trim().toLowerCase();
+  if (!userEmail || !userEmail.includes("@")) return c.json({ error: "Valid email required" }, 400);
+  try {
+    // Dedupe — if they're already on the list, just say success
+    const existing = await db(
+      `node_waitlist?email=eq.${encodeURIComponent(userEmail)}&select=id`
+    ).catch(() => []);
+    if (existing?.length) return c.json({ success: true, already: true });
+
+    await db("node_waitlist", {
+      method: "POST", prefer: "return=minimal",
+      body: JSON.stringify({
+        id: `wl_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        email: userEmail,
+        created_at: new Date().toISOString(),
+      }),
+    });
+    console.log(`[Waitlist] Node waitlist signup: ${userEmail}`);
+    return c.json({ success: true });
+  } catch (err) {
+    console.error("[Waitlist] error:", err.message);
+    return c.json({ error: "Failed to join waitlist: " + err.message }, 500);
+  }
+});
+
+// ── ADMIN: LIST NODE WAITLIST ─────────────────────────────────────────────
+app.get("/admin/node-waitlist", async (c) => {
+  const adminSecret = c.req.header("X-Admin-Secret");
+  if (!adminSecret || adminSecret !== ADMIN_SECRET) return c.json({ error: "Unauthorized" }, 401);
+  try {
+    const entries = await db("node_waitlist?select=*&order=created_at.desc");
+    return c.json({ waitlist: entries || [] });
+  } catch (err) {
+    return c.json({ waitlist: [], error: err.message });
+  }
+});
+
 // ── ADMIN: LIST CONTACT SUBMISSIONS ───────────────────────────────────────
 app.get("/admin/submissions", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");

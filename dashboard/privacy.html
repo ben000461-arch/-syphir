@@ -3,17 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>How Syphir Works — AI Data Protection</title>
+<title>Privacy Policy — Syphir</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-  .step-full { display: flex; gap: 3rem; align-items: flex-start; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
-  .step-full:last-child { border-bottom: none; }
-  .step-full-num { font-family: 'JetBrains Mono', monospace; font-size: 3.5rem; font-weight: 700; color: rgba(91,79,232,0.15); line-height: 1; min-width: 80px; }
-  .step-full-body h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.65rem; letter-spacing: -0.01em; }
-  .step-full-body p { color: var(--muted); line-height: 1.75; margin-bottom: 0.75rem; }
-  .step-full-body code { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 1rem; display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; color: var(--accent2); margin-top: 0.75rem; word-break: break-all; }
-  @media (max-width: 600px) { .step-full { flex-direction: column; gap: 1rem; } .step-full-num { font-size: 2rem; min-width: auto; } }
+  .legal-wrap { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  .legal-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+  .legal-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 3rem; }
+  .legal-section { margin-bottom: 2.5rem; }
+  .legal-section h2 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+  .legal-section p { color: var(--muted); line-height: 1.8; font-size: 0.9rem; margin-bottom: 0.75rem; }
+  .legal-section ul { color: var(--muted); line-height: 1.8; font-size: 0.9rem; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  .legal-section ul li { margin-bottom: 0.35rem; }
+  a.legal-link { color: var(--accent2); text-decoration: none; }
+  a.legal-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -23,68 +26,106 @@
     Syphir
   </a>
   <div class="nav-links">
-    <a href="how-it-works.html" class="active">How it works</a>
+    <a href="how-it-works.html">How it works</a>
     <a href="features.html">Features</a>
     <a href="pricing.html">Pricing</a>
     <a href="node.html">Node</a>
+    <a href="contact.html">Contact</a>
   </div>
-  <div id="navAuthSlot">
-    <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
-  </div>
+  <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
 </nav>
 
-<!-- MODAL (reused) -->
-<div id="authModalMount"></div>
+<div class="legal-wrap">
+  <div class="legal-title">Privacy Policy</div>
+  <div class="legal-meta">Last updated: May 2025</div>
 
-<div class="page-hero">
-  <span class="eyebrow">How it works</span>
-  <h1>Simple by design.<br><em>Powerful by default.</em></h1>
-  <p>No IT department, no complex setup, no training required. Syphir is built so that any small business can deploy enterprise-grade AI data protection in minutes.</p>
-</div>
+  <div class="legal-section">
+    <h2>1. Information We Collect</h2>
+    <p>Syphir collects the minimum information necessary to provide the Service. This includes:</p>
+    <ul>
+      <li><strong>Organization information:</strong> organization name and admin email address provided at signup</li>
+      <li><strong>Employee information:</strong> employee email addresses used to identify who triggered a detection event</li>
+      <li><strong>Detection events:</strong> when the extension detects sensitive data in an AI prompt, we log the type of data detected (e.g., "SSN"), a masked version of the value, the AI tool name, a timestamp, and a risk level — never the full prompt text</li>
+      <li><strong>Usage metadata:</strong> browser information and page URL at the time of detection</li>
+    </ul>
+    <p>We do not collect, transmit, or store the full text of any AI prompts. All PII scanning is performed locally within the browser extension.</p>
+  </div>
 
-<div class="section" style="padding-top:0;">
-  <div class="step-full">
-    <div class="step-full-num">01</div>
-    <div class="step-full-body">
-      <h3>Your business gets a unique license key</h3>
-      <p>When you sign up, Syphir generates a unique key for your organization — something like <strong>SYP-DENT-2026-A3B7</strong>. This key is your org's identity in the system. It gates your dashboard, links your employees, and scopes all incident data exclusively to you.</p>
-      <p>Your key never expires unless you cancel. It's stored in your dashboard under Settings → License Key and in your welcome email.</p>
-    </div>
+  <div class="legal-section">
+    <h2>2. How We Use Information</h2>
+    <p>Information collected is used solely to provide the Syphir Service:</p>
+    <ul>
+      <li>To generate incident reports and populate the admin dashboard</li>
+      <li>To send email alerts to administrators when high-risk incidents occur</li>
+      <li>To maintain account records and process billing</li>
+      <li>To improve detection accuracy and the Service overall</li>
+    </ul>
+    <p>We do not use your data for advertising, profiling, or any purpose unrelated to operating the Service.</p>
   </div>
-  <div class="step-full">
-    <div class="step-full-num">02</div>
-    <div class="step-full-body">
-      <h3>Share one install link with your employees</h3>
-      <p>Your dashboard generates a pre-linked install URL that has your key already embedded in it. You copy it and send it to your staff however you like — email, Slack, a group text, whatever you use.</p>
-      <code>https://syphir.vercel.app/install.html?key=SYP-YOUR-ORG-KEY</code>
-      <p style="margin-top:0.75rem;">Employees click the link, download the Chrome extension, and install in about 60 seconds. They never need to type a key or create an account.</p>
-    </div>
-  </div>
-  <div class="step-full">
-    <div class="step-full-num">03</div>
-    <div class="step-full-body">
-      <h3>The extension watches every AI prompt in real time</h3>
-      <p>Once installed, Syphir Shield runs silently in the background on ChatGPT, Claude, Grok, Gemini, Copilot, Perplexity, and more. Before any prompt is submitted, it scans the text for 40+ types of sensitive data including SSNs, credit card numbers, patient records, API keys, dates of birth, and more.</p>
-      <p>If something is flagged, a banner appears instantly — before the data leaves the browser — giving the employee a chance to remove it. They can also acknowledge and proceed, which gets logged.</p>
-    </div>
-  </div>
-  <div class="step-full">
-    <div class="step-full-num">04</div>
-    <div class="step-full-body">
-      <h3>Every incident is logged to your dashboard only</h3>
-      <p>All detections from all your employees flow into your organization's dashboard in real time. You see the AI tool used, the risk level, timestamp, and what type of data was found — but never the actual sensitive text itself (only masked snippets).</p>
-      <p>Your data is completely isolated. Business A cannot see Business B's incidents, even though they're on the same platform. Each org's key scopes every query exclusively to that org.</p>
-    </div>
-  </div>
-</div>
 
-<div style="text-align:center; padding:2rem 1rem 5rem;">
-  <button class="btn btn-primary" onclick="openModal()">Access Your Dashboard →</button>
+  <div class="legal-section">
+    <h2>3. Data Storage</h2>
+    <p>All data is stored securely in Supabase, a cloud database provider operating on US-based servers. Data is encrypted in transit (TLS) and at rest. Access to the database is restricted to authenticated requests using row-level security policies that scope each organization's data exclusively to that organization.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>4. Data Sharing</h2>
+    <p>We do not sell, rent, or share your data with third parties for commercial purposes. We may share data only in the following limited circumstances:</p>
+    <ul>
+      <li><strong>Service providers:</strong> Supabase (database), Resend (transactional email), and Stripe (payment processing) receive the minimum data necessary to operate their respective services</li>
+      <li><strong>Legal requirements:</strong> if required by law, court order, or government authority</li>
+      <li><strong>Business transfers:</strong> in the event of a merger or acquisition, data may be transferred to the successor entity subject to the same privacy commitments</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>5. Data Retention</h2>
+    <p>Incident logs are retained according to your subscription plan:</p>
+    <ul>
+      <li><strong>Starter plan:</strong> 30 days of incident history</li>
+      <li><strong>Professional plan:</strong> 1 year of incident history</li>
+      <li><strong>Institution plan:</strong> unlimited incident history</li>
+    </ul>
+    <p>Upon account cancellation, data is retained for 30 days to allow for export, then permanently deleted. You may request immediate deletion at any time by contacting us.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>6. Employee Privacy</h2>
+    <p>Syphir is a monitoring tool deployed by employers. Organizations using Syphir should inform their employees that their AI tool usage is being monitored, in accordance with applicable employment and privacy laws in their jurisdiction. Syphir does not control how organizations deploy or disclose the use of the Service to their employees.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>7. Cookies and Local Storage</h2>
+    <p>Syphir uses browser localStorage and chrome.storage.local for session management only — to store your license key and maintain your login session. We do not use tracking cookies, advertising cookies, or third-party analytics cookies. No data stored locally is shared with or accessible to third parties.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>8. Your Rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+      <li>Request a copy of the data we hold about your organization</li>
+      <li>Request correction of inaccurate data</li>
+      <li>Request deletion of your data</li>
+      <li>Object to or restrict processing of your data</li>
+    </ul>
+    <p>To exercise any of these rights, contact us at <a href="mailto:syphir26@gmail.com" class="legal-link">syphir26@gmail.com</a>. We will respond within 30 days.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>9. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify customers of material changes by email. Continued use of the Service after changes are posted constitutes acceptance of the updated policy. The "Last updated" date at the top of this page reflects the most recent revision.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>10. Contact</h2>
+    <p>Questions or concerns about this Privacy Policy should be directed to <a href="mailto:syphir26@gmail.com" class="legal-link">syphir26@gmail.com</a>.</p>
+  </div>
 </div>
 
 <footer>
   <div class="footer-links">
     <a href="index.html">Home</a>
+    <a href="how-it-works.html">How it works</a>
     <a href="features.html">Features</a>
     <a href="pricing.html">Pricing</a>
     <a href="terms.html">Terms</a>
