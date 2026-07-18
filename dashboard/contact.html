@@ -3,91 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Contact Syphir</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Contact — Syphir AI Data Protection</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#0d1117;--bg2:#161b25;--bg3:#1c2333;
-  --border:#242d3e;--blue:#2196d3;--blue-l:#4db8f0;--blue-d:#1565a8;
-  --green:#00e676;--red:#f44336;
-  --text:#e6edf3;--text2:#8b949e;--text3:#4a5568;
-}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;}
-.logo{display:flex;align-items:center;gap:9px;margin-bottom:36px;text-decoration:none;}
-.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--blue),var(--blue-d));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(33,150,211,0.35);}
-.logo-text{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.4px;}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:520px;}
-h1{font-size:21px;font-weight:800;margin-bottom:6px;letter-spacing:-0.3px;}
-.sub{font-size:13.5px;color:var(--text2);margin-bottom:28px;line-height:1.55;}
-.field{margin-bottom:15px;}
-label{display:block;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
-input,textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 13px;font-size:13px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color 0.15s;resize:vertical;}
-input:focus,textarea:focus{border-color:var(--blue);}
-textarea{min-height:112px;}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.btn{width:100%;background:var(--blue);color:#fff;border:none;padding:13px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:8px;transition:background 0.15s;letter-spacing:-0.1px;}
-.btn:hover{background:var(--blue-d);}
-.btn:disabled{opacity:0.55;cursor:not-allowed;}
-.err-msg{font-size:12.5px;color:var(--red);margin-top:10px;min-height:18px;}
-.success{text-align:center;padding:16px 0;}
-.s-icon{font-size:46px;margin-bottom:14px;}
-.s-title{font-size:19px;font-weight:800;margin-bottom:8px;}
-.s-sub{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:24px;}
-.back{color:var(--blue-l);font-size:13px;text-decoration:none;}
-.back:hover{text-decoration:underline;}
-@media(max-width:480px){.row{grid-template-columns:1fr;}}
+.contact-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:2.25rem; max-width:640px; margin:0 auto; }
+.contact-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media (max-width:560px){ .contact-row{grid-template-columns:1fr;} }
+.contact-card .field label { font-size:0.72rem; }
+.contact-card textarea { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.7rem 0.9rem; border-radius:8px; font-size:0.9rem; font-family:inherit; outline:none; resize:vertical; min-height:130px; transition:border-color 0.15s; }
+.contact-card textarea:focus { border-color:var(--accent); }
+.contact-card textarea::placeholder { color:var(--muted2); }
+.success-icon { width:52px; height:52px; border-radius:50%; background:rgba(0,214,143,0.12); border:1px solid rgba(0,214,143,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; font-size:22px; }
 </style>
 </head>
 <body>
-
-<a href="index.html" class="logo">
-  <div class="logo-icon">🛡️</div>
-  <div class="logo-text">Syphir</div>
-</a>
-
-<div class="card">
-
-  <div id="form-view">
-    <h1>Get in Touch</h1>
-    <p class="sub">Interested in Syphir for your team? We'll get back to you within 24 hours.</p>
-
-    <div class="row">
-      <div class="field">
-        <label>Name *</label>
-        <input type="text" id="c-name" placeholder="Jane Smith" autocomplete="name">
-      </div>
-      <div class="field">
-        <label>Work Email *</label>
-        <input type="email" id="c-email" placeholder="jane@company.com" autocomplete="email">
-      </div>
-    </div>
-    <div class="field">
-      <label>Company</label>
-      <input type="text" id="c-company" placeholder="Acme Medical Group" autocomplete="organization">
-    </div>
-    <div class="field">
-      <label>Message *</label>
-      <textarea id="c-message" placeholder="Tell us about your team size, use case, or questions…"></textarea>
-    </div>
-
-    <button class="btn" id="submit-btn" onclick="submitContact()">Send Message →</button>
-    <div class="err-msg" id="form-err"></div>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+    Syphir
+  </a>
+  <div class="nav-links">
+    <a href="how-it-works.html">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="node.html">Node</a>
+    <a href="contact.html" class="active">Contact</a>
   </div>
-
-  <div id="success-view" class="success" style="display:none;">
-    <div class="s-icon">✅</div>
-    <div class="s-title">Message Sent!</div>
-    <p class="s-sub">Thanks for reaching out. We'll reply to <strong id="success-email"></strong> within 24 hours.</p>
-    <a href="index.html" class="back">← Back to Syphir</a>
+  <div id="navAuthSlot">
+    <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
   </div>
+</nav>
 
+<div id="authModalMount"></div>
+
+<div class="page-hero" style="padding-bottom:3rem;">
+  <span class="eyebrow">Contact</span>
+  <h1>Get in <em>touch</em></h1>
+  <p>Interested in Syphir for your team? We'll get back to you within 24 hours.</p>
 </div>
 
-<script>
-const API = 'https://syphir-api.onrender.com';
+<div class="section" style="padding-top:0;">
+  <div class="contact-card">
+    <div id="form-view">
+      <div class="contact-row">
+        <div class="field">
+          <label>Name *</label>
+          <input type="text" id="c-name" placeholder="Jane Smith" autocomplete="name"/>
+        </div>
+        <div class="field">
+          <label>Work Email *</label>
+          <input type="email" id="c-email" placeholder="jane@company.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Company</label>
+        <input type="text" id="c-company" placeholder="Acme Medical Group" autocomplete="organization"/>
+      </div>
+      <div class="field">
+        <label>Message *</label>
+        <textarea id="c-message" placeholder="Tell us about your team size, use case, or questions..."></textarea>
+      </div>
+      <div class="err-msg" id="form-err"></div>
+      <button class="modal-btn" id="submit-btn" onclick="submitContact()">Send Message →</button>
+      <p style="font-size:0.75rem; color:var(--muted2); text-align:center; margin-top:0.85rem;">Or email us directly at <a href="mailto:syphir26@gmail.com" style="color:var(--accent-light); text-decoration:none;">syphir26@gmail.com</a></p>
+    </div>
 
+    <div id="success-view" style="display:none; text-align:center; padding:1rem 0;">
+      <div class="success-icon">✓</div>
+      <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:0.5rem;">Message sent!</h2>
+      <p style="color:var(--muted); font-size:0.92rem; line-height:1.65;">Thanks for reaching out. We'll reply to <strong id="success-email" style="color:var(--text);"></strong> within 24 hours.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="how-it-works.html">How it works</a>
+    <a href="pricing.html">Pricing</a><a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a><a href="mailto:syphir26@gmail.com">syphir26@gmail.com</a>
+  </div>
+  <p>© 2025 Syphir · All rights reserved.</p>
+</footer>
+
+<script src="auth.js"></script>
+<script>
+const CONTACT_API = 'https://syphir-api.onrender.com';
+
+// Pre-fill message when arriving from a plan page (?plan=Starter etc.)
 (function() {
   const plan = new URLSearchParams(window.location.search).get('plan');
   if (plan) {
@@ -120,7 +123,7 @@ async function submitContact() {
   btn.disabled = true;
 
   try {
-    const res = await fetch(`${API}/contact`, {
+    const res = await fetch(`${CONTACT_API}/contact`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, company, message })
@@ -142,16 +145,5 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submitContact();
 });
 </script>
-<footer style="border-top:1px solid #242d3e;padding:1.5rem;text-align:center;color:#4a5568;font-size:0.82rem;margin-top:2rem;">
-  <div style="display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap;margin-bottom:0.5rem;">
-    <a href="index.html" style="color:#4a5568;text-decoration:none;">Home</a>
-    <a href="features.html" style="color:#4a5568;text-decoration:none;">Features</a>
-    <a href="pricing.html" style="color:#4a5568;text-decoration:none;">Pricing</a>
-    <a href="terms.html" style="color:#4a5568;text-decoration:none;">Terms</a>
-    <a href="privacy.html" style="color:#4a5568;text-decoration:none;">Privacy</a>
-    <a href="mailto:syphir26@gmail.com" style="color:#4a5568;text-decoration:none;">syphir26@gmail.com</a>
-  </div>
-  <p>© 2025 Syphir · All rights reserved.</p>
-</footer>
 </body>
 </html>
