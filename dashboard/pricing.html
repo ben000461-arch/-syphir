@@ -24,7 +24,7 @@
 </head>
 <body>
 <script>
-const API = 'https://syphir-api.onrender.com';
+const PRICING_API = 'https://syphir-api.onrender.com';
 const _params = new URLSearchParams(window.location.search);
 const _upgradeKey = _params.get("key") || "";
 
@@ -71,7 +71,7 @@ async function submitPilot() {
     const message = _pilotPlan
       ? `Requesting free pilot — interested in the ${_pilotPlan} plan ($${({Starter:129,Professional:299,Institution:599}[_pilotPlan]||'?')}/mo).`
       : 'Requesting a free 30-day pilot.';
-    const res = await fetch(`${API}/contact`, {
+    const res = await fetch(`${PRICING_API}/contact`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, company, message })
     });
@@ -88,22 +88,9 @@ async function submitPilot() {
 
 document.addEventListener("DOMContentLoaded", function() {
   if (_upgradeKey) {
-    // Prefer showing the org's name (from the logged-in session) over the raw key.
-    let orgName = '';
-    try {
-      const r = JSON.parse(localStorage.getItem('syphir_remember') || 'null');
-      if (r && r.key === _upgradeKey && r.org_name) orgName = r.org_name;
-      if (!orgName) {
-        const s = JSON.parse(sessionStorage.getItem('syphir_session') || 'null');
-        if (s && s.key === _upgradeKey && s.org_name) orgName = s.org_name;
-      }
-    } catch(_) {}
-    const label = orgName
-      ? 'Upgrading plan for <strong style="color:#4db8f0;">' + orgName.replace(/[<>&]/g, '') + '</strong> — select a plan below'
-      : 'Select a plan below to upgrade your account';
     const badge = document.createElement('div');
     badge.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999;background:#1c2333;border-bottom:1px solid #242d3e;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:13px;color:#8b949e;';
-    badge.innerHTML = label;
+    badge.innerHTML = 'Upgrading plan for key <strong style="color:#4db8f0;font-family:monospace;">' + _upgradeKey + '</strong> — select a plan below';
     document.body.insertBefore(badge, document.body.firstChild);
   }
 });
