@@ -3,20 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Starter Plan — Syphir AI Data Protection</title>
+<title>Professional Plan — Syphir AI Data Protection</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
   .plan-page { max-width: 560px; margin: 0 auto; padding: 84px 1.5rem 5rem; }
   .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.85rem; text-decoration: none; margin-bottom: 2rem; transition: color 0.15s; }
   .back-link:hover { color: var(--text); }
-  .plan-badge { display: inline-block; background: rgba(91,79,232,0.1); border: 1px solid rgba(91,79,232,0.25); color: #a89af7; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; }
+  .plan-badge { display: inline-block; background: rgba(91,79,232,0.15); border: 1px solid rgba(91,79,232,0.35); color: #c4b8ff; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; }
+  .plan-popular { display: inline-block; background: #5b4fe8; color: #fff; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 9px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
   .plan-name { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.25rem; letter-spacing: -0.03em; }
   .plan-price-line { font-size: 1.1rem; color: var(--muted); margin-bottom: 2rem; }
   .plan-price-line strong { color: var(--text); font-size: 2rem; font-weight: 700; }
   .feature-list { list-style: none; padding: 0; margin: 0 0 2.5rem; display: flex; flex-direction: column; gap: 0.65rem; }
   .feature-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.93rem; color: var(--muted); line-height: 1.5; }
   .feature-list li .chk { color: #4ade80; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .feature-list li .new { background: rgba(91,79,232,0.15); color: #a89af7; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 6px; border-radius: 4px; margin-left: 4px; }
   .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .btn-pilot { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 13px 20px; border-radius: 9px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: border-color 0.15s, background 0.15s; text-align: center; }
   .btn-pilot:hover { border-color: var(--accent); background: rgba(91,79,232,0.06); }
@@ -34,9 +36,20 @@
 <body>
 <script>
 const _params = new URLSearchParams(window.location.search);
-const _key = _params.get('key') || '';
+const _key = (function() {
+  const urlKey = _params.get('key');
+  if (urlKey) return urlKey;
+  // Logged-in user? Use their session key so upgrade skips straight to checkout.
+  try {
+    const r = JSON.parse(localStorage.getItem('syphir_remember') || 'null');
+    if (r && r.key) return r.key;
+    const s = JSON.parse(sessionStorage.getItem('syphir_session') || 'null');
+    if (s && s.key) return s.key;
+  } catch(_) {}
+  return '';
+})();
 const _PLAN_API = 'https://syphir-api.onrender.com';
-const _PLAN = 'Starter';
+const _PLAN = 'Professional';
 
 function _showPlanErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 function _hidePlanErr(el) { el.textContent = ''; el.style.display = 'none'; }
@@ -48,12 +61,19 @@ function subscribePlan() {
 function kgmOpen() {
   const m = document.getElementById('kgm');
   m.style.display = 'flex';
-  document.getElementById('kgm-key-view').style.display = '';
-  document.getElementById('kgm-email-view').style.display = 'none';
-  _hidePlanErr(document.getElementById('kgm-err'));
-  document.getElementById('kgm-key-input').value = '';
-  document.getElementById('kgm-continue-btn').textContent = 'Continue →';
-  document.getElementById('kgm-continue-btn').disabled = false;
+  // Default to the email view — simpler than asking for an org key.
+  document.getElementById('kgm-key-view').style.display = 'none';
+  document.getElementById('kgm-email-view').style.display = '';
+  _hidePlanErr(document.getElementById('kgm-email-err'));
+  const emailInput = document.getElementById('kgm-email-input');
+  emailInput.value = '';
+  // Pre-fill the remembered email if we have one (same as login flow).
+  try {
+    const remembered = localStorage.getItem('syphir_remembered_email');
+    if (remembered) emailInput.value = remembered;
+  } catch(_) {}
+  document.getElementById('kgm-email-btn').textContent = 'Subscribe Now →';
+  document.getElementById('kgm-email-btn').disabled = false;
 }
 
 function kgmClose() { document.getElementById('kgm').style.display = 'none'; }
@@ -160,19 +180,23 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') kgmCl
 <div class="plan-page">
   <a href="pricing.html" class="back-link">← Back to pricing</a>
 
-  <div class="plan-badge">Starter</div>
-  <div class="plan-name">Starter Plan</div>
-  <div class="plan-price-line"><strong>$129</strong>/month · billed monthly · cancel anytime</div>
+  <div>
+    <span class="plan-badge">Professional</span>
+    <span class="plan-popular">Most Popular</span>
+  </div>
+  <div class="plan-name">Professional Plan</div>
+  <div class="plan-price-line"><strong>$299</strong>/month · billed monthly · cancel anytime</div>
 
   <ul class="feature-list">
-    <li><span class="chk">✓</span> Up to 15 employees</li>
-    <li><span class="chk">✓</span> 40+ PII entity types detected (SSN, PHI, financial data, and more)</li>
-    <li><span class="chk">✓</span> Real-time incident dashboard</li>
-    <li><span class="chk">✓</span> Email alerts on high-risk incidents</li>
-    <li><span class="chk">✓</span> 30-day incident history</li>
-    <li><span class="chk">✓</span> One employee install link</li>
-    <li><span class="chk">✓</span> Chrome, Edge & Brave support</li>
+    <li><span class="chk">✓</span> Up to 50 employees</li>
+    <li><span class="chk">✓</span> Everything in Starter</li>
+    <li><span class="chk">✓</span> 40+ PII entity types + <span class="new">custom</span> keyword rules</li>
+    <li><span class="chk">✓</span> Slack & Microsoft Teams alerts <span class="new">new</span></li>
+    <li><span class="chk">✓</span> 1-year incident history</li>
+    <li><span class="chk">✓</span> Priority email support (24h response)</li>
     <li><span class="chk">✓</span> CSV export of incident logs</li>
+    <li><span class="chk">✓</span> API Gateway (monitor AI API calls)</li>
+    <li><span class="chk">✓</span> Chrome, Edge & Brave support</li>
     <li><span class="chk">✓</span> Works with ChatGPT, Claude, Gemini & more</li>
   </ul>
 
@@ -182,7 +206,7 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') kgmCl
   </div>
 
   <div class="action-row">
-    <button class="btn-pilot" onclick="location.href='contact.html?plan=Starter'">Start Free Pilot →</button>
+    <button class="btn-pilot" onclick="location.href='contact.html?plan=Professional'">Start Free Pilot →</button>
     <button class="btn-subscribe" id="sub-btn" onclick="subscribePlan()">Subscribe Now →</button>
   </div>
   <div class="err-msg" id="sub-err"></div>

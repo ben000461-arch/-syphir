@@ -35,7 +35,18 @@
 <body>
 <script>
 const _params = new URLSearchParams(window.location.search);
-const _key = _params.get('key') || '';
+const _key = (function() {
+  const urlKey = _params.get('key');
+  if (urlKey) return urlKey;
+  // Logged-in user? Use their session key so upgrade skips straight to checkout.
+  try {
+    const r = JSON.parse(localStorage.getItem('syphir_remember') || 'null');
+    if (r && r.key) return r.key;
+    const s = JSON.parse(sessionStorage.getItem('syphir_session') || 'null');
+    if (s && s.key) return s.key;
+  } catch(_) {}
+  return '';
+})();
 const _PLAN_API = 'https://syphir-api.onrender.com';
 const _PLAN = 'Institution';
 
@@ -49,12 +60,19 @@ function subscribePlan() {
 function kgmOpen() {
   const m = document.getElementById('kgm');
   m.style.display = 'flex';
-  document.getElementById('kgm-key-view').style.display = '';
-  document.getElementById('kgm-email-view').style.display = 'none';
-  _hidePlanErr(document.getElementById('kgm-err'));
-  document.getElementById('kgm-key-input').value = '';
-  document.getElementById('kgm-continue-btn').textContent = 'Continue →';
-  document.getElementById('kgm-continue-btn').disabled = false;
+  // Default to the email view — simpler than asking for an org key.
+  document.getElementById('kgm-key-view').style.display = 'none';
+  document.getElementById('kgm-email-view').style.display = '';
+  _hidePlanErr(document.getElementById('kgm-email-err'));
+  const emailInput = document.getElementById('kgm-email-input');
+  emailInput.value = '';
+  // Pre-fill the remembered email if we have one (same as login flow).
+  try {
+    const remembered = localStorage.getItem('syphir_remembered_email');
+    if (remembered) emailInput.value = remembered;
+  } catch(_) {}
+  document.getElementById('kgm-email-btn').textContent = 'Subscribe Now →';
+  document.getElementById('kgm-email-btn').disabled = false;
 }
 
 function kgmClose() { document.getElementById('kgm').style.display = 'none'; }

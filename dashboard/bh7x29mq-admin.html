@@ -75,17 +75,6 @@
         <input class="form-input" id="newBizEmail" type="email" placeholder="admin@theirdomain.com">
       </div>
       <div>
-        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Plan</label>
-        <select class="form-select" id="newBizPlan">
-          <option value="Starter">Starter — $129/mo</option>
-          <option value="Professional" selected>Professional — $299/mo</option>
-          <option value="Institution">Institution — $599/mo</option>
-          <option value="Demo">Free Demo / Pilot</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div>
         <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Status</label>
         <select class="form-select" id="newBizStatus">
           <option value="demo">Demo / Pilot</option>
@@ -93,6 +82,8 @@
           <option value="inactive">Inactive</option>
         </select>
       </div>
+    </div>
+    <div class="form-row">
       <div>
         <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Custom Key (optional)</label>
         <input class="form-input" id="newBizKey" placeholder="Leave blank to auto-generate" style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
@@ -422,8 +413,9 @@ function mrr(list) {
 async function addBusiness() {
   const name      = document.getElementById('newBizName').value.trim();
   const email     = document.getElementById('newBizEmail').value.trim();
-  const plan      = document.getElementById('newBizPlan').value;
   const status    = document.getElementById('newBizStatus').value;
+  // Plan dropdown removed — new businesses default to Demo; they upgrade via Stripe.
+  const plan      = (status === 'active') ? 'Professional' : 'Demo';
   const customKey = document.getElementById('newBizKey').value.trim().toUpperCase();
   const err       = document.getElementById('addErr');
 
