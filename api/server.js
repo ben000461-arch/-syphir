@@ -17,6 +17,10 @@ const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
 if (!ADMIN_SECRET) console.warn('WARNING: ADMIN_SECRET env var is not set — admin endpoints will reject all requests');
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
+// Tracks Stripe event ids we've already handled, so duplicate webhook
+// deliveries (which Stripe does by design) don't double-process.
+const _processedStripeEvents = new Set();
+
 const STRIPE_PLANS = {
   Starter:      { amount: 12900, label: "Syphir Starter — $129/mo" },
   Professional: { amount: 29900, label: "Syphir Professional — $299/mo" },
@@ -964,7 +968,7 @@ app.post("/invite-user", async (c) => {
   const installUrl = `https://syphir.vercel.app/install.html?key=${org_key}&email=${employee_email}&org=${encodeURIComponent(org_name || org.name)}`;
   const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,sans-serif;"><div style="max-width:560px;margin:0 auto;padding:40px 20px;"><div style="text-align:center;margin-bottom:32px;"><div style="font-size:32px;">🛡️</div><div style="font-size:22px;font-weight:800;color:#fff;">Syphir</div></div><div style="background:#161b25;border:1px solid #242d3e;border-radius:12px;padding:32px;"><h1 style="color:#e6edf3;font-size:20px;font-weight:700;margin:0 0 12px;">You've been protected 🛡️</h1><p style="color:#8b949e;font-size:14px;line-height:1.6;margin:0 0 24px;"><strong style="color:#e6edf3;">${org_name || org.name}</strong> has added you to their Syphir Shield data protection system.</p><a href="${installUrl}" style="display:block;background:#5b4fe8;color:#fff;text-align:center;padding:14px 24px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:16px;">Install Syphir Shield →</a><p style="color:#4a5568;font-size:11px;text-align:center;margin:0;">Only takes 60 seconds · Chrome, Edge, and Brave</p></div></div></body></html>`;
   try {
-    await resend.emails.send({ from: "Syphir Shield <noreply@syphir.io>", to: employee_email, subject: `You've been added to ${org_name || org.name}'s Syphir Shield`, html: emailHtml });
+    await resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: employee_email, subject: `You've been added to ${org_name || org.name}'s Syphir Shield`, html: emailHtml });
     return c.json({ success: true, message: `Invite sent to ${employee_email}` });
   } catch (err) {
     return c.json({ success: false, message: "Failed to send email" }, 500);
@@ -1313,6 +1317,7 @@ app.post("/create-checkout-session", async (c) => {
 
   try {
     let org, key, isNewCustomer = false;
+    let empKey = null, newEmail = null, newOrgName = null;
 
     if (body.key) {
       // Existing customer upgrading
@@ -1321,30 +1326,15 @@ app.post("/create-checkout-session", async (c) => {
       org = rows[0].organizations;
       key = body.key;
     } else if (body.email) {
-      // New customer — create org + keys upfront
+      // New customer — generate keys now but DON'T create the org yet.
+      // The org is created only after payment succeeds (in the webhook), so
+      // abandoned checkouts don't leave orphaned orgs with usable keys.
       isNewCustomer = true;
-      const email = body.email.toLowerCase().trim();
-      const orgName = body.orgName || email.split("@")[0];
-      const orgId = `org_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      newEmail = body.email.toLowerCase().trim();
+      newOrgName = body.orgName || newEmail.split("@")[0];
       key = genKey();
-      const empKey = genEmpKey();
-      const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-
-      await dbWithRetry("organizations", {
-        method: "POST", prefer: "return=minimal",
-        body: JSON.stringify({ id: orgId, name: orgName, admin_email: email, plan: "trial", active: true }),
-      });
-      // Business key
-      await dbWithRetry("license_keys", {
-        method: "POST", prefer: "return=minimal",
-        body: JSON.stringify({ key, org_id: orgId, key_type: "business", status: "active", expires_at: trialEnd }),
-      });
-      // Employee key (separate row, key_type=employee)
-      await dbWithRetry("license_keys", {
-        method: "POST", prefer: "return=minimal",
-        body: JSON.stringify({ key: empKey, org_id: orgId, key_type: "employee", status: "active", expires_at: trialEnd }),
-      });
-      org = { id: orgId, name: orgName, admin_email: email };
+      empKey = genEmpKey();
+      org = { id: null, name: newOrgName, admin_email: newEmail };
     } else {
       return c.json({ error: "key or email is required" }, 400);
     }
@@ -1361,10 +1351,19 @@ app.post("/create-checkout-session", async (c) => {
         },
         quantity: 1,
       }],
-      metadata: { org_id: org.id, org_name: org.name, key, plan, is_new_customer: isNewCustomer ? "true" : "false" },
+      metadata: {
+        org_id: org.id || "",
+        org_name: org.name,
+        key, plan,
+        is_new_customer: isNewCustomer ? "true" : "false",
+        // For new customers, the webhook uses these to create the org post-payment:
+        new_email: newEmail || "",
+        new_org_name: newOrgName || "",
+        emp_key: empKey || "",
+      },
       customer_email: org.admin_email || undefined,
       success_url: isNewCustomer
-        ? `https://syphir.vercel.app/success.html`
+        ? `https://syphir.vercel.app/success.html?key=${key}`
         : `https://syphir.vercel.app/app.html?key=${key}&payment=success`,
       cancel_url: `https://syphir.vercel.app/pricing.html`,
     });
@@ -1389,11 +1388,49 @@ app.post("/stripe-webhook", async (c) => {
     return c.text("Webhook signature invalid", 400);
   }
 
+  // ── Idempotency: Stripe can deliver the same event more than once. Skip
+  // any event id we've already processed so we don't double-send emails, etc.
+  if (_processedStripeEvents.has(event.id)) {
+    return c.json({ received: true, duplicate: true });
+  }
+  _processedStripeEvents.add(event.id);
+  // Keep the set from growing forever
+  if (_processedStripeEvents.size > 1000) {
+    const first = _processedStripeEvents.values().next().value;
+    _processedStripeEvents.delete(first);
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { org_id, plan, key, is_new_customer } = session.metadata || {};
-    if (org_id && plan) {
-      try {
+    const md = session.metadata || {};
+    const { plan, key, is_new_customer } = md;
+    let { org_id } = md;
+
+    try {
+      // ── New customer: create the org + keys NOW (payment confirmed) ──
+      if (is_new_customer === "true" && md.new_email && key) {
+        org_id = `org_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+        const orgName = md.new_org_name || md.new_email.split("@")[0];
+        const empKey = md.emp_key || genEmpKey();
+
+        await dbWithRetry("organizations", {
+          method: "POST", prefer: "return=minimal",
+          body: JSON.stringify({
+            id: org_id, name: orgName, admin_email: md.new_email,
+            plan, active: true, stripe_customer_id: session.customer || null,
+          }),
+        });
+        await dbWithRetry("license_keys", {
+          method: "POST", prefer: "return=minimal",
+          body: JSON.stringify({ key, org_id, key_type: "business", status: "active" }),
+        });
+        await dbWithRetry("license_keys", {
+          method: "POST", prefer: "return=minimal",
+          body: JSON.stringify({ key: empKey, org_id, key_type: "employee", status: "active" }),
+        });
+        console.log(`✓ New paid customer: created org ${org_id} (${orgName}) → plan ${plan}`);
+      } else if (org_id && plan) {
+        // ── Existing customer upgrading: flip plan + clear expiry ──
         await dbWithRetry(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
           method: "PATCH", prefer: "return=minimal",
           body: JSON.stringify({ plan, active: true, stripe_customer_id: session.customer || null }),
@@ -1403,32 +1440,32 @@ app.post("/stripe-webhook", async (c) => {
           body: JSON.stringify({ expires_at: null, status: "active" }),
         });
         console.log(`✓ Payment success: org ${org_id} → plan ${plan}, customer ${session.customer}`);
-
-        if (is_new_customer === "true" && session.customer_details?.email && key) {
-          const email = session.customer_details.email;
-          const dashboardUrl = `https://syphir.vercel.app/app.html?key=${key}`;
-          await resend.emails.send({
-            from: "Syphir Shield <noreply@syphir.io>",
-            to: email,
-            subject: "Welcome to Syphir — your dashboard is ready",
-            html: `
-              <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1a1a2e;">
-                <div style="font-size:24px;font-weight:700;margin-bottom:8px;">You're protected. 🛡️</div>
-                <p style="color:#555;margin-bottom:24px;">Your Syphir ${plan} subscription is active. Here's your dashboard access:</p>
-                <div style="background:#f4f4f8;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
-                  <div style="font-size:12px;color:#888;margin-bottom:4px;">YOUR DASHBOARD KEY</div>
-                  <code style="font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:1px;">${key}</code>
-                </div>
-                <a href="${dashboardUrl}" style="display:inline-block;background:#6c63ff;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Open Dashboard →</a>
-                <p style="color:#888;font-size:13px;">Save this key — you'll need it every time you sign in. If you have any questions, reply to this email.</p>
-              </div>
-            `,
-          });
-          console.log(`✓ Welcome email sent to ${email} with key ${key}`);
-        }
-      } catch (err) {
-        console.error("Failed to update org post-payment:", err.message);
       }
+
+      // ── Welcome email (new customers only) — verified sender ──
+      const recipient = session.customer_details?.email || md.new_email;
+      if (is_new_customer === "true" && recipient && key) {
+        const dashboardUrl = `https://syphir.vercel.app/app.html?key=${key}`;
+        await resend.emails.send({
+          from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: recipient,
+          subject: "Welcome to Syphir — your dashboard is ready",
+          html: `
+            <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1a1a2e;">
+              <div style="font-size:24px;font-weight:700;margin-bottom:8px;">You're protected. 🛡️</div>
+              <p style="color:#555;margin-bottom:24px;">Your Syphir ${plan} subscription is active. Here's your dashboard access:</p>
+              <div style="background:#f4f4f8;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+                <div style="font-size:12px;color:#888;margin-bottom:4px;">YOUR DASHBOARD KEY</div>
+                <code style="font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:1px;">${key}</code>
+              </div>
+              <a href="${dashboardUrl}" style="display:inline-block;background:#6c63ff;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Open Dashboard →</a>
+              <p style="color:#888;font-size:13px;">Save this key — you'll need it every time you sign in. If you have any questions, reply to this email.</p>
+            </div>
+          `,
+        });
+        console.log(`✓ Welcome email sent to ${recipient} with key ${key}`);
+      }
+    } catch (err) {
+      console.error("Failed to process payment webhook:", err.message);
     }
   }
 

@@ -35,7 +35,12 @@ h1{font-size:2rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:12px;}
 </div>
 
 <h1>You're protected.</h1>
-<p class="sub">Your Syphir subscription is active. Check your email for your dashboard key and login link.</p>
+<p class="sub">Your Syphir subscription is active. Here's your dashboard key — save it, you'll need it to log in.</p>
+
+<div class="card">
+  <div class="card-label">Your dashboard key</div>
+  <div id="key-display" style="font-family:'JetBrains Mono',monospace;font-size:1.15rem;font-weight:700;letter-spacing:1px;color:var(--text);padding:0.5rem 0;word-break:break-all;">Check your email</div>
+</div>
 
 <div class="card">
   <div class="card-label">What happens next</div>
@@ -45,9 +50,21 @@ h1{font-size:2rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:12px;}
   <div class="card-row"><span class="check">✓</span> Protection is active the moment they install</div>
 </div>
 
-<a href="app.html" class="link-btn">Go to Dashboard →</a>
+<a href="app.html" class="link-btn" id="dash-btn">Go to Dashboard →</a>
 
 <p class="footer-note">Didn't get the email? Check your spam folder or <a href="contact.html" style="color:var(--muted);">contact us</a>.</p>
+
+<script>
+(function() {
+  const key = new URLSearchParams(window.location.search).get('key');
+  if (key) {
+    const disp = document.getElementById('key-display');
+    if (disp) disp.textContent = key;
+    const btn = document.getElementById('dash-btn');
+    if (btn) btn.href = 'app.html?key=' + encodeURIComponent(key);
+  }
+})();
+</script>
 
 </body>
 </html>
