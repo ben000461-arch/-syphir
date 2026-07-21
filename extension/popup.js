@@ -148,7 +148,7 @@ async function activate() {
       btn.disabled = false;
     }
   } catch (e) {
-    setMsg(msg, "red", "Cannot connect to Syphir — try again.");
+    setMsg(msg, "red", "Cannot connect to co|op — try again.");
     btn.disabled = false;
   }
 }

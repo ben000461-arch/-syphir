@@ -440,7 +440,7 @@ function showBanner(findingsOrMessage, risk) {
 
     const headerTitle = document.createElement("div");
     headerTitle.style.cssText = `font-weight:700;font-size:12px;color:#fff;display:flex;align-items:center;gap:6px;`;
-    headerTitle.innerHTML = `<span>🛡</span><span>Syphir — Sensitive Data Detected</span>`;
+    headerTitle.innerHTML = `<span>co|op — Sensitive Data Detected</span>`;
 
     const x = document.createElement("button");
     x.textContent = "✕";
@@ -538,7 +538,7 @@ function showBanner(findingsOrMessage, risk) {
 
     const headerTitle = document.createElement("div");
     headerTitle.style.cssText = `font-weight:700;font-size:12px;color:#fff;display:flex;align-items:center;gap:6px;`;
-    headerTitle.innerHTML = `<span>🛡</span><span>Syphir — Sensitive Data Detected</span>`;
+    headerTitle.innerHTML = `<span>co|op — Sensitive Data Detected</span>`;
 
     const x = document.createElement("button");
     x.textContent = "✕";
@@ -584,7 +584,7 @@ function showBanner(findingsOrMessage, risk) {
 
 // ── LOG INCIDENT ──────────────────────────────────────────────────────────────
 async function logIncident(findings, risk_level, message, ai_tool, key, email, opts = {}) {
-  if (!key) { console.warn('Syphir: no key loaded, skipping log'); return; }
+  if (!key) { console.warn('co|op: no key loaded, skipping log'); return; }
   const incident = {
     id:           `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
     key:          key   || SYPHIR_KEY,
@@ -606,13 +606,13 @@ async function logIncident(findings, risk_level, message, ai_tool, key, email, o
     message,
     timestamp: new Date().toISOString(),
   };
-  console.log('Syphir: firing log-incident fetch', incident.key, incident.user_email, 'status:', incident.status);
+  console.log('co|op: firing log-incident fetch', incident.key, incident.user_email, 'status:', incident.status);
   const response = await fetch(`${SYPHIR_API}/log-incident`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(incident),
   });
-  console.log('Syphir: log-incident response:', response.status);
+  console.log('co|op: log-incident response:', response.status);
   return incident.id;
 }
 
@@ -656,7 +656,7 @@ async function scan(text, source, interceptEvent) {
     if (isCritical && interceptEvent) {
       // Log as 'held' immediately
       logIncident(findings, risk_level, message, tool, key, email, { status: 'held' })
-        .catch(e => console.error('Syphir: log held error:', e));
+        .catch(e => console.error('co|op: log held error:', e));
 
       try {
         if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level: 'critical', status: 'held' });
@@ -669,7 +669,7 @@ async function scan(text, source, interceptEvent) {
             status:       'confirmed',
             confirmed_by: email || 'user',
             confirmed_at: new Date().toISOString(),
-          }).catch(e => console.error('Syphir: log confirmed error:', e));
+          }).catch(e => console.error('co|op: log confirmed error:', e));
 
           try {
             if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_CONFIRMED", risk_level: 'critical' });
@@ -691,7 +691,7 @@ async function scan(text, source, interceptEvent) {
 
     // ── NON-CRITICAL: log + banner only, never block ──
     logIncident(findings, risk_level, message, tool, key, email, { status: 'flagged' })
-      .catch(e => console.error('Syphir: log-incident error:', e));
+      .catch(e => console.error('co|op: log-incident error:', e));
 
     try {
       if (chrome?.runtime?.id) chrome.runtime.sendMessage({ type: "INCIDENT_FLAGGED", risk_level });
@@ -711,7 +711,7 @@ async function scan(text, source, interceptEvent) {
 
     return false;
   } catch(e) {
-    console.error('Syphir: scan error:', e);
+    console.error('co|op: scan error:', e);
     return false;
   }
 }
@@ -896,4 +896,4 @@ new MutationObserver(async (mutations) => {
 }).observe(document.body, { childList: true, subtree: true });
 
 watchFileInputs();
-console.log("Syphir Shield active on", getAITool(), "—", window.location.hostname);
+console.log("co|op active on", getAITool(), "—", window.location.hostname);

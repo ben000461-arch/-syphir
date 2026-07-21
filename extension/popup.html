@@ -18,7 +18,7 @@
     }
     .logo-box{
       width:26px;height:26px;border-radius:6px;flex-shrink:0;
-      background:linear-gradient(135deg,#5b4fe8,#00d68f);
+      background:#ffffff;
       display:flex;align-items:center;justify-content:center;
     }
     .logo-box svg{width:13px;height:13px;fill:#fff;}
@@ -45,13 +45,13 @@
       color:#eeeef5;font-size:12px;font-family:inherit;
       outline:none;transition:border-color 0.15s;
     }
-    .field input:focus{border-color:#5b4fe8;}
+    .field input:focus{border-color:#ffffff;}
     .field input::placeholder{color:#2e2e4a;}
     .field input.mono{font-family:'Courier New',monospace;letter-spacing:0.04em;font-size:11px;}
 
-    .act-btn{
+    .act-btn{color:#000 !important;
       width:100%;padding:9px;margin-top:2px;
-      background:#5b4fe8;color:#fff;border:none;
+      background:#ffffff;color:#000;border:none;
       border-radius:7px;font-size:13px;font-weight:700;
       cursor:pointer;font-family:inherit;transition:background 0.15s;
     }
@@ -65,21 +65,21 @@
     .section{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.06);}
     .sec-lbl{
       font-size:9px;font-weight:700;letter-spacing:0.1em;
-      text-transform:uppercase;color:#5b4fe8;margin-bottom:8px;
+      text-transform:uppercase;color:#ffffff;margin-bottom:8px;
     }
 
     .shield-card{
-      background:rgba(91,79,232,0.1);border:1px solid rgba(91,79,232,0.2);
+      background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
       border-radius:9px;padding:10px 12px;
       display:flex;align-items:center;gap:10px;
     }
     .shield-icon{
       width:32px;height:32px;flex-shrink:0;
-      background:rgba(91,79,232,0.2);border-radius:8px;
+      background:rgba(255,255,255,0.2);border-radius:8px;
       display:flex;align-items:center;justify-content:center;
     }
-    .shield-icon svg{width:16px;height:16px;fill:#7b6df7;}
-    .shield-name{font-size:13px;font-weight:600;color:#9080fa;}
+    .shield-icon svg{width:16px;height:16px;fill:#e0e0e0;}
+    .shield-name{font-size:13px;font-weight:600;color:#e0e0e0;}
     .shield-org{font-size:11px;color:#5a5a7a;margin-top:1px;}
     .pill{
       margin-left:auto;font-size:9px;font-weight:700;letter-spacing:0.06em;
@@ -127,21 +127,18 @@
       border-top:1px solid rgba(255,255,255,0.05);
     }
     .ftr-ver{font-size:10px;color:#2e2e4a;}
-    .ftr-link{font-size:10px;color:#5b4fe8;cursor:pointer;background:none;border:none;font-family:inherit;}
+    .ftr-link{font-size:10px;color:#ffffff;cursor:pointer;background:none;border:none;font-family:inherit;}
   </style>
 </head>
 <body>
 
   <div class="hdr">
-    <div class="logo-box">
-      <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
-    </div>
-    <div class="brand">Syphir</div>
+    <div class="brand" style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;letter-spacing:-0.02em;">co<span style="font-weight:300;opacity:0.7;margin:0 1px;">|</span>op</div>
     <div class="sdot sdot-off" id="statusDot"></div>
   </div>
 
   <div id="loginView">
-    <div class="login-title">Activate Syphir Shield</div>
+    <div class="login-title">Activate co|op</div>
     <div class="login-sub">Enter your employee key and email to start protecting your AI sessions.</div>
     <div class="field">
       <label>Employee Key</label>
@@ -151,7 +148,7 @@
       <label>Your Work Email</label>
       <input type="email" id="empEmail" placeholder="you@company.com">
     </div>
-    <button class="act-btn" id="actBtn">Activate Shield →</button>
+    <button class="act-btn" id="actBtn">Activate →</button>
     <div class="msg" id="actMsg"></div>
   </div>
 
@@ -159,11 +156,9 @@
     <div class="section">
       <div class="sec-lbl">Protection Status</div>
       <div class="shield-card">
-        <div class="shield-icon">
-          <svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
-        </div>
+        <div class="shield-icon"><span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;color:#fff;">co<span style="font-weight:300;opacity:0.7;">|</span>op</span></div>
         <div>
-          <div class="shield-name">Shield Active</div>
+          <div class="shield-name">Protection Active</div>
           <div class="shield-org" id="orgLabel">—</div>
         </div>
         <div class="pill">Employee</div>
@@ -185,13 +180,13 @@
     <div class="exp-icon">🔒</div>
     <div class="exp-card">
       <div class="exp-title">Protection Paused</div>
-      <div class="exp-sub">Your organization's Syphir trial has ended. Contact your admin to restore protection.</div>
+      <div class="exp-sub">Your organization's co|op trial has ended. Contact your admin to restore protection.</div>
     </div>
     <button class="exp-btn" id="learnMoreBtn">Learn More →</button>
   </div>
 
   <div class="ftr">
-    <span class="ftr-ver">Syphir v1.0.0</span>
+    <span class="ftr-ver">co|op v1.0.0</span>
     <button class="ftr-link" id="siteBtn">syphir.io</button>
   </div>
 

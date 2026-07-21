@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Syphir Shield",
+  "name": "co|op",
   "version": "1.1.0",
-  "description": "AI data protection for your business by Syphir",
+  "description": "AI data protection for your business — co|op",
   "permissions": [
     "activeTab",
     "storage",
@@ -126,7 +126,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Syphir Shield"
+    "default_title": "co|op"
   },
   "background": {
     "service_worker": "background.js"
