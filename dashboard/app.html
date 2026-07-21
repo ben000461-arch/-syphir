@@ -66,18 +66,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .content{padding:18px 20px;flex:1;}
 .page{display:none;animation:fadeIn 0.15s ease;}
 .page.active{display:block;}
-
-/* ── Coming Soon overlay (work-in-progress pages) ── */
-.cs-overlay{position:fixed;top:var(--top);left:var(--sidebar);right:0;bottom:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(11,14,20,0.72);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);}
-.cs-card{max-width:440px;width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:38px 34px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.5);}
-.cs-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(59,130,246,0.25);padding:4px 11px;border-radius:100px;margin-bottom:18px;}
-.cs-icon{width:56px;height:56px;margin:0 auto 18px;border-radius:14px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;}
-.cs-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:-0.01em;}
-.cs-sub{font-size:13.5px;color:var(--text2);line-height:1.6;margin-bottom:24px;}
-.cs-sub strong{color:var(--text);font-weight:600;}
-.cs-btn{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;transition:background 0.15s;}
-.cs-btn:hover{background:var(--blue-d);}
-.cs-foot{font-size:11.5px;color:var(--text3);margin-top:18px;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* ── Stat cards ──────────────────────────────────────────────────── */
@@ -511,18 +499,6 @@ select option{background:var(--bg3);color:var(--text);}
 
     <!-- INTEL -->
     <div class="page" id="page-intel">
-
-      <!-- Coming Soon cover -->
-      <div class="cs-overlay">
-        <div class="cs-card">
-          <div class="cs-badge">Coming Soon</div>
-          <div class="cs-icon"><svg width="30" height="30" viewBox="0 0 16 16" fill="url(#sygrad-a)" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sygrad-a" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5AC8A8"/><stop offset="100%" stop-color="#3E7BE8"/></linearGradient></defs><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
-          <div class="cs-title">Powered by Syphir Node</div>
-          <div class="cs-sub">Intel lets you run plain-English security commands — isolate a device, block an IP, fix a computer — straight from your dashboard. It runs on <strong>Syphir Node</strong> — our dedicated security appliance that plugs into your network and watches everything the browser extension can't see.</div>
-          <a class="cs-btn" href="node.html">Learn about Syphir Node →</a>
-          <div class="cs-foot">This preview shows sample data. Live monitoring activates once your Node ships.</div>
-        </div>
-      </div>
       <div class="intel-wrap">
 
         <!-- NOT CONNECTED STATE -->
@@ -530,7 +506,7 @@ select option{background:var(--bg3);color:var(--text);}
           <div class="intel-connect-card">
             <div class="intel-connect-icon">🛡️</div>
             <div class="intel-connect-title">Connect your Shield device</div>
-            <div class="intel-connect-sub">Enter your Node routing number to enable Intel commands. You'll find it on the sticker on the bottom of your Syphir Node box.</div>
+            <div class="intel-connect-sub">Enter your Shield device routing number to enable Intel commands. You'll find it on the sticker on the bottom of your Syphir Shield box.</div>
             <input class="intel-connect-input" id="intel-device-input" placeholder="SYP-NET-XXXX-XXXX" maxlength="19" oninput="intelFormatKey(this)" onkeydown="if(event.key==='Enter')intelConnect()">
             <button class="intel-connect-btn" onclick="intelConnect()">Connect Device</button>
             <div class="intel-connect-err" id="intel-connect-err"></div>
@@ -542,7 +518,7 @@ select option{background:var(--bg3);color:var(--text);}
         <div class="intel-chat" id="intel-chat-screen" style="display:none;">
           <div class="intel-device-bar">
             <div class="intel-device-dot"></div>
-            <div class="intel-device-name">Syphir Node</div>
+            <div class="intel-device-name">Syphir Shield</div>
             <div class="intel-device-key" id="intel-connected-key">SYP-NET-XXXX-XXXX</div>
             <button class="intel-disconnect" onclick="intelDisconnect()">Disconnect</button>
           </div>
@@ -565,18 +541,6 @@ select option{background:var(--bg3);color:var(--text);}
 
     <!-- NETWORK SECURITY -->
     <div class="page" id="page-network">
-
-      <!-- Coming Soon cover -->
-      <div class="cs-overlay">
-        <div class="cs-card">
-          <div class="cs-badge">Coming Soon</div>
-          <div class="cs-icon"><svg width="30" height="30" viewBox="0 0 16 16" fill="url(#sygrad-b)" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sygrad-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5AC8A8"/><stop offset="100%" stop-color="#3E7BE8"/></linearGradient></defs><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
-          <div class="cs-title">Powered by Syphir Node</div>
-          <div class="cs-sub">Network Security gives you live threat detection, device isolation, and attack timelines across your whole network. It runs on <strong>Syphir Node</strong> — our dedicated security appliance that plugs into your network and watches everything the browser extension can't see.</div>
-          <a class="cs-btn" href="node.html">Learn about Syphir Node →</a>
-          <div class="cs-foot">This preview shows sample data. Live monitoring activates once your Node ships.</div>
-        </div>
-      </div>
       <!-- Top toolbar -->
       <div style="display:flex;align-items:center;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);margin:-20px -22px 20px;padding:0 22px;height:42px;">
         <div style="font-size:12px;font-weight:700;color:var(--blue-l);padding:0 14px 0 0;border-right:1px solid var(--border);margin-right:14px;">Network Security</div>
@@ -909,28 +873,16 @@ select option{background:var(--bg3);color:var(--text);}
 <script>
 const API = 'https://syphir-api.onrender.com';
 const _SESSION_KEY = 'syphir_session', _SESSION_TTL = 8 * 60 * 60 * 1000;
-const _REMEMBER_KEY = 'syphir_remember', _REMEMBER_TTL = 30 * 24 * 60 * 60 * 1000;
 function getSession() {
   try {
     const s = JSON.parse(sessionStorage.getItem(_SESSION_KEY) || 'null');
-    if (s && s.key && Date.now() - s.authenticated_at <= _SESSION_TTL) return s;
-  } catch(_) {}
-  // Fall back to the 30-day remembered session (shared with auth.js)
-  try {
-    const r = JSON.parse(localStorage.getItem(_REMEMBER_KEY) || 'null');
-    if (r && r.key && Date.now() - r.authenticated_at <= _REMEMBER_TTL) {
-      try { sessionStorage.setItem(_SESSION_KEY, JSON.stringify(r)); } catch(_) {}
-      return r;
-    }
-  } catch(_) {}
-  return null;
+    if (!s || !s.key) return null;
+    if (Date.now() - s.authenticated_at > _SESSION_TTL) { sessionStorage.removeItem(_SESSION_KEY); return null; }
+    return s;
+  } catch(_) { return null; }
 }
 function saveSession(data) {
-  const payload = { ...data, authenticated_at: Date.now() };
-  // Session (8hr) + remembered (30 days) so the profile icon persists on reopen.
-  try { sessionStorage.setItem(_SESSION_KEY, JSON.stringify(payload)); } catch(_) {}
-  try { localStorage.setItem(_REMEMBER_KEY, JSON.stringify(payload)); } catch(_) {}
-  try { if (data.email) localStorage.setItem('syphir_remembered_email', data.email); } catch(_) {}
+  try { sessionStorage.setItem(_SESSION_KEY, JSON.stringify({ ...data, authenticated_at: Date.now() })); } catch(_) {}
 }
 
 const params = new URLSearchParams(window.location.search);
@@ -990,7 +942,7 @@ const CODE_SHORT_LABELS = {
       const planPrice = PLAN_PRICES[ORG_PLAN]; if (sp) sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
       const pr = document.getElementById('settings-plan-renew');
       if (pr) { if (!ORG_EXPIRES_AT) { pr.textContent = 'Active subscription — renews monthly'; pr.style.color = 'var(--green)'; } else { const d = new Date(ORG_EXPIRES_AT); const dl = Math.ceil((d - Date.now()) / 86400000); pr.textContent = dl > 0 ? `Trial · ${dl} day${dl===1?'':'s'} left` : 'Trial expired'; pr.style.color = dl <= 2 ? 'var(--red)' : 'var(--yellow)'; } }
-      try { const empData = await fetch(`${API}/emp-key/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`).then(r => r.json()); if (empData && empData.emp_key) { ORG_EMP_KEY = empData.emp_key; const empKeyEl = document.getElementById('settings-emp-key'); if (empKeyEl) empKeyEl.value = ORG_EMP_KEY; } } catch(e2) {}
+      try { const empData = await fetch(`${API}/emp-key/${ORG_ID}`).then(r => r.json()); if (empData && empData.emp_key) { ORG_EMP_KEY = empData.emp_key; const empKeyEl = document.getElementById('settings-emp-key'); if (empKeyEl) empKeyEl.value = ORG_EMP_KEY; } } catch(e2) {}
       const il = document.getElementById('install-link'); if (il) il.value = `https://syphir.vercel.app/install.html?key=${ORG_EMP_KEY || ORG_KEY}`;
     }
   } catch(e) {
@@ -1116,7 +1068,7 @@ function getSource(inc) {
 }
 
 function sourceIcon(src) {
-  if (src === 'network') return '<div class="src-icon network" title="Syphir Node">🛡</div>';
+  if (src === 'network') return '<div class="src-icon network" title="Syphir Shield">🛡</div>';
   return '<div class="src-icon browser" title="Chrome Extension">🌐</div>';
 }
 
@@ -1229,7 +1181,7 @@ function openSidePanel(incId) {
     <div class="sp-section">
       <div class="sp-section-title">Incident Details</div>
       <div class="sp-field"><span class="sp-field-lbl">Employee</span><span class="sp-field-val">${inc.user_email||'—'}</span></div>
-      <div class="sp-field"><span class="sp-field-lbl">Source</span><span class="sp-field-val">${src==='network'?'Syphir Node':'Chrome Extension'}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">Source</span><span class="sp-field-val">${src==='network'?'Syphir Shield':'Chrome Extension'}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">AI Tool</span><span class="sp-field-val">${inc.ai_tool||'—'}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">Detected</span><span class="sp-field-val" style="font-size:11px;">${timeStr}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">Send status</span><span class="sp-field-val"><span style="font-size:11px;font-weight:600;color:${inc.status==='confirmed'?'#f87171':inc.status==='cancelled'?'#22c55e':inc.status==='held'?'#facc15':'#94a3b8'};">${inc.status==='confirmed'?'⚠ Confirmed by user':inc.status==='cancelled'?'✓ Cancelled':inc.status==='held'?'🔒 Blocked':'Flagged'}</span></span></div>
@@ -1293,7 +1245,7 @@ function renderRows(list) {
 async function loadData() {
   if (!ORG_ID) return;
   try {
-    const [iR, sR] = await Promise.all([fetch(`${API}/incidents/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`), fetch(`${API}/stats/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`)]);
+    const [iR, sR] = await Promise.all([fetch(`${API}/incidents/${ORG_ID}`), fetch(`${API}/stats/${ORG_ID}`)]);
     const iD = await iR.json(), sD = await sR.json();
     incidents = iD.incidents || [];
     const h=sD.high_risk||0,m=sD.medium_risk||0,l=sD.low_risk||0,res=sD.resolved||0,tot=sD.total_incidents||0;
@@ -1334,7 +1286,7 @@ async function loadTeamMembers() {
   if (!ORG_ID) return;
   const list=document.getElementById('team-members-list'); if (!list) return;
   try {
-    const res=await fetch(`${API}/team/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`); const data=await res.json();
+    const res=await fetch(`${API}/team/${ORG_ID}`); const data=await res.json();
     const members=(data.users||[]).filter(u=>u.status!=='removed'); const adminEmail=ORG_ADMIN_EMAIL||ORG_NAME+' Admin';
     _memberMap={};
     const hdr=`<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Member</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Role</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Last Seen</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Actions</div></div>`;
@@ -2989,7 +2941,7 @@ function wbCenter() { wbPaint(); }
 
 function wbClickShield() {
   const panel = document.getElementById('wb-detail-panel');
-  document.getElementById('wb-detail-title').textContent = 'Syphir Node';
+  document.getElementById('wb-detail-title').textContent = 'Syphir Shield';
   document.getElementById('wb-detail-title').style.color = '#2196d3';
   document.getElementById('wb-detail-body').innerHTML = `
     <div style="display:grid;gap:14px;color:#e6edf3;">

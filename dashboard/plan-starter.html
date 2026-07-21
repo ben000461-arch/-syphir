@@ -3,43 +3,222 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Professional Plan — Syphir AI Data Protection</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css">
+<title>co|op — Starter Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  .plan-page { max-width: 560px; margin: 0 auto; padding: 84px 1.5rem 5rem; }
-  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.85rem; text-decoration: none; margin-bottom: 2rem; transition: color 0.15s; }
-  .back-link:hover { color: var(--text); }
-  .plan-badge { display: inline-block; background: rgba(91,79,232,0.15); border: 1px solid rgba(91,79,232,0.35); color: #c4b8ff; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; margin-bottom: 1rem; }
-  .plan-popular { display: inline-block; background: #5b4fe8; color: #fff; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 9px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
-  .plan-name { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.25rem; letter-spacing: -0.03em; }
-  .plan-price-line { font-size: 1.1rem; color: var(--muted); margin-bottom: 2rem; }
-  .plan-price-line strong { color: var(--text); font-size: 2rem; font-weight: 700; }
-  .feature-list { list-style: none; padding: 0; margin: 0 0 2.5rem; display: flex; flex-direction: column; gap: 0.65rem; }
-  .feature-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.93rem; color: var(--muted); line-height: 1.5; }
-  .feature-list li .chk { color: #4ade80; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
-  .feature-list li .new { background: rgba(91,79,232,0.15); color: #a89af7; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 6px; border-radius: 4px; margin-left: 4px; }
-  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .btn-pilot { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 13px 20px; border-radius: 9px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: border-color 0.15s, background 0.15s; text-align: center; }
-  .btn-pilot:hover { border-color: var(--accent); background: rgba(91,79,232,0.06); }
-  .btn-subscribe { background: var(--accent); color: #fff; border: none; padding: 13px 20px; border-radius: 9px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; text-align: center; }
-  .btn-subscribe:hover { opacity: 0.88; }
-  .btn-subscribe:disabled { opacity: 0.5; cursor: not-allowed; }
-  .email-field { margin-bottom: 1.5rem; }
-  .email-field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
-  .email-field input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; font-size: 0.9rem; color: var(--text); font-family: inherit; outline: none; transition: border-color 0.15s; }
-  .email-field input:focus { border-color: var(--accent); }
-  .err-msg { font-size: 0.8rem; color: var(--danger, #f44336); margin-top: 8px; min-height: 18px; }
-  @media(max-width: 480px) { .action-row { grid-template-columns: 1fr; } }
+:root {
+  --ink: #ffffff; --paper: #000000; --paper-2: #0a0a0a;
+  --line: rgba(255,255,255,0.12); --line-soft: rgba(255,255,255,0.07);
+  --grey: #8a8a8a; --grey-dim: #555555;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+
+.topbar { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--line-soft); background: rgba(0,0,0,0.72); backdrop-filter: blur(14px); }
+.topbar-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+.brand { display: flex; align-items: center; text-decoration: none; }
+.coop-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.5rem; letter-spacing: -0.03em; color: #fff; line-height: 1; display: inline-flex; align-items: center; }
+.coop-logo .bar { font-weight: 300; margin: 0 0.04em; color: var(--grey); transform: translateY(-1px); }
+.nav-links { display: flex; align-items: center; gap: 4px; }
+.nav-links a { color: var(--grey); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: color 0.15s, background 0.15s; }
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.nav-links a.active { color: #fff; }
+#navAuthSlot .nav-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000 !important; border: none; padding: 9px 18px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
+#navAuthSlot .nav-btn:hover { opacity: 0.88; }
+@media (max-width: 820px) { .nav-links { display: none; } }
+
+.hero { padding: 96px 0 72px; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey); margin-bottom: 32px; }
+.hero-eyebrow .tick { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.6); }
+.hero h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2.6rem, 6vw, 5rem); line-height: 1.02; letter-spacing: -0.035em; margin-bottom: 28px; max-width: 16ch; }
+.hero h1 .div { color: var(--grey-dim); font-weight: 300; }
+.hero-sub { font-size: 1.12rem; line-height: 1.6; color: var(--grey); max-width: 46ch; margin-bottom: 40px; }
+.hero-cta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.btn-solid { background: #fff; color: #000; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; transition: opacity 0.15s; cursor: pointer; border: none; font-family: 'Inter',sans-serif; }
+.btn-solid:hover { opacity: 0.88; }
+.btn-line { background: transparent; color: #fff; text-decoration: none; padding: 14px 28px; border: 1px solid var(--line); border-radius: 10px; font-weight: 600; font-size: 0.95rem; transition: border-color 0.15s; }
+.btn-line:hover { border-color: rgba(255,255,255,0.4); }
+.hero-meta { display: flex; gap: 28px; margin-top: 48px; flex-wrap: wrap; justify-content: center; }
+.hero-meta span { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--grey-dim); letter-spacing: 0.04em; }
+.hero-meta b { color: var(--grey); font-weight: 500; }
+
+.checkpoint { margin-top: 40px; border-top: 1px solid var(--line-soft); padding-top: 40px; }
+.checkpoint-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; }
+.checkpoint-side { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--grey); }
+.checkpoint-side.left { text-align: right; }
+.checkpoint-bar { width: 2px; height: 56px; background: linear-gradient(to bottom, transparent, #fff, transparent); }
+.checkpoint-label { display: block; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-dim); margin-bottom: 6px; }
+@media (max-width: 640px){ .checkpoint-row{ grid-template-columns: 1fr; text-align:center; } .checkpoint-side.left{text-align:center;} .checkpoint-bar{ width:56px; height:2px; margin:0 auto; background: linear-gradient(to right, transparent, #fff, transparent);} }
+
+.strip { border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); padding: 22px 0; margin-top: 72px; }
+.strip-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-dim); margin-bottom: 14px; text-align: center; }
+.strip-tools { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+.strip-tools span { font-size: 0.92rem; color: var(--grey); font-weight: 500; }
+
+.section { padding: 96px 0; border-top: 1px solid var(--line-soft); }
+.section-head { max-width: 640px; margin-bottom: 56px; }
+.section-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-dim); margin-bottom: 16px; }
+.section-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: clamp(1.8rem, 3.5vw, 2.6rem); letter-spacing: -0.025em; line-height: 1.1; margin-bottom: 16px; }
+.section-desc { font-size: 1.05rem; color: var(--grey); line-height: 1.6; }
+
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; }
+.step { background: var(--paper); padding: 36px 32px; }
+.step-n { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--grey-dim); margin-bottom: 20px; }
+.step-n b { color: #fff; font-weight: 500; }
+.step h3 { font-family: 'Space Grotesk',sans-serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 10px; }
+.step p { font-size: 0.92rem; color: var(--grey); line-height: 1.6; }
+@media (max-width: 760px){ .steps{ grid-template-columns: 1fr; } }
+
+.feats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.feat { border: 1px solid var(--line-soft); border-radius: 14px; padding: 30px; transition: border-color 0.15s; }
+.feat:hover { border-color: var(--line); }
+.feat-k { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--grey-dim); margin-bottom: 14px; }
+.feat h3 { font-family: 'Space Grotesk',sans-serif; font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+.feat p { font-size: 0.92rem; color: var(--grey); line-height: 1.6; }
+@media (max-width: 640px){ .feats{ grid-template-columns: 1fr; } }
+
+.band { border-top: 1px solid var(--line-soft); padding: 96px 0; text-align: center; }
+.band h2 { font-family: 'Space Grotesk',sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.03em; margin-bottom: 18px; }
+.band p { font-size: 1.1rem; color: var(--grey); margin-bottom: 32px; }
+
+footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
+.foot-inner { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; text-align: center; }
+.foot-links { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+.foot-links a { color: var(--grey); text-decoration: none; font-size: 0.88rem; transition: color 0.15s; }
+.foot-links a:hover { color: #fff; }
+.foot-copy { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--grey-dim); }
+
+.plan-page { max-width:620px; margin:0 auto; padding:80px 0 40px; }
+.back-link { display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--grey); text-decoration:none; margin-bottom:36px; transition:color 0.15s; }
+.back-link:hover { color:#fff; }
+.plan-badges { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.plan-badge { font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey); border:1px solid var(--line); padding:4px 11px; border-radius:100px; }
+.plan-popular { font-family:'JetBrains Mono',monospace; font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:#000; background:#fff; padding:4px 10px; border-radius:100px; }
+.plan-name { font-family:'Space Grotesk',sans-serif; font-size:2.6rem; font-weight:700; letter-spacing:-0.03em; margin-bottom:10px; }
+.plan-price-line { font-size:1rem; color:var(--grey); margin-bottom:36px; }
+.plan-price-line strong { font-family:'Space Grotesk',sans-serif; font-size:1.4rem; color:#fff; font-weight:700; }
+.feature-list { list-style:none; margin:0 0 36px; padding:0; }
+.feature-list li { display:flex; gap:12px; align-items:flex-start; font-size:0.95rem; color:var(--grey); padding:9px 0; border-bottom:1px solid var(--line-soft); }
+.feature-list li:last-child { border-bottom:none; }
+.feature-list .chk { color:#fff; flex-shrink:0; }
+.feature-list .new, .feature-list .ent { font-family:'JetBrains Mono',monospace; font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:#000; background:#fff; padding:2px 7px; border-radius:5px; margin-left:2px; }
+.email-field { margin-bottom:20px; }
+.email-field label { display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--grey); margin-bottom:7px; }
+.email-field input { width:100%; background:var(--paper); border:1px solid var(--line); color:#fff; padding:12px 14px; border-radius:9px; font-size:0.92rem; font-family:inherit; }
+.action-row { display:flex; gap:12px; flex-wrap:wrap; }
+.btn-pilot { flex:1; min-width:180px; background:transparent; color:#fff; border:1px solid var(--line); padding:14px; border-radius:10px; font-size:0.92rem; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:border-color 0.15s; }
+.btn-pilot:hover { border-color:rgba(255,255,255,0.4); }
+.btn-subscribe { flex:1; min-width:180px; background:#fff; color:#000; border:none; padding:14px; border-radius:10px; font-size:0.92rem; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:opacity 0.15s; }
+.btn-subscribe:hover { opacity:0.88; }
+.err-msg { font-size:0.82rem; color:var(--danger); margin-top:10px; display:none; }
+/* key-gate modal */
+.kgm-overlay { display:none; position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0.72); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:24px; }
+.kgm-box { background:var(--paper-2); border:1px solid var(--line); border-radius:16px; padding:30px; max-width:400px; width:100%; }
+.kgm-box h3 { font-family:'Space Grotesk',sans-serif; font-size:1.2rem; font-weight:600; margin-bottom:6px; }
+.kgm-box p { font-size:0.88rem; color:var(--grey); margin-bottom:18px; line-height:1.5; }
+.kgm-box label { display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--grey); margin-bottom:7px; }
+.kgm-switch { text-align:center; font-size:0.82rem; color:var(--grey-dim); margin-top:14px; }
+.kgm-switch a { color:var(--grey); }
+
 </style>
 </head>
 <body>
+
+<div id="authModalMount"></div>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="index.html" class="brand"><span class="coop-logo">co<span class="bar">|</span>op</span></a>
+    <div class="nav-links">
+      <a href="how-it-works.html">How it works</a>
+      <a href="features.html">Features</a>
+      <a href="pricing.html" class="active">Pricing</a>
+      <a href="node.html">Node</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div id="navAuthSlot">
+      <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
+    </div>
+  </div>
+</div>
+
+<div class="plan-page">
+  <a href="pricing.html" class="back-link">← Back to pricing</a>
+  <div class="plan-badges"><span class="plan-badge">Starter</span></div>
+  <div class="plan-name">Starter Plan</div>
+  <div class="plan-price-line"><strong>$129</strong>/month · billed monthly · cancel anytime</div>
+
+  <ul class="feature-list">
+    <li><span class="chk">/</span> Up to 15 employees</li>
+    <li><span class="chk">/</span> 40+ PII entity types detected (SSN, PHI, financial data, and more)</li>
+    <li><span class="chk">/</span> Real-time incident dashboard</li>
+    <li><span class="chk">/</span> Email alerts on high-risk incidents</li>
+    <li><span class="chk">/</span> 30-day incident history</li>
+    <li><span class="chk">/</span> One employee install link</li>
+    <li><span class="chk">/</span> Chrome, Edge &amp; Brave support</li>
+    <li><span class="chk">/</span> CSV export of incident logs</li>
+    <li><span class="chk">/</span> Works with ChatGPT, Claude, Gemini &amp; more</li>
+  </ul>
+
+  <div id="email-section" style="display:none;" class="email-field">
+    <label>Your work email</label>
+    <input type="email" id="sub-email" placeholder="jane@yourcompany.com" autocomplete="email">
+  </div>
+
+  <div class="action-row">
+    <button class="btn-pilot" onclick="location.href='contact.html?plan=Starter'">Start Free Pilot →</button>
+    <button class="btn-subscribe" id="sub-btn" onclick="subscribePlan()">Subscribe Now →</button>
+  </div>
+  <div class="err-msg" id="sub-err"></div>
+</div>
+
+<!-- Key-gate checkout modal (contract preserved) -->
+<div class="kgm-overlay" id="kgm">
+  <div class="kgm-box">
+    <div id="kgm-key-view">
+      <h3>Upgrade existing account</h3>
+      <p>Enter your co|op org key to link this upgrade to your account.</p>
+      <label>Org Key</label>
+      <input id="kgm-key-input" type="text" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:11px 14px;font-size:0.9rem;color:#fff;font-family:inherit;outline:none;margin-bottom:0.5rem;box-sizing:border-box;">
+      <div class="err-msg" id="kgm-err" style="margin-bottom:0.5rem;"></div>
+      <button id="kgm-continue-btn" onclick="kgmValidateKey()" style="width:100%;background:#fff;color:#000;border:none;padding:12px;border-radius:9px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.25rem;">Continue →</button>
+      <div class="kgm-switch">New to co|op? <a href="#" onclick="kgmShowEmail(event)">Sign up with email →</a></div>
+    </div>
+    <div id="kgm-email-view" style="display:none;">
+      <h3>Start your subscription</h3>
+      <p>Enter your work email to create your account and subscribe.</p>
+      <label>Work Email</label>
+      <input id="kgm-email-input" type="email" placeholder="jane@yourcompany.com" autocomplete="email" style="width:100%;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:11px 14px;font-size:0.9rem;color:#fff;font-family:inherit;outline:none;margin-bottom:0.5rem;box-sizing:border-box;">
+      <div class="err-msg" id="kgm-email-err" style="margin-bottom:0.5rem;"></div>
+      <button id="kgm-email-btn" onclick="kgmSubscribeEmail()" style="width:100%;background:#fff;color:#000;border:none;padding:12px;border-radius:9px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.25rem;">Subscribe Now →</button>
+      <div class="kgm-switch">Have an org key? <a href="#" onclick="kgmShowKey(event)">Use it instead →</a></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-links">
+      <a href="how-it-works.html">How it works</a>
+      <a href="features.html">Features</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="node.html">Node</a>
+      <a href="terms.html">Terms</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="mailto:syphir26@gmail.com">Contact</a>
+    </div>
+    <div class="foot-copy">© 2025 co|op · all rights reserved</div>
+  </div>
+</footer>
+
+<script src="auth.js"></script>
 <script>
 const _params = new URLSearchParams(window.location.search);
 const _key = (function() {
   const urlKey = _params.get('key');
   if (urlKey) return urlKey;
-  // Logged-in user? Use their session key so upgrade skips straight to checkout.
   try {
     const r = JSON.parse(localStorage.getItem('syphir_remember') || 'null');
     if (r && r.key) return r.key;
@@ -49,35 +228,26 @@ const _key = (function() {
   return '';
 })();
 const _PLAN_API = 'https://syphir-api.onrender.com';
-const _PLAN = 'Professional';
+const _PLAN = 'Starter';
 
 function _showPlanErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 function _hidePlanErr(el) { el.textContent = ''; el.style.display = 'none'; }
 
-function subscribePlan() {
-  if (_key) { doCheckout(_key, null); } else { kgmOpen(); }
-}
+function subscribePlan() { if (_key) { doCheckout(_key, null); } else { kgmOpen(); } }
 
 function kgmOpen() {
   const m = document.getElementById('kgm');
   m.style.display = 'flex';
-  // Default to the email view — simpler than asking for an org key.
   document.getElementById('kgm-key-view').style.display = 'none';
   document.getElementById('kgm-email-view').style.display = '';
   _hidePlanErr(document.getElementById('kgm-email-err'));
   const emailInput = document.getElementById('kgm-email-input');
   emailInput.value = '';
-  // Pre-fill the remembered email if we have one (same as login flow).
-  try {
-    const remembered = localStorage.getItem('syphir_remembered_email');
-    if (remembered) emailInput.value = remembered;
-  } catch(_) {}
+  try { const remembered = localStorage.getItem('syphir_remembered_email'); if (remembered) emailInput.value = remembered; } catch(_) {}
   document.getElementById('kgm-email-btn').textContent = 'Subscribe Now →';
   document.getElementById('kgm-email-btn').disabled = false;
 }
-
 function kgmClose() { document.getElementById('kgm').style.display = 'none'; }
-
 function kgmShowEmail(e) {
   e.preventDefault();
   document.getElementById('kgm-key-view').style.display = 'none';
@@ -87,14 +257,12 @@ function kgmShowEmail(e) {
   document.getElementById('kgm-email-btn').textContent = 'Subscribe Now →';
   document.getElementById('kgm-email-btn').disabled = false;
 }
-
 function kgmShowKey(e) {
   e.preventDefault();
   document.getElementById('kgm-email-view').style.display = 'none';
   document.getElementById('kgm-key-view').style.display = '';
   _hidePlanErr(document.getElementById('kgm-err'));
 }
-
 async function kgmValidateKey() {
   const keyInput = document.getElementById('kgm-key-input');
   const errEl = document.getElementById('kgm-err');
@@ -104,19 +272,12 @@ async function kgmValidateKey() {
   if (!key) { _showPlanErr(errEl, 'Enter your org key.'); return; }
   btn.textContent = 'Validating…'; btn.disabled = true;
   try {
-    const r = await fetch(`${_PLAN_API}/validate-key`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, context: 'dashboard' })
-    });
+    const r = await fetch(`${_PLAN_API}/validate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, context: 'dashboard' }) });
     const d = await r.json();
     if (d.valid) { kgmClose(); doCheckout(key, null); }
     else { _showPlanErr(errEl, d.error || 'Key not found — check and try again'); btn.textContent = 'Continue →'; btn.disabled = false; }
-  } catch(e) {
-    _showPlanErr(errEl, 'Network error — try again');
-    btn.textContent = 'Continue →'; btn.disabled = false;
-  }
+  } catch(e) { _showPlanErr(errEl, 'Network error — try again'); btn.textContent = 'Continue →'; btn.disabled = false; }
 }
-
 async function kgmSubscribeEmail() {
   const emailInput = document.getElementById('kgm-email-input');
   const errEl = document.getElementById('kgm-email-err');
@@ -127,19 +288,12 @@ async function kgmSubscribeEmail() {
   if (!email.includes('@')) { _showPlanErr(errEl, 'Enter a valid email address.'); return; }
   btn.textContent = 'Redirecting…'; btn.disabled = true;
   try {
-    const r = await fetch(`${_PLAN_API}/create-checkout-session`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, plan: _PLAN })
-    });
+    const r = await fetch(`${_PLAN_API}/create-checkout-session`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, plan: _PLAN }) });
     const d = await r.json();
     if (d.url) { window.location.href = d.url; }
     else { _showPlanErr(errEl, d.error || 'Could not start checkout — try again'); btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
-  } catch(e) {
-    _showPlanErr(errEl, 'Network error — try again');
-    btn.textContent = 'Subscribe Now →'; btn.disabled = false;
-  }
+  } catch(e) { _showPlanErr(errEl, 'Network error — try again'); btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
 }
-
 async function doCheckout(key, email) {
   const btn = document.getElementById('sub-btn');
   const errEl = document.getElementById('sub-err');
@@ -147,102 +301,14 @@ async function doCheckout(key, email) {
   _hidePlanErr(errEl);
   try {
     const body = key ? { key, plan: _PLAN } : { email, plan: _PLAN };
-    const r = await fetch(`${_PLAN_API}/create-checkout-session`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    const r = await fetch(`${_PLAN_API}/create-checkout-session`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const d = await r.json();
     if (d.url) { window.location.href = d.url; }
     else { _showPlanErr(errEl, d.error || 'Could not start checkout — try again'); btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
-  } catch(e) {
-    _showPlanErr(errEl, 'Network error — try again');
-    btn.textContent = 'Subscribe Now →'; btn.disabled = false;
-  }
+  } catch(e) { _showPlanErr(errEl, 'Network error — try again'); btn.textContent = 'Subscribe Now →'; btn.disabled = false; }
 }
-
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') kgmClose(); });
+window.addEventListener('click', function(e) { if (e.target === document.getElementById('kgm')) kgmClose(); });
 </script>
-<nav>
-  <a href="index.html" class="nav-logo">
-    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
-    Syphir
-  </a>
-  <div class="nav-links">
-    <a href="how-it-works.html">How it works</a>
-    <a href="features.html">Features</a>
-    <a href="pricing.html" class="active">Pricing</a>
-    <a href="node.html">Node</a>
-    <a href="contact.html">Contact</a>
-  </div>
-  <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
-</nav>
-
-<div class="plan-page">
-  <a href="pricing.html" class="back-link">← Back to pricing</a>
-
-  <div>
-    <span class="plan-badge">Professional</span>
-    <span class="plan-popular">Most Popular</span>
-  </div>
-  <div class="plan-name">Professional Plan</div>
-  <div class="plan-price-line"><strong>$299</strong>/month · billed monthly · cancel anytime</div>
-
-  <ul class="feature-list">
-    <li><span class="chk">✓</span> Up to 50 employees</li>
-    <li><span class="chk">✓</span> Everything in Starter</li>
-    <li><span class="chk">✓</span> 40+ PII entity types + <span class="new">custom</span> keyword rules</li>
-    <li><span class="chk">✓</span> Slack & Microsoft Teams alerts <span class="new">new</span></li>
-    <li><span class="chk">✓</span> 1-year incident history</li>
-    <li><span class="chk">✓</span> Priority email support (24h response)</li>
-    <li><span class="chk">✓</span> CSV export of incident logs</li>
-    <li><span class="chk">✓</span> API Gateway (monitor AI API calls)</li>
-    <li><span class="chk">✓</span> Chrome, Edge & Brave support</li>
-    <li><span class="chk">✓</span> Works with ChatGPT, Claude, Gemini & more</li>
-  </ul>
-
-  <div id="email-section" style="display:none;" class="email-field">
-    <label>Your work email</label>
-    <input type="email" id="sub-email" placeholder="jane@yourcompany.com" autocomplete="email">
-  </div>
-
-  <div class="action-row">
-    <button class="btn-pilot" onclick="location.href='contact.html?plan=Professional'">Start Free Pilot →</button>
-    <button class="btn-subscribe" id="sub-btn" onclick="subscribePlan()">Subscribe Now →</button>
-  </div>
-  <div class="err-msg" id="sub-err"></div>
-</div>
-
-<footer>
-  <div class="footer-links">
-    <a href="index.html">Home</a><a href="how-it-works.html">How it works</a>
-    <a href="features.html">Features</a><a href="terms.html">Terms</a>
-    <a href="privacy.html">Privacy</a><a href="mailto:syphir26@gmail.com">syphir26@gmail.com</a>
-  </div>
-  <p>© 2025 Syphir · All rights reserved.</p>
-</footer>
-<div id="kgm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:900;align-items:center;justify-content:center;" onclick="if(event.target===this)kgmClose()">
-  <div style="background:#16143a;border:1px solid var(--border);border-radius:14px;padding:2rem;width:min(440px,90vw);position:relative;max-height:90vh;overflow-y:auto;">
-    <button onclick="kgmClose()" style="position:absolute;top:0.85rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1;padding:4px;">✕</button>
-    <div id="kgm-key-view">
-      <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;color:var(--text);">Upgrade existing account</div>
-      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;">Enter your Syphir org key to link this upgrade to your account.</div>
-      <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--muted2,#888);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Org Key</label>
-      <input id="kgm-key-input" type="text" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:0.9rem;color:var(--text);font-family:inherit;outline:none;transition:border-color 0.15s;margin-bottom:0.5rem;box-sizing:border-box;">
-      <div class="err-msg" id="kgm-err" style="margin-bottom:0.5rem;"></div>
-      <button id="kgm-continue-btn" onclick="kgmValidateKey()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:9px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.25rem;">Continue →</button>
-      <p style="text-align:center;margin:1rem 0 0;font-size:0.82rem;color:var(--muted);">New to Syphir? <a href="#" onclick="kgmShowEmail(event)" style="color:var(--accent);text-decoration:none;">Sign up with email →</a></p>
-    </div>
-    <div id="kgm-email-view" style="display:none;">
-      <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;color:var(--text);">Create new account</div>
-      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;">Enter your work email to set up a new Syphir account.</div>
-      <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--muted2,#888);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Work Email</label>
-      <input id="kgm-email-input" type="email" placeholder="jane@yourcompany.com" autocomplete="email" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:0.9rem;color:var(--text);font-family:inherit;outline:none;transition:border-color 0.15s;margin-bottom:0.5rem;box-sizing:border-box;">
-      <div class="err-msg" id="kgm-email-err" style="margin-bottom:0.5rem;"></div>
-      <button id="kgm-email-btn" onclick="kgmSubscribeEmail()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:9px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.25rem;">Subscribe Now →</button>
-      <p style="text-align:center;margin:1rem 0 0;font-size:0.82rem;color:var(--muted);">Already on Syphir? <a href="#" onclick="kgmShowKey(event)" style="color:var(--accent);text-decoration:none;">Enter org key →</a></p>
-    </div>
-  </div>
-</div>
-<script src="auth.js"></script>
 </body>
 </html>
