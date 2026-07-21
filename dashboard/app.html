@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Syphir — AI Data Protection</title>
+<title>co|op — AI Data Protection</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#0b0e14;--bg2:#111318;--bg3:#16191f;--bg4:#1c1f27;
-  --border:#1e2230;--border2:#252a38;
-  --blue:#3b82f6;--blue-l:#60a5fa;--blue-d:#1d4ed8;--blue-g:rgba(59,130,246,0.08);
-  --cyan:#22d3ee;--pink:#ec4899;--orange:#f97316;
-  --green:#22c55e;--red:#ef4444;--yellow:#eab308;
-  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--text4:#2d3748;
+  --bg:#000000;--bg2:#0a0a0a;--bg3:#111111;--bg4:#1a1a1a;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);
+  --blue:#ffffff;--blue-l:#ffffff;--blue-d:#e0e0e0;--blue-g:rgba(255,255,255,0.06);
+  --cyan:#ffffff;--pink:#ff4d4d;--orange:#ffb347;
+  --green:#3ecf8e;--red:#ff4d4d;--yellow:#eab308;
+  --text:#f5f5f5;--text2:#8a8a8a;--text3:#5a5a5a;--text4:#2d2d2d;
   --sidebar:212px;--top:48px;
 }
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:12.5px;overflow-x:hidden;}
@@ -28,6 +28,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .logo-icon svg{width:26px;height:26px;}
 .logo-text{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.3px;}
 .logo-text span{color:var(--blue-l);}
+.coop-mark{font-family:'DM Sans','Inter',sans-serif;font-weight:700;font-size:17px;letter-spacing:-0.02em;color:#fff;display:inline-flex;align-items:center;}
+.coop-pipe{font-weight:300;margin:0 0.06em;opacity:0.85;}
 .nav-section{padding:12px 8px 4px;}
 .nav-label{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.4px;padding:0 8px;margin-bottom:4px;}
 .nav-item{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:5px;cursor:pointer;color:var(--text3);font-size:12px;font-weight:500;transition:all 0.12s;margin-bottom:1px;position:relative;border:1px solid transparent;}
@@ -74,7 +76,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
 .stat-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
 .stat-icon-box{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;}
-.ib-blue{background:rgba(59,130,246,0.12);}
+.ib-blue{background:rgba(255,255,255,0.12);}
 .ib-red{background:rgba(239,68,68,0.12);}
 .ib-orange{background:rgba(249,115,22,0.12);}
 .ib-green{background:rgba(34,197,94,0.12);}
@@ -136,14 +138,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .inc-filter-group{display:flex;gap:3px;}
 .inc-filter-btn{background:transparent;border:1px solid var(--border);color:var(--text3);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:10.5px;font-family:'Inter',sans-serif;transition:all 0.12s;}
 .inc-filter-btn:hover{color:var(--text2);border-color:var(--border2);}
-.inc-filter-btn.active{background:var(--blue-g);border-color:rgba(59,130,246,0.3);color:var(--blue-l);}
+.inc-filter-btn.active{background:var(--blue-g);border-color:rgba(255,255,255,0.3);color:var(--blue-l);}
 .inc-filter-sep{width:1px;height:16px;background:var(--border);margin:0 3px;}
 .inc-tbl-hdr{display:grid;grid-template-columns:28px 80px 1fr 1fr 140px 90px 80px 80px;padding:7px 16px;border-bottom:1px solid var(--border);}
 .inc-th{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.9px;}
 .inc-row{display:grid;grid-template-columns:28px 80px 1fr 1fr 140px 90px 80px 80px;padding:9px 16px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;transition:background 0.1s;}
 .inc-row:last-child{border-bottom:none;}
 .inc-row:hover{background:var(--bg3);}
-.inc-row.selected{background:rgba(59,130,246,0.06);border-left:2px solid var(--blue);}
+.inc-row.selected{background:rgba(255,255,255,0.06);border-left:2px solid var(--blue);}
 .inc-sev{display:flex;align-items:center;}
 .sev-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .sev-high{background:#ef4444;}
@@ -162,7 +164,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 
 /* ── Source badge ────────────────────────────────────────────────── */
 .src-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:0.5px;}
-.src-browser{background:rgba(59,130,246,0.12);color:var(--blue-l);}
+.src-browser{background:rgba(255,255,255,0.12);color:var(--blue-l);}
 .src-network{background:rgba(239,68,68,0.1);color:#f87171;}
 
 /* ── Side panel ──────────────────────────────────────────────────── */
@@ -334,7 +336,7 @@ select option{background:var(--bg3);color:var(--text);}
 .ns-tab.active{color:var(--text);border-bottom-color:var(--blue);}
 .pt-filter-btn{background:transparent;border:1px solid var(--border);color:var(--text3);font-size:10px;font-weight:500;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.12s;}
 .pt-filter-btn:hover{color:var(--text2);border-color:var(--border2);}
-.active-filter{background:var(--blue-g)!important;border-color:rgba(59,130,246,0.3)!important;color:var(--blue-l)!important;}
+.active-filter{background:var(--blue-g)!important;border-color:rgba(255,255,255,0.3)!important;color:var(--blue-l)!important;}
 .ns-tool-tab{transition:color 0.12s;}
 .ns-tool-tab:hover{color:var(--text2)!important;}
 .active-tool-tab{color:var(--blue-l)!important;border-bottom:2px solid var(--blue)!important;}
@@ -352,25 +354,14 @@ select option{background:var(--bg3);color:var(--text);}
 .billing-banner{border:1px solid var(--border);border-radius:7px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;font-size:12px;}
 .billing-banner.warn{border-color:rgba(234,179,8,0.3);background:rgba(234,179,8,0.05);}
 .billing-banner.danger{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);}
-.billing-banner.info{border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.05);}
+.billing-banner.info{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
 </style>
 </head>
 <body>
 
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 100 115" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 5 L90 22 L90 55 C90 78 72 98 50 108 C28 98 10 78 10 55 L10 22 Z" fill="url(#shield-grad)" opacity="0.95"/>
-        <defs>
-          <linearGradient id="shield-grad" x1="50" y1="5" x2="50" y2="108" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#60a5fa"/>
-            <stop offset="100%" stop-color="#3b82f6"/>
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-    <div class="logo-text">Sy<span>phir</span></div>
+    <div class="logo-text coop-mark">co<span class="coop-pipe">|</span>op</div>
   </div>
   <div class="nav-section">
     <div class="nav-label">Monitor</div>
@@ -392,7 +383,7 @@ select option{background:var(--bg3);color:var(--text);}
     <div class="org-card">
       <div class="org-name" id="org-name">Loading...</div>
       <div class="org-plan" id="org-plan">Business</div>
-      <div class="org-status"><div class="status-dot"></div><div class="status-txt">Shield Active</div></div>
+      <div class="org-status"><div class="status-dot"></div><div class="status-txt">Protection Active</div></div>
     </div>
   </div>
 </aside>
@@ -418,7 +409,7 @@ select option{background:var(--bg3);color:var(--text);}
     <!-- OVERVIEW -->
     <div class="page active" id="page-overview">
       <div class="stats-row">
-        <div class="stat-card sc-blue"><div class="stat-top"><div class="stat-lbl">Total Incidents</div><div class="stat-icon-box ib-blue">🛡</div></div><div class="stat-num" id="s-total">0</div><div class="stat-desc">All detections</div><div class="stat-bar sb-blue"></div></div>
+        <div class="stat-card sc-blue"><div class="stat-top"><div class="stat-lbl">Total Incidents</div><div class="stat-icon-box ib-blue">○</div></div><div class="stat-num" id="s-total">0</div><div class="stat-desc">All detections</div><div class="stat-bar sb-blue"></div></div>
         <div class="stat-card sc-red"><div class="stat-top"><div class="stat-lbl">High Risk</div><div class="stat-icon-box ib-red">⚠</div></div><div class="stat-num" id="s-high">0</div><div class="stat-desc">SSN · Cards · Medical</div><div class="stat-bar sb-red"></div></div>
         <div class="stat-card sc-orange"><div class="stat-top"><div class="stat-lbl">Medium Risk</div><div class="stat-icon-box ib-orange">◎</div></div><div class="stat-num" id="s-medium">0</div><div class="stat-desc">Names · Emails · Phones</div><div class="stat-bar sb-orange"></div></div>
         <div class="stat-card sc-green"><div class="stat-top"><div class="stat-lbl">Resolved</div><div class="stat-icon-box ib-green">✓</div></div><div class="stat-num" id="s-resolved">0</div><div class="stat-desc">Acknowledged</div><div class="stat-bar sb-green"></div></div>
@@ -450,7 +441,7 @@ select option{background:var(--bg3);color:var(--text);}
       </div>
       <div class="card">
         <div class="tbl-hdr"><div class="th">Detection</div><div class="th">User</div><div class="th">AI Tool</div><div class="th">Risk</div><div class="th">Time</div><div class="th">Action</div></div>
-        <div id="tbl-overview"><div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents yet — your team is clean</div></div></div>
+        <div id="tbl-overview"><div class="empty"><div class="empty-icon">○</div><div class="empty-msg">No incidents yet — your team is clean</div></div></div>
       </div>
     </div>
 
@@ -493,7 +484,7 @@ select option{background:var(--bg3);color:var(--text);}
           <div class="inc-th">Esc. Score</div>
           <div class="inc-th">Status</div>
         </div>
-        <div id="tbl-incidents"><div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div></div>
+        <div id="tbl-incidents"><div class="empty"><div class="empty-icon">○</div><div class="empty-msg">No incidents detected yet</div></div></div>
       </div>
     </div>
 
@@ -504,9 +495,9 @@ select option{background:var(--bg3);color:var(--text);}
         <!-- NOT CONNECTED STATE -->
         <div class="intel-connect" id="intel-connect-screen">
           <div class="intel-connect-card">
-            <div class="intel-connect-icon">🛡️</div>
+            <div class="intel-connect-icon">○</div>
             <div class="intel-connect-title">Connect your Shield device</div>
-            <div class="intel-connect-sub">Enter your Shield device routing number to enable Intel commands. You'll find it on the sticker on the bottom of your Syphir Shield box.</div>
+            <div class="intel-connect-sub">Enter your Block device routing number to enable Intel commands. You'll find it on the sticker on the bottom of your co|op Block box.</div>
             <input class="intel-connect-input" id="intel-device-input" placeholder="SYP-NET-XXXX-XXXX" maxlength="19" oninput="intelFormatKey(this)" onkeydown="if(event.key==='Enter')intelConnect()">
             <button class="intel-connect-btn" onclick="intelConnect()">Connect Device</button>
             <div class="intel-connect-err" id="intel-connect-err"></div>
@@ -518,7 +509,7 @@ select option{background:var(--bg3);color:var(--text);}
         <div class="intel-chat" id="intel-chat-screen" style="display:none;">
           <div class="intel-device-bar">
             <div class="intel-device-dot"></div>
-            <div class="intel-device-name">Syphir Shield</div>
+            <div class="intel-device-name">co|op Block</div>
             <div class="intel-device-key" id="intel-connected-key">SYP-NET-XXXX-XXXX</div>
             <button class="intel-disconnect" onclick="intelDisconnect()">Disconnect</button>
           </div>
@@ -726,7 +717,7 @@ select option{background:var(--bg3);color:var(--text);}
 
     <!-- POLICIES -->
     <div class="page" id="page-policies">
-      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what Syphir detects</div></div><button class="btn btn-primary" onclick="showToast('Detection policies saved!')">Save Changes</button></div>
+      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what co|op detects</div></div><button class="btn btn-primary" onclick="showToast('Detection policies saved!')">Save Changes</button></div>
       <div class="grid-2">
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">📋 Sensitive Data Types</div></div>
@@ -1068,7 +1059,7 @@ function getSource(inc) {
 }
 
 function sourceIcon(src) {
-  if (src === 'network') return '<div class="src-icon network" title="Syphir Shield">🛡</div>';
+  if (src === 'network') return '<div class="src-icon network" title="co|op Block">◆</div>';
   return '<div class="src-icon browser" title="Chrome Extension">🌐</div>';
 }
 
@@ -1090,7 +1081,7 @@ function renderIncidentTable() {
   if (!container) return;
   const sub = document.getElementById('inc-count-sub');
   if (sub) sub.textContent = `${filtered.length} incident${filtered.length !== 1 ? 's' : ''} · newest first`;
-  if (!filtered.length) { container.innerHTML = '<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents match the current filters</div></div>'; return; }
+  if (!filtered.length) { container.innerHTML = '<div class="empty"><div class="empty-icon">○</div><div class="empty-msg">No incidents match the current filters</div></div>'; return; }
   const sorted = [...filtered].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
   container.innerHTML = sorted.map(inc => {
     const sev = riskToSev(inc.risk_level);
@@ -1131,7 +1122,7 @@ function openSidePanel(incId) {
       const type = d.isCode ? (CODE_SHORT_LABELS[d.type]||d.type) : (d.entity_type||'PII');
       const val = d.value ? `<span style="color:#fbbf24;">"${String(d.value).slice(0,60)}${d.value.length>60?'...':''}"</span>` : '';
       const line = d.line_number ? ` <span style="color:var(--text3);">line ${d.line_number}</span>` : '';
-      return `<span style="color:#60a5fa;">[${type}]</span> ${val}${line}`;
+      return `<span style="color:#e0e0e0;">[${type}]</span> ${val}${line}`;
     }).join('<br>');
   } else { caughtHTML = '<span style="color:var(--text3);">No raw data available</span>'; }
   const timeStr = inc.timestamp ? new Date(inc.timestamp).toLocaleString() : '—';
@@ -1152,7 +1143,7 @@ function openSidePanel(incId) {
     <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:7px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;">
       <div style="font-size:15px;flex-shrink:0;margin-top:1px;">🔒</div>
       <div>
-        <div style="font-size:12px;font-weight:700;color:#facc15;margin-bottom:3px;">Send was blocked by Syphir</div>
+        <div style="font-size:12px;font-weight:700;color:#facc15;margin-bottom:3px;">Send was blocked by co|op</div>
         <div style="font-size:11px;color:#94a3b8;line-height:1.5;">The firewall intercepted this prompt. The user was shown a warning and did not proceed — data was not sent.</div>
       </div>
     </div>` : inc.status === 'cancelled' ? `
@@ -1181,7 +1172,7 @@ function openSidePanel(incId) {
     <div class="sp-section">
       <div class="sp-section-title">Incident Details</div>
       <div class="sp-field"><span class="sp-field-lbl">Employee</span><span class="sp-field-val">${inc.user_email||'—'}</span></div>
-      <div class="sp-field"><span class="sp-field-lbl">Source</span><span class="sp-field-val">${src==='network'?'Syphir Shield':'Chrome Extension'}</span></div>
+      <div class="sp-field"><span class="sp-field-lbl">Source</span><span class="sp-field-val">${src==='network'?'co|op Block':'Chrome Extension'}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">AI Tool</span><span class="sp-field-val">${inc.ai_tool||'—'}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">Detected</span><span class="sp-field-val" style="font-size:11px;">${timeStr}</span></div>
       <div class="sp-field"><span class="sp-field-lbl">Send status</span><span class="sp-field-val"><span style="font-size:11px;font-weight:600;color:${inc.status==='confirmed'?'#f87171':inc.status==='cancelled'?'#22c55e':inc.status==='held'?'#facc15':'#94a3b8'};">${inc.status==='confirmed'?'⚠ Confirmed by user':inc.status==='cancelled'?'✓ Cancelled':inc.status==='held'?'🔒 Blocked':'Flagged'}</span></span></div>
@@ -1238,7 +1229,7 @@ function drawBars(inc) {
 }
 
 function renderRows(list) {
-  if (!list.length) return '<div class="empty"><div class="empty-icon">🛡️</div><div class="empty-msg">No incidents detected yet</div></div>';
+  if (!list.length) return '<div class="empty"><div class="empty-icon">○</div><div class="empty-msg">No incidents detected yet</div></div>';
   return list.map(i => `<div class="tbl-row"><div class="td"><div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${(i.detections||[]).map(d=>detectionBadge(d)).join('')||'<span style="font-size:12px;">PII Detected</span>'}</div><div class="td-sub">${i.org_name||ORG_NAME}</div></div><div class="td">${i.user_email||'—'}</div><div class="td"><span class="badge b-tool">${i.ai_tool||'AI Tool'}</span></div><div class="td">${rBadge(i.risk_level||'low')}</div><div class="td td-sub">${timeAgo(i.timestamp)}</div><div class="td"><button class="res-btn ${i.resolved?'done':''}" id="r-${i.id}" onclick="resolve('${i.id}')">${i.resolved?'Done':'Resolve'}</button></div></div>`).join('');
 }
 
@@ -1517,11 +1508,11 @@ async function intelRunRepair(id, name) {
     intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
     intelTermLine(id, 'Then try again.', '#8b949e');
     intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Shield server. Run python3 local_server.py in your Syphir_box folder.');
+    intelDone(id, 'Could not connect to local Block server. Run python3 local_server.py in your Syphir_box folder.');
     return;
   }
 
-  intelTermLine(id, `Dispatching repair agent to ${name}'s machine...`, '#60a5fa');
+  intelTermLine(id, `Dispatching repair agent to ${name}'s machine...`, '#e0e0e0');
   intelProgress(id, 10, 'Connecting...');
 
   try {
@@ -1559,11 +1550,11 @@ async function intelRunDiagnostic(id, name) {
     intelTermLine(id, 'Local server not running.', '#f87171');
     intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
     intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Shield server. Run python3 local_server.py in your Syphir_box folder.');
+    intelDone(id, 'Could not connect to local Block server. Run python3 local_server.py in your Syphir_box folder.');
     return;
   }
 
-  intelTermLine(id, `Dispatching diagnostic agent to ${name}'s machine...`, '#60a5fa');
+  intelTermLine(id, `Dispatching diagnostic agent to ${name}'s machine...`, '#e0e0e0');
   intelProgress(id, 10, 'Connecting...');
 
   try {
@@ -1615,7 +1606,7 @@ async function intelPollJob(id, job_id) {
       intelProgress(id, pct, 'Paused — type "continue" to resume');
       // Wait for resume
       while (intelPaused) await new Promise(r => setTimeout(r, 500));
-      intelTermLine(id, 'Resuming...', '#60a5fa');
+      intelTermLine(id, 'Resuming...', '#e0e0e0');
     }
 
     try {
@@ -1658,11 +1649,11 @@ async function intelRunStatus(id) {
     intelTermLine(id, 'Local server not running.', '#f87171');
     intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
     intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Shield server.');
+    intelDone(id, 'Could not connect to local Block server.');
     return;
   }
 
-  intelTermLine(id, 'Querying Shield device...', '#60a5fa');
+  intelTermLine(id, 'Querying Shield device...', '#e0e0e0');
   intelProgress(id, 30, 'Querying...');
 
   try {
@@ -1694,11 +1685,11 @@ async function intelRunPing(id, ip) {
   if (!live) {
     intelTermLine(id, 'Local server not running.', '#f87171');
     intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Shield server.');
+    intelDone(id, 'Could not connect to local Block server.');
     return;
   }
   // Ping is simulated for now — real version goes via Pi on LAN
-  intelTermLine(id, `Pinging ${ip}...`, '#60a5fa');
+  intelTermLine(id, `Pinging ${ip}...`, '#e0e0e0');
   intelProgress(id, 40, 'Pinging...');
   await new Promise(r => setTimeout(r, 800));
   intelTermLine(id, `Reply from ${ip}: time=4ms`, '#a3e635');
@@ -2096,14 +2087,14 @@ function ptPaintIncident(incident, ip) {
   const H = Math.max(wrap.offsetHeight || 500, 400);
 
   // Color helpers
-  const rc = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':r==='device'?'#3b82f6':'#475569';
+  const rc = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':r==='device'?'#ffffff':'#475569';
   const riskCol  = rc(incident.risk);
   const respCol  = incident.response==='isolate_and_alert'?'#ef4444':incident.response==='block_and_alert'?'#f97316':incident.response==='alert'?'#eab308':'#475569';
   const respLabel = incident.response==='isolate_and_alert'?'ISOLATED':incident.response==='block_and_alert'?'BLOCKED':incident.response==='alert'?'ALERTED':'WATCHED';
 
   // Build chain nodes
   const chain = [
-    { id:0, type:'device', label: ip||'Device',           sub:'Source device',        col:'#3b82f6',  score:null },
+    { id:0, type:'device', label: ip||'Device',           sub:'Source device',        col:'#ffffff',  score:null },
     { id:1, type:'detect', label: incident.sig||'SIG',    sub: (incident.name||'').slice(0,22), col: riskCol, score: incident.score },
     { id:2, type:'resp',   label: respLabel,               sub: incident.response?.replace(/_/g,' ')||'', col: respCol, score:null },
   ];
@@ -2195,7 +2186,7 @@ function ptShowSummaryPanel(incident, ip, chain) {
   const panel = document.getElementById('pt-detail-panel');
   const title = document.getElementById('pt-detail-title');
   const body  = document.getElementById('pt-detail-body');
-  const rc    = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':'#3b82f6';
+  const rc    = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':'#ffffff';
   const col   = rc(incident.risk);
   const sev   = (incident.risk||'').toUpperCase();
 
@@ -2220,7 +2211,7 @@ function ptShowSummaryPanel(incident, ip, chain) {
   const plain = explain[incident.sig] || incident.detail || 'Suspicious network activity was detected on this device.';
 
   const respMap = {
-    'isolate_and_alert': { label:'Device Isolated', desc:'The Shield cut this device off from the network to stop the threat from spreading. It can still be reached by Syphir for diagnostics.', col:'#ef4444' },
+    'isolate_and_alert': { label:'Device Isolated', desc:'The Shield cut this device off from the network to stop the threat from spreading. It can still be reached by co|op for diagnostics.', col:'#ef4444' },
     'block_and_alert':   { label:'IP Blocked', desc:'Incoming traffic from this external IP has been dropped at the network level. The attacker can no longer reach your devices.', col:'#f97316' },
     'alert':             { label:'Admin Alerted', desc:'The activity was flagged and you were notified. No automated action was taken — review and decide if isolation is needed.', col:'#eab308' },
   };
@@ -2744,13 +2735,13 @@ function wbPaint() {
       C${CX+13} ${CY+9} ${CX+7} ${CY+16} ${CX} ${CY+20}
       C${CX-7} ${CY+16} ${CX-13} ${CY+9} ${CX-13} ${CY-2}
       L${CX-13} ${CY-12} Z"
-      fill="rgba(59,130,246,0.12)" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/>
+      fill="rgba(255,255,255,0.12)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
     <!-- Circle highlight ring around shield to distinguish center -->
-    <circle cx="${CX}" cy="${CY}" r="26" fill="none" stroke="#3b82f6" stroke-width="1" opacity="0.25" stroke-dasharray="3,4"/>
+    <circle cx="${CX}" cy="${CY}" r="26" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.25" stroke-dasharray="3,4"/>
     <text x="${CX}" y="${CY+36}" text-anchor="middle" font-size="10" font-weight="600"
-      fill="#3b82f6" font-family="Inter,sans-serif">SHIELD</text>
+      fill="#ffffff" font-family="Inter,sans-serif">SHIELD</text>
     <text x="${CX}" y="${CY+47}" text-anchor="middle" font-size="8.5"
-      fill="#334155" font-family="Inter,sans-serif">Syphir Box</text>
+      fill="#334155" font-family="Inter,sans-serif">co|op Box</text>
   </g>`;
 
   // Device nodes — icon only, color = severity, no circle bubble
@@ -2833,7 +2824,7 @@ function wbBuildLegend(devices) {
   total.textContent = `${devices.length + 1} entities`;
 
   const entityTypes = [
-    { key:'shield',  label:'Shield Box',   col:'#3b82f6', iconType:'shield'  },
+    { key:'shield',  label:'Shield Box',   col:'#ffffff', iconType:'shield'  },
     { key:'monitor', label:'Workstation',  col:'#94a3b8', iconType:'monitor' },
     { key:'laptop',  label:'Laptop / Mac', col:'#94a3b8', iconType:'laptop'  },
     { key:'phone',   label:'Mobile',       col:'#94a3b8', iconType:'phone'   },
@@ -2941,7 +2932,7 @@ function wbCenter() { wbPaint(); }
 
 function wbClickShield() {
   const panel = document.getElementById('wb-detail-panel');
-  document.getElementById('wb-detail-title').textContent = 'Syphir Shield';
+  document.getElementById('wb-detail-title').textContent = 'co|op Block';
   document.getElementById('wb-detail-title').style.color = '#2196d3';
   document.getElementById('wb-detail-body').innerHTML = `
     <div style="display:grid;gap:14px;color:#e6edf3;">
@@ -3060,7 +3051,7 @@ function wbOpenAgentModal(ip) {
           <div style="font-size:10px;color:#4a5568;margin-top:2px;">Clear cache, flush DNS, free memory</div>
         </button>
         <button onclick="wbAgentSelectMode(this,'defend')" class="wb-mode-btn" style="background:rgba(244,67,54,0.08);border:1px solid rgba(244,67,54,0.2);color:#f44336;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
-          <div style="font-size:13px;margin-bottom:4px;">🛡️</div>
+          <div style="font-size:13px;margin-bottom:4px;">○</div>
           <div style="font-size:12px;font-weight:700;">Defend</div>
           <div style="font-size:10px;color:#4a5568;margin-top:2px;">Kill threats, close backdoors (stealth)</div>
         </button>

@@ -11,7 +11,6 @@ const AUTH_MODAL_HTML = `
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-logo">
       <span class="coop-logo" style="font-size:1.3rem;">co<span class="bar">|</span>op</span>
-      Syphir
     </div>
 
     <!-- ── MAIN panel ── -->
@@ -58,7 +57,7 @@ const AUTH_MODAL_HTML = `
     <!-- ── SUBMITTED panel (trial under review) ── -->
     <div id="pane-submitted" style="display:none;text-align:center;padding:8px 0;">
       <div style="width:52px;height:52px;border-radius:50%;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;">✓</div>
-      <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Welcome to Syphir!</h2>
+      <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Welcome to co|op!</h2>
       <p class="modal-sub" style="margin-bottom:6px;line-height:1.55;">Your trial request is <strong style="color:#3ecf8e;">under review</strong>.</p>
       <p class="modal-sub" style="margin-bottom:20px;line-height:1.55;">We personally review every signup. You'll get an email the moment it's approved — with your dashboard key and a link to log in and access your logs.</p>
       <button class="modal-btn" onclick="closeModal()">Got it</button>
@@ -285,7 +284,7 @@ async function authContinue() {
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Continue →';
-    console.error('Syphir: authContinue failed:', e);
+    console.error('co|op: authContinue failed:', e);
     if (e.name === 'AbortError') {
       showModalErr('Still connecting — our server may be waking up. Try again in a few seconds.', 'magicErr');
     } else {
@@ -335,7 +334,7 @@ async function submitSignupDetails() {
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Request Trial →';
-    console.error('Syphir: submitSignupDetails failed:', e);
+    console.error('co|op: submitSignupDetails failed:', e);
     if (err) err.textContent = e.name === 'AbortError'
       ? 'Still connecting — our server may be waking up. Try again in a few seconds.'
       : 'Could not connect. Try again in a moment.';
