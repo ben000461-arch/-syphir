@@ -10,7 +10,7 @@ const AUTH_MODAL_HTML = `
   <div class="modal" style="max-width:400px;">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-logo">
-      <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg></div>
+      <span class="coop-logo" style="font-size:1.3rem;">co<span class="bar">|</span>op</span>
       Syphir
     </div>
 
@@ -27,7 +27,7 @@ const AUTH_MODAL_HTML = `
       <div class="err-msg" id="magicErr"></div>
       <button class="modal-btn" onclick="authContinue()" id="magicBtn">Continue →</button>
 
-      <div id="magicSuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#22c55e;line-height:1.5;">
+      <div id="magicSuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#3ecf8e;line-height:1.5;">
         ✓ Got it — we review every signup personally. You'll get an email with your dashboard key once it's approved (usually within a day).
       </div>
 
@@ -41,7 +41,7 @@ const AUTH_MODAL_HTML = `
     <div id="pane-details" style="display:none;">
       <button onclick="showPane('pane-main')" style="background:none;border:none;color:#475569;font-size:12px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back</button>
       <h2 style="font-size:1.15rem;font-weight:700;margin-bottom:4px;">Tell us about your business</h2>
-      <p class="modal-sub" style="margin-bottom:16px;">Signing up as <strong id="detailsEmailPreview" style="color:#a89af7;"></strong></p>
+      <p class="modal-sub" style="margin-bottom:16px;">Signing up as <strong id="detailsEmailPreview" style="color:#fff;"></strong></p>
 
       <div class="field">
         <label>Business name</label>
@@ -59,7 +59,7 @@ const AUTH_MODAL_HTML = `
     <div id="pane-submitted" style="display:none;text-align:center;padding:8px 0;">
       <div style="width:52px;height:52px;border-radius:50%;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;">✓</div>
       <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Welcome to Syphir!</h2>
-      <p class="modal-sub" style="margin-bottom:6px;line-height:1.55;">Your trial request is <strong style="color:#22c55e;">under review</strong>.</p>
+      <p class="modal-sub" style="margin-bottom:6px;line-height:1.55;">Your trial request is <strong style="color:#3ecf8e;">under review</strong>.</p>
       <p class="modal-sub" style="margin-bottom:20px;line-height:1.55;">We personally review every signup. You'll get an email the moment it's approved — with your dashboard key and a link to log in and access your logs.</p>
       <button class="modal-btn" onclick="closeModal()">Got it</button>
     </div>
@@ -68,7 +68,7 @@ const AUTH_MODAL_HTML = `
     <div id="pane-key" style="display:none;">
       <button onclick="showPane('pane-main')" style="background:none;border:none;color:#475569;font-size:12px;cursor:pointer;margin-bottom:14px;padding:0;font-family:inherit;">← Back</button>
       <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Enter your license key</h2>
-      <p class="modal-sub" style="margin-bottom:16px;">Found in your welcome email — looks like <strong style="color:#a89af7;">SYP-XXXX-XXXX-XXXX</strong></p>
+      <p class="modal-sub" style="margin-bottom:16px;">Found in your welcome email — looks like <strong style="color:#fff;">SYP-XXXX-XXXX-XXXX</strong></p>
       <div class="field">
         <label>License Key</label>
         <input class="mono" id="keyInput" placeholder="SYP-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()" autocomplete="off"/>
@@ -91,7 +91,7 @@ const AUTH_MODAL_HTML = `
         <div class="err-msg" id="recoveryErr"></div>
       </div>
       <button class="modal-btn" onclick="handleRecovery()" id="recoveryBtn">Send recovery email</button>
-      <div id="recoverySuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#22c55e;line-height:1.5;">
+      <div id="recoverySuccess" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:7px;padding:11px 13px;margin-top:10px;font-size:12px;color:#3ecf8e;line-height:1.5;">
         ✓ If that email has an account, we've sent your dashboard key and a sign-in link.
       </div>
       <div style="text-align:center;margin-top:14px;font-size:11.5px;color:#475569;">
