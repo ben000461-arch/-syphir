@@ -1116,6 +1116,30 @@ app.get("/admin/submissions", async (c) => {
   }
 });
 
+// ── ADMIN: DELETE A CONTACT SUBMISSION ────────────────────────────────────
+app.delete("/admin/submissions/:id", async (c) => {
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
+  const { id } = c.req.param();
+  try {
+    await db(`contact_submissions?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", prefer: "return=minimal" });
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// ── ADMIN: DELETE A WAITLIST ENTRY ────────────────────────────────────────
+app.delete("/admin/node-waitlist/:id", async (c) => {
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
+  const { id } = c.req.param();
+  try {
+    await db(`node_waitlist?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", prefer: "return=minimal" });
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
 // ── ADMIN: LIST PENDING SELF-SERVE SIGNUPS ────────────────────────────────
 app.get("/admin/pending-signups", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");

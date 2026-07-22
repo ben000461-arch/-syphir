@@ -376,6 +376,30 @@ async function renderAdmin() {
   }
 }
 
+async function deleteSubmission(id) {
+  if (!confirm('Delete this contact submission?')) return;
+  try {
+    const res = await apiFetch(`${API}/admin/submissions/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Secret': _adminSecret }
+    });
+    if (res.ok) { loadSubmissions(); }
+    else { alert('Delete failed.'); }
+  } catch(e) { alert('Network error — try again.'); }
+}
+
+async function deleteWaitlist(id) {
+  if (!confirm('Delete this waitlist entry?')) return;
+  try {
+    const res = await apiFetch(`${API}/admin/node-waitlist/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Secret': _adminSecret }
+    });
+    if (res.ok) { loadNodeWaitlist(); }
+    else { alert('Delete failed.'); }
+  } catch(e) { alert('Network error — try again.'); }
+}
+
 async function loadNodeWaitlist() {
   const el = document.getElementById('nodeWaitlistContainer');
   const countEl = document.getElementById('waitlistCount');
@@ -400,6 +424,7 @@ async function loadNodeWaitlist() {
             <tr style="border-bottom:1px solid var(--border);">
               <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Email</th>
               <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Joined</th>
+              <th style="width:32px;"></th>
             </tr>
           </thead>
           <tbody>
@@ -407,6 +432,7 @@ async function loadNodeWaitlist() {
               <tr style="border-bottom:1px solid var(--border);">
                 <td style="padding:10px;"><a href="mailto:${encodeURIComponent(w.email)}" style="color:var(--accent);text-decoration:none;">${escapeHtml(w.email)}</a>
                 <td style="padding:10px;color:var(--muted);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${w.created_at ? new Date(w.created_at).toLocaleString() : '—'}</td>
+                <td style="padding:10px;text-align:center;"><button onclick="deleteWaitlist('${w.id}')" title="Delete" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;line-height:1;padding:4px 6px;border-radius:4px;transition:all 0.12s;" onmouseover="this.style.color='var(--danger)';this.style.background='rgba(255,77,77,0.1)'" onmouseout="this.style.color='var(--muted2)';this.style.background='none'">✕</button></td>
               </tr>`).join('')}
           </tbody>
         </table>
@@ -661,6 +687,7 @@ async function loadSubmissions() {
               <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Company</th>
               <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Message</th>
               <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;">Date</th>
+              <th style="width:32px;"></th>
             </tr>
           </thead>
           <tbody>
@@ -671,6 +698,7 @@ async function loadSubmissions() {
                 <td style="padding:10px;color:var(--muted2);">${escapeHtml(s.company) || '—'}</td>
                 <td style="padding:10px;color:var(--muted2);max-width:260px;white-space:pre-wrap;word-break:break-word;">${escapeHtml(s.message)}</td>
                 <td style="padding:10px;color:var(--muted);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${new Date(s.submitted_at).toLocaleString()}</td>
+                <td style="padding:10px;text-align:center;"><button onclick="deleteSubmission('${s.id}')" title="Delete" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;line-height:1;padding:4px 6px;border-radius:4px;transition:all 0.12s;" onmouseover="this.style.color='var(--danger)';this.style.background='rgba(255,77,77,0.1)'" onmouseout="this.style.color='var(--muted2)';this.style.background='none'">✕</button></td>
               </tr>`).join('')}
           </tbody>
         </table>
