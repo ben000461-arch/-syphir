@@ -22,9 +22,9 @@ const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SEC
 const _processedStripeEvents = new Set();
 
 const STRIPE_PLANS = {
-  Starter:      { amount: 12900, label: "Syphir Starter — $129/mo" },
-  Professional: { amount: 29900, label: "Syphir Professional — $299/mo" },
-  Institution:  { amount: 59900, label: "Syphir Institution — $599/mo" },
+  Starter:      { amount: 12900, label: "co|op Starter — $129/mo" },
+  Professional: { amount: 29900, label: "co|op Professional — $299/mo" },
+  Institution:  { amount: 59900, label: "co|op Institution — $599/mo" },
 };
 
 const PLAN_DETAILS = {
@@ -46,12 +46,12 @@ function genEmpKey() {
 
 // ── EMAIL BUILDERS ─────────────────────────────────────────────────────────
 
-const EMAIL_FROM    = "Syphir Shield <onboarding@resend.dev>";
+const EMAIL_FROM    = "co|op <hello@co-optech.com>";
 const EMAIL_REPLYTO = "syphir26@gmail.com";
 
 function emailFooter(orgName) {
   return `<div style="padding-top:20px;border-top:1px solid #1e2636;text-align:center;margin-top:8px;">
-    <p style="font-size:11px;color:#4a5568;margin:0;">co|op &middot; <a href="https://co-optech.com" style="color:#4a5568;text-decoration:none;">co-optech.com</a> &middot; <a href="mailto:syphir26@gmail.com" style="color:#4a5568;text-decoration:none;">syphir26@gmail.com</a></p>
+    <p style="font-size:11px;color:#4a5568;margin:0;">co|op AI Data Protection &middot; <a href="https://syphir.vercel.app" style="color:#4a5568;text-decoration:none;">syphir.vercel.app</a> &middot; <a href="mailto:syphir26@gmail.com" style="color:#4a5568;text-decoration:none;">syphir26@gmail.com</a></p>
     <p style="font-size:11px;color:#4a5568;margin:6px 0 0;">You're receiving this as admin of ${orgName}</p>
   </div>`;
 }
@@ -61,7 +61,7 @@ function emailHeader(rightLabel, rightSub) {
     <div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
         <span style="font-size:20px;">&#x1F6E1;&#xFE0F;</span>
-        <span style="font-size:18px;font-weight:800;color:#e6edf3;">Syphir</span>
+        <span style="font-size:18px;font-weight:800;color:#e6edf3;">co|op</span>
       </div>
       <div style="font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:0.08em;">AI Data Protection</div>
     </div>
@@ -93,7 +93,7 @@ function buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd) {
   incidents.forEach(i => { byTool[i.ai_tool||'Unknown'] = (byTool[i.ai_tool||'Unknown']||0) + 1; });
 
   const summary = high > 3
-    ? `This week Syphir caught ${total} incidents at <strong>${org.name}</strong> — including ${high} high-risk detections. <span style="color:#f87171;">Immediate review recommended.</span>`
+    ? `This week co|op caught ${total} incidents at <strong>${org.name}</strong> — including ${high} high-risk detections. <span style="color:#f87171;">Immediate review recommended.</span>`
     : total > 5
       ? `Your team had ${total} incidents this week. ${high} were high-risk and warrant a closer look.`
       : `A quiet week — ${total} incident${total!==1?'s':''} detected, mostly low-risk. Your team appears to be handling data carefully.`;
@@ -112,7 +112,7 @@ function buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd) {
   const toolList = Object.entries(byTool).sort((a,b)=>b[1]-a[1])
     .map(([t,n]) => `<li style="font-size:12px;color:#8b949e;margin-bottom:4px;"><strong style="color:#e6edf3;">${t}</strong> — ${n} detection${n!==1?'s':''}</li>`).join('');
 
-  const dashUrl = `https://co-optech.com/app.html?key=${orgKey}`;
+  const dashUrl = `https://syphir.vercel.app/app.html?key=${orgKey}`;
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
@@ -120,7 +120,7 @@ function buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd) {
   <div style="text-align:center;padding:28px 32px 20px;border-bottom:1px solid #1e2636;margin-bottom:24px;">
     <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;">
       <svg width="20" height="20" viewBox="0 0 16 16" fill="#2DD4BF"><path d="M8 1L2 4v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z"/></svg>
-      <span style="font-size:20px;font-weight:800;color:#e6edf3;">Syphir</span>
+      <span style="font-size:20px;font-weight:800;color:#e6edf3;">co|op</span>
     </div>
     <div style="color:#8b949e;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">AI Data Protection</div>
     <div style="display:inline-block;background:#1c2333;border:1px solid #2DD4BF;border-radius:4px;padding:3px 10px;color:#2DD4BF;font-size:10px;letter-spacing:0.1em;font-weight:700;text-transform:uppercase;margin-bottom:6px;">Weekly Report</div>
@@ -176,7 +176,7 @@ function buildWeeklyReportHtml(org, incidents, orgKey, weekStart, weekEnd) {
 }
 
 function buildQuietWeekHtml(org, weekStart, weekEnd, orgKey) {
-  const dashUrl = `https://co-optech.com/app.html?key=${orgKey}`;
+  const dashUrl = `https://syphir.vercel.app/app.html?key=${orgKey}`;
   return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
@@ -201,17 +201,17 @@ function buildExpiryWarningHtml(org, expiryDate, total, proofLine) {
   ${emailHeader('', '')}
   <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:20px;margin-bottom:24px;">
     <div style="font-size:13px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">&#x23F0; Trial Ending Soon</div>
-    <div style="font-size:20px;font-weight:800;color:#e6edf3;">Your Syphir trial ends on ${expiryDate}</div>
+    <div style="font-size:20px;font-weight:800;color:#e6edf3;">Your co|op trial ends on ${expiryDate}</div>
   </div>
-  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 16px;">During your trial, Syphir detected <strong style="color:#e6edf3;">${total} incident${total!==1?'s':''}</strong> across your team.${proofLine ? ' ' + proofLine : ''}</p>
-  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 24px;">After your trial ends, Syphir's protection will pause and incidents will no longer be monitored or logged.</p>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 16px;">During your trial, co|op detected <strong style="color:#e6edf3;">${total} incident${total!==1?'s':''}</strong> across your team.${proofLine ? ' ' + proofLine : ''}</p>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 24px;">After your trial ends, co|op's protection will pause and incidents will no longer be monitored or logged.</p>
   <div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:16px;margin-bottom:24px;">
     <div style="font-size:12px;font-weight:700;color:#e6edf3;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">Choose a Plan to Continue</div>
     <div style="margin-bottom:8px;font-size:13px;color:#8b949e;"><strong style="color:#e6edf3;">Starter</strong> &mdash; $129/mo &middot; Up to 15 employees</div>
     <div style="font-size:13px;color:#8b949e;"><strong style="color:#e6edf3;">Professional</strong> &mdash; $299/mo &middot; Up to 50 employees</div>
   </div>
   <div style="text-align:center;margin-bottom:32px;">
-    <a href="https://co-optech.com/pricing.html" style="display:inline-block;background:#f59e0b;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Upgrade Now &#8594;</a>
+    <a href="https://syphir.vercel.app/pricing.html" style="display:inline-block;background:#f59e0b;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Upgrade Now &#8594;</a>
   </div>
   ${emailFooter(org.name)}
 </div></body></html>`;
@@ -224,12 +224,12 @@ function buildExpiryNoticeHtml(org, expiryDate, total) {
   ${emailHeader('', '')}
   <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:20px;margin-bottom:24px;">
     <div style="font-size:13px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">&#x1F512; Protection Paused</div>
-    <div style="font-size:20px;font-weight:800;color:#e6edf3;">Your Syphir trial ended on ${expiryDate}</div>
+    <div style="font-size:20px;font-weight:800;color:#e6edf3;">Your co|op trial ended on ${expiryDate}</div>
   </div>
-  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 16px;">During your trial, Syphir detected <strong style="color:#e6edf3;">${total} incident${total!==1?'s':''}</strong>. Your team is now unprotected.</p>
-  <p style="font-size:14px;color:#ef4444;font-weight:600;line-height:1.6;margin:0 0 24px;">Every day without Syphir is a day your team's AI activity goes unmonitored.</p>
+  <p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 16px;">During your trial, co|op detected <strong style="color:#e6edf3;">${total} incident${total!==1?'s':''}</strong>. Your team is now unprotected.</p>
+  <p style="font-size:14px;color:#ef4444;font-weight:600;line-height:1.6;margin:0 0 24px;">Every day without co|op is a day your team's AI activity goes unmonitored.</p>
   <div style="text-align:center;margin-bottom:32px;">
-    <a href="https://co-optech.com/pricing.html" style="display:inline-block;background:#ef4444;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Restore Protection &#8594;</a>
+    <a href="https://syphir.vercel.app/pricing.html" style="display:inline-block;background:#ef4444;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Restore Protection &#8594;</a>
   </div>
   ${emailFooter(org.name)}
 </div></body></html>`;
@@ -237,15 +237,15 @@ function buildExpiryNoticeHtml(org, expiryDate, total) {
 
 function buildUpgradeConfirmationHtml(org, plan, bizKey, empKey) {
   const planInfo  = PLAN_DETAILS[plan] || {};
-  const dashUrl   = `https://co-optech.com/app.html?key=${bizKey}`;
-  const installUrl = 'https://chrome.google.com/webstore/detail/coop';
+  const dashUrl   = `https://syphir.vercel.app/app.html?key=${bizKey}`;
+  const installUrl = empKey ? `https://syphir.vercel.app/install.html?key=${empKey}` : 'https://syphir.vercel.app/install.html';
   return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
   ${emailHeader('', '')}
   <div style="background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:10px;padding:24px;margin-bottom:24px;text-align:center;">
     <div style="font-size:36px;margin-bottom:8px;">&#x2705;</div>
-    <div style="font-size:20px;font-weight:800;color:#e6edf3;margin-bottom:4px;">Welcome to Syphir ${plan}</div>
+    <div style="font-size:20px;font-weight:800;color:#e6edf3;margin-bottom:4px;">Welcome to co|op ${plan}</div>
     <div style="font-size:14px;color:#2DD4BF;">Your team is now fully protected.</div>
   </div>
   <div style="background:#161b25;border:1px solid #1e2636;border-radius:10px;padding:16px;margin-bottom:16px;">
@@ -275,9 +275,9 @@ function buildUpgradeConfirmationHtml(org, plan, bizKey, empKey) {
 function buildShortWeeklyHtml(org, incidents, orgKey, periodLabel) {
   const total = incidents.length;
   const high  = incidents.filter(i => i.risk_level === 'high').length;
-  const dashUrl = `https://co-optech.com/app.html?key=${orgKey}`;
+  const dashUrl = `https://syphir.vercel.app/app.html?key=${orgKey}`;
   const summary = high > 3
-    ? `Syphir caught ${total} incidents at ${org.name}, including ${high} high-risk detections. Immediate review recommended.`
+    ? `co|op caught ${total} incidents at ${org.name}, including ${high} high-risk detections. Immediate review recommended.`
     : total > 5
       ? `Your team had ${total} incidents this week. ${high} were high-risk.`
       : `${total} incident${total !== 1 ? 's' : ''} detected this week, mostly low-risk.`;
@@ -326,7 +326,7 @@ async function generateWeeklyPdf(org, incidents, periodLabel, dateLabel) {
       bg();
 
       // ── HEADER ──
-      doc.fontSize(20).font('Helvetica-Bold').fillColor(C.text).text('Syphir', M, M, { lineBreak: false });
+      doc.fontSize(20).font('Helvetica-Bold').fillColor(C.text).text('co|op', M, M, { lineBreak: false });
       doc.fontSize(9).font('Helvetica').fillColor(C.muted)
          .text(`Weekly Report  ·  ${periodLabel}`, M, M + 6, { align: 'right', width: PW - M * 2, lineBreak: false });
       doc.fontSize(9).font('Helvetica').fillColor(C.muted).text('AI Data Protection', M, M + 26);
@@ -339,7 +339,7 @@ async function generateWeeklyPdf(org, incidents, periodLabel, dateLabel) {
       const low      = incidents.filter(i => i.risk_level === 'low').length;
       const resolved = incidents.filter(i => i.resolved).length;
       const summary  = high > 3
-        ? `This week Syphir caught ${total} incidents — including ${high} high-risk detections. Immediate review recommended.`
+        ? `This week co|op caught ${total} incidents — including ${high} high-risk detections. Immediate review recommended.`
         : total > 5
           ? `${total} incidents detected. ${high} were high-risk and warrant a closer look.`
           : `A quiet week — ${total} incident${total !== 1 ? 's' : ''} detected, mostly low-risk.`;
@@ -460,7 +460,7 @@ async function generateWeeklyPdf(org, incidents, periodLabel, dateLabel) {
       const footerY = PH - 44;
       hRule(footerY);
       doc.fontSize(7.5).font('Helvetica').fillColor(C.muted)
-         .text('co|op  ·  co-optech.com  ·  syphir26@gmail.com',
+         .text('co|op AI Data Protection  ·  syphir.vercel.app  ·  syphir26@gmail.com',
                M, footerY + 8, { align: 'center', width: PW - M * 2, lineBreak: false });
       doc.text(`Generated ${new Date().toLocaleDateString()}  ·  Confidential`,
                M, footerY + 20, { align: 'center', width: PW - M * 2, lineBreak: false });
@@ -567,7 +567,7 @@ function requireAdmin(c) {
 
 // ── HEALTH ─────────────────────────────────────────────────────────────────
 app.get("/health", (c) => {
-  return c.json({ status: "ok", service: "Syphir API", version: "2.11.0", db: "supabase" });
+  return c.json({ status: "ok", service: "co|op API", version: "2.11.0", db: "supabase" });
 });
 
 // ── ADMIN PING ─────────────────────────────────────────────────────────────
@@ -795,7 +795,7 @@ app.patch("/orgs/:org_id/upgrade", async (c) => {
           const empKey = keyRows?.find(k => k.key_type === 'employee')?.key || '';
           await resend.emails.send({
             from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-            subject: `Welcome to Syphir ${resolvedPlan} — you're protected`,
+            subject: `Welcome to co|op ${resolvedPlan} — you're protected`,
             html: buildUpgradeConfirmationHtml(org, resolvedPlan, bizKey, empKey),
           });
           console.log('Email sent: upgrade-confirmation', org.name, org.admin_email);
@@ -965,10 +965,10 @@ app.post("/invite-user", async (c) => {
   } catch (err) {
     console.log("User save error:", err.message);
   }
-  const installUrl = 'https://chrome.google.com/webstore/detail/coop';
-  const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,sans-serif;"><div style="max-width:560px;margin:0 auto;padding:40px 20px;"><div style="text-align:center;margin-bottom:32px;"><div style="font-size:32px;">🛡️</div><div style="font-size:22px;font-weight:800;color:#fff;">Syphir</div></div><div style="background:#161b25;border:1px solid #242d3e;border-radius:12px;padding:32px;"><h1 style="color:#e6edf3;font-size:20px;font-weight:700;margin:0 0 12px;">You've been protected 🛡️</h1><p style="color:#8b949e;font-size:14px;line-height:1.6;margin:0 0 24px;"><strong style="color:#e6edf3;">${org_name || org.name}</strong> has added you to their Syphir Shield data protection system.</p><a href="${installUrl}" style="display:block;background:#5b4fe8;color:#fff;text-align:center;padding:14px 24px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:16px;">Install Syphir Shield →</a><p style="color:#4a5568;font-size:11px;text-align:center;margin:0;">Only takes 60 seconds · Chrome, Edge, and Brave</p></div></div></body></html>`;
+  const installUrl = `https://syphir.vercel.app/install.html?key=${org_key}&email=${employee_email}&org=${encodeURIComponent(org_name || org.name)}`;
+  const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,sans-serif;"><div style="max-width:560px;margin:0 auto;padding:40px 20px;"><div style="text-align:center;margin-bottom:32px;"><div style="font-size:32px;">🛡️</div><div style="font-size:22px;font-weight:800;color:#fff;">co|op</div></div><div style="background:#161b25;border:1px solid #242d3e;border-radius:12px;padding:32px;"><h1 style="color:#e6edf3;font-size:20px;font-weight:700;margin:0 0 12px;">You've been protected 🛡️</h1><p style="color:#8b949e;font-size:14px;line-height:1.6;margin:0 0 24px;"><strong style="color:#e6edf3;">${org_name || org.name}</strong> has added you to their co|op data protection system.</p><a href="${installUrl}" style="display:block;background:#5b4fe8;color:#fff;text-align:center;padding:14px 24px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:16px;">Install co|op →</a><p style="color:#4a5568;font-size:11px;text-align:center;margin:0;">Only takes 60 seconds · Chrome, Edge, and Brave</p></div></div></body></html>`;
   try {
-    await resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: employee_email, subject: `You've been added to ${org_name || org.name}'s Syphir Shield`, html: emailHtml });
+    await resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: employee_email, subject: `You've been added to ${org_name || org.name}'s co|op`, html: emailHtml });
     return c.json({ success: true, message: `Invite sent to ${employee_email}` });
   } catch (err) {
     return c.json({ success: false, message: "Failed to send email" }, 500);
@@ -1185,18 +1185,18 @@ app.post("/admin/approve-signup", async (c) => {
       try {
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `You're approved — welcome to Syphir 🛡️`,
+          subject: `You're approved — welcome to co|op`,
           html: `
             <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
               <div style="font-size:22px;font-weight:700;margin-bottom:8px;">Your trial has begun. 🛡️</div>
-              <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">You're approved and your Syphir trial is active for the next 7 days. Log in to access your dashboard and start reviewing your logs.</p>
-              <a href="https://co-optech.com/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Log in to your dashboard →</a>
+              <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">You're approved and your co|op trial is active for the next 7 days. Log in to access your dashboard and start reviewing your logs.</p>
+              <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px;">Log in to your dashboard →</a>
               <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:20px;">
                 <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY</div>
                 <div style="font-size:20px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
-                <div style="font-size:11px;color:#4a5568;margin-top:8px;">Keep this safe — it's your login. Or just sign in with this email at <a href="https://co-optech.com" style="color:#4db8f0;">co-optech.com</a>.</div>
+                <div style="font-size:11px;color:#4a5568;margin-top:8px;">Keep this safe — it's your login. Or just sign in with this email at <a href="https://syphir.vercel.app" style="color:#4db8f0;">syphir.vercel.app</a>.</div>
               </div>
-              <p style="color:#4a5568;font-size:12px;line-height:1.6;">Want to pick a plan now? <a href="https://co-optech.com/pricing.html?key=${bizKey}" style="color:#4db8f0;">View plans</a>. Questions? Just reply to this email.</p>
+              <p style="color:#4a5568;font-size:12px;line-height:1.6;">Want to pick a plan now? <a href="https://syphir.vercel.app/dashboard/pricing.html?key=${bizKey}" style="color:#4db8f0;">View plans</a>. Questions? Just reply to this email.</p>
             </div>
           `,
         });
@@ -1369,7 +1369,7 @@ app.post("/create-checkout-session", async (c) => {
       line_items: [{
         price_data: {
           currency: "usd",
-          product_data: { name: price.label, description: `co|op for ${org.name}` },
+          product_data: { name: price.label, description: `co|op AI Data Protection for ${org.name}` },
           unit_amount: price.amount,
           recurring: { interval: "month" },
         },
@@ -1387,9 +1387,9 @@ app.post("/create-checkout-session", async (c) => {
       },
       customer_email: org.admin_email || undefined,
       success_url: isNewCustomer
-        ? `https://co-optech.com/success.html?key=${key}`
-        : `https://co-optech.com/app.html?key=${key}&payment=success`,
-      cancel_url: `https://co-optech.com/pricing.html`,
+        ? `https://syphir.vercel.app/success.html?key=${key}`
+        : `https://syphir.vercel.app/app.html?key=${key}&payment=success`,
+      cancel_url: `https://syphir.vercel.app/pricing.html`,
     });
 
     return c.json({ url: session.url });
@@ -1469,14 +1469,14 @@ app.post("/stripe-webhook", async (c) => {
       // ── Welcome email (new customers only) — verified sender ──
       const recipient = session.customer_details?.email || md.new_email;
       if (is_new_customer === "true" && recipient && key) {
-        const dashboardUrl = `https://co-optech.com/app.html?key=${key}`;
+        const dashboardUrl = `https://syphir.vercel.app/app.html?key=${key}`;
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: recipient,
-          subject: "Welcome to Syphir — your dashboard is ready",
+          subject: "Welcome to co|op — your dashboard is ready",
           html: `
             <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1a1a2e;">
               <div style="font-size:24px;font-weight:700;margin-bottom:8px;">You're protected. 🛡️</div>
-              <p style="color:#555;margin-bottom:24px;">Your Syphir ${plan} subscription is active. Here's your dashboard access:</p>
+              <p style="color:#555;margin-bottom:24px;">Your co|op ${plan} subscription is active. Here's your dashboard access:</p>
               <div style="background:#f4f4f8;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
                 <div style="font-size:12px;color:#888;margin-bottom:4px;">YOUR DASHBOARD KEY</div>
                 <code style="font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:1px;">${key}</code>
@@ -1542,7 +1542,7 @@ app.post("/create-portal-session", async (c) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: org.stripe_customer_id,
-      return_url: `https://co-optech.com/app.html?key=${key}`,
+      return_url: `https://syphir.vercel.app/app.html?key=${key}`,
     });
 
     return c.json({ url: session.url });
@@ -1714,7 +1714,7 @@ async function sendWeeklyReportsToAllOrgs(targetOrgId = null) {
       if (incidents.length === 0) {
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `Syphir Weekly Recap: All clear this week — ${org.name}`,
+          subject: `co|op Weekly Recap: All clear this week — ${org.name}`,
           html: buildQuietWeekHtml(org, periodLabel.split(' – ')[0], periodLabel.split(' – ')[1], orgKey),
         });
       } else {
@@ -1731,7 +1731,7 @@ async function sendWeeklyReportsToAllOrgs(targetOrgId = null) {
 
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-          subject: `Syphir Weekly Recap: ${total} incidents detected at ${org.name} this week`,
+          subject: `co|op Weekly Recap: ${total} incidents detected at ${org.name} this week`,
           html: buildShortWeeklyHtml(org, incidents, orgKey, periodLabel),
           attachments,
         });
@@ -1779,7 +1779,7 @@ async function sendExpiryWarningsToAllOrgs() {
 
       await resend.emails.send({
         from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-        subject: `Your Syphir trial ends in 3 days — ${org.name}`,
+        subject: `Your co|op trial ends in 3 days — ${org.name}`,
         html: buildExpiryWarningHtml(org, expiryDate, total, proofLine),
       });
       try {
@@ -1824,7 +1824,7 @@ async function sendExpiryNoticesToAllOrgs() {
 
       await resend.emails.send({
         from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: org.admin_email,
-        subject: `Your Syphir protection has paused — ${org.name}`,
+        subject: `Your co|op protection has paused — ${org.name}`,
         html: buildExpiryNoticeHtml(org, expiryDate, total),
       });
       try {
@@ -2035,11 +2035,11 @@ app.post('/auth/signup-request', async (c) => {
     try {
       await resend.emails.send({
         from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: userEmail,
-        subject: `We got your Syphir signup request`,
+        subject: `We got your co|op signup request`,
         html: `
           <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
             <div style="font-size:22px;font-weight:700;margin-bottom:8px;">Thanks for signing up. 🛡️</div>
-            <p style="color:#8b949e;margin-bottom:12px;line-height:1.6;">We've got your request for a Syphir trial. We personally review every signup — you'll get a follow-up email with your dashboard key and a link to pick a plan shortly.</p>
+            <p style="color:#8b949e;margin-bottom:12px;line-height:1.6;">We've got your request for a co|op trial. We personally review every signup — you'll get a follow-up email with your dashboard key and a link to pick a plan shortly.</p>
             <p style="color:#4a5568;font-size:12px;line-height:1.6;">Questions in the meantime? Just reply to this email.</p>
           </div>
         `,
@@ -2163,11 +2163,11 @@ app.post('/auth/provision', async (c) => {
         from:    EMAIL_FROM,
         replyTo: EMAIL_REPLYTO,
         to:      userEmail,
-        subject: `Welcome to Syphir — your 7-day trial is active`,
+        subject: `Welcome to co|op — your 7-day trial is active`,
         html: `
           <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
             <div style="font-size:22px;font-weight:700;margin-bottom:8px;">You're in. 🛡️</div>
-            <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">Your co|op trial is active for the next 7 days. Here's everything you need:</p>
+            <p style="color:#8b949e;margin-bottom:24px;line-height:1.6;">Your co|op AI Data Protection trial is active for the next 7 days. Here's everything you need:</p>
             <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:20px;margin-bottom:20px;">
               <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY</div>
               <div style="font-size:20px;font-weight:700;font-family:'Courier New',monospace;color:#4db8f0;letter-spacing:1px;">${bizKey}</div>
@@ -2177,7 +2177,7 @@ app.post('/auth/provision', async (c) => {
               <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">EMPLOYEE KEY (share with staff)</div>
               <div style="font-size:16px;font-weight:700;font-family:'Courier New',monospace;color:#8b949e;letter-spacing:1px;">${empKey}</div>
             </div>
-            <a href="https://co-optech.com/app.html?key=${bizKey}&org=${encodeURIComponent(orgName)}"
+            <a href="https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(orgName)}"
                style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:20px;">
               Open Dashboard →
             </a>
@@ -2226,13 +2226,13 @@ app.post('/auth/recover', async (c) => {
       const empKey = keys?.find(k => k.key_type === 'employee')?.key;
 
       if (bizKey) {
-        const dashUrl = `https://co-optech.com/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}`;
+        const dashUrl = `https://syphir.vercel.app/dashboard/app.html?key=${bizKey}&org=${encodeURIComponent(org.name)}`;
         await resend.emails.send({
           from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: email,
-          subject: `Your Syphir dashboard access — ${org.name}`,
+          subject: `Your co|op dashboard access — ${org.name}`,
           html: `
             <div style="font-family:-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#0d1117;color:#e6edf3;">
-              <div style="font-size:18px;font-weight:700;margin-bottom:8px;">🔑 Your Syphir keys</div>
+              <div style="font-size:18px;font-weight:700;margin-bottom:8px;">🔑 Your co|op keys</div>
               <p style="color:#8b949e;margin-bottom:20px;line-height:1.6;">You requested account recovery for <strong>${org.name}</strong>. Here are your access details:</p>
               <div style="background:#161b22;border:1px solid #1e2636;border-radius:10px;padding:18px;margin-bottom:14px;">
                 <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">DASHBOARD KEY (admin login)</div>
@@ -2310,7 +2310,7 @@ app.post('/shield/heartbeat', async (c) => {
   return c.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-console.log("Syphir API v2.11.0 running");
+console.log("co|op API v2.11.0 running");
 
 // ── KEEP RENDER ALIVE ───────────────────────────────────────────────────────
 setInterval(() => fetch("https://syphir-api.onrender.com/health").catch(() => {}), 10 * 60 * 1000);
