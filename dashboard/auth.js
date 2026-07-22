@@ -370,7 +370,7 @@ function handleKey() {
     } else if (data.key_type === 'employee') {
       if (err) err.textContent = 'Employee keys only work in the Chrome extension.';
     } else if (data.expired) {
-      if (err) err.textContent = 'Your trial has expired. Upgrade at syphir.vercel.app/pricing.html';
+      if (err) err.textContent = 'Your trial has expired. Upgrade at co-optech.com/pricing.html';
     } else {
       if (err) err.textContent = 'Key not found. Check your welcome email or sign in with email.';
     }

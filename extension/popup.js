@@ -29,11 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("learnMoreBtn").addEventListener("click", () => {
-    chrome.tabs.create({ url: "https://syphir.vercel.app" });
+    chrome.tabs.create({ url: "https://co-optech.com" });
   });
 
   document.getElementById("siteBtn").addEventListener("click", () => {
-    chrome.tabs.create({ url: "https://syphir.vercel.app" });
+    chrome.tabs.create({ url: "https://co-optech.com" });
   });
 });
 
