@@ -966,7 +966,7 @@ const CODE_SHORT_LABELS = {
       const planPrice = PLAN_PRICES[ORG_PLAN]; if (sp) sp.textContent = ORG_PLAN + (planPrice ? ' · $' + planPrice + '/mo' : '');
       const pr = document.getElementById('settings-plan-renew');
       if (pr) { if (!ORG_EXPIRES_AT) { pr.textContent = 'Active subscription — renews monthly'; pr.style.color = 'var(--green)'; } else { const d = new Date(ORG_EXPIRES_AT); const dl = Math.ceil((d - Date.now()) / 86400000); pr.textContent = dl > 0 ? `Trial · ${dl} day${dl===1?'':'s'} left` : 'Trial expired'; pr.style.color = dl <= 2 ? 'var(--red)' : 'var(--yellow)'; } }
-      try { const empData = await fetch(`${API}/emp-key/${ORG_ID}`).then(r => r.json()); if (empData && empData.emp_key) { ORG_EMP_KEY = empData.emp_key; const empKeyEl = document.getElementById('settings-emp-key'); if (empKeyEl) empKeyEl.value = ORG_EMP_KEY; } } catch(e2) {}
+      try { const empData = await fetch(`${API}/emp-key/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`).then(r => r.json()); if (empData && empData.emp_key) { ORG_EMP_KEY = empData.emp_key; const empKeyEl = document.getElementById('settings-emp-key'); if (empKeyEl) empKeyEl.value = ORG_EMP_KEY; } } catch(e2) {}
       const il = document.getElementById('install-link'); if (il) il.value = `https://co-optech.com/install.html?key=${ORG_EMP_KEY || ORG_KEY}`;
     }
   } catch(e) {
@@ -1269,7 +1269,7 @@ function renderRows(list) {
 async function loadData() {
   if (!ORG_ID) return;
   try {
-    const [iR, sR] = await Promise.all([fetch(`${API}/incidents/${ORG_ID}`), fetch(`${API}/stats/${ORG_ID}`)]);
+    const [iR, sR] = await Promise.all([fetch(`${API}/incidents/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`), fetch(`${API}/stats/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`)]);
     const iD = await iR.json(), sD = await sR.json();
     incidents = iD.incidents || [];
     const h=sD.high_risk||0,m=sD.medium_risk||0,l=sD.low_risk||0,res=sD.resolved||0,tot=sD.total_incidents||0;
@@ -1310,7 +1310,7 @@ async function loadTeamMembers() {
   if (!ORG_ID) return;
   const list=document.getElementById('team-members-list'); if (!list) return;
   try {
-    const res=await fetch(`${API}/team/${ORG_ID}`); const data=await res.json();
+    const res=await fetch(`${API}/team/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`); const data=await res.json();
     const members=(data.users||[]).filter(u=>u.status!=='removed'); const adminEmail=ORG_ADMIN_EMAIL||ORG_NAME+' Admin';
     _memberMap={};
     const hdr=`<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;"><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Member</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Role</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Last Seen</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;">Actions</div></div>`;
