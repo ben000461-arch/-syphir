@@ -33,35 +33,28 @@ h1{font-size:2rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:12px;}
 
 <div class="coop-hero-mark">co<span class="p">|</span>op</div>
 
-<h1>You're protected.</h1>
-<p class="sub">Your co|op subscription is active. Here's your dashboard key — save it, you'll need it to log in.</p>
-
-<div class="card">
-  <div class="card-label">Your dashboard key</div>
-  <div id="key-display" style="font-family:'JetBrains Mono',monospace;font-size:1.15rem;font-weight:700;letter-spacing:1px;color:var(--text);padding:0.5rem 0;word-break:break-all;">Check your email</div>
-</div>
+<h1>You're verified.</h1>
+<p class="sub">Your co|op subscription is active and your account is ready.</p>
 
 <div class="card">
   <div class="card-label">What happens next</div>
-  <div class="card-row"><span class="check">✓</span> Welcome email sent with your dashboard key</div>
-  <div class="card-row"><span class="check">✓</span> Use that key to log in at syphir.vercel.app</div>
+  <div class="card-row"><span class="check">✓</span> Your dashboard key has been emailed to you</div>
+  <div class="card-row"><span class="check">✓</span> Keep that email — the key is how you sign in</div>
   <div class="card-row"><span class="check">✓</span> Share your install link with your team</div>
   <div class="card-row"><span class="check">✓</span> Protection is active the moment they install</div>
 </div>
 
-<a href="app.html" class="link-btn" id="dash-btn">Go to Dashboard →</a>
+<a href="app.html" class="link-btn" id="dash-btn">Access Dashboard →</a>
 
 <p class="footer-note">Didn't get the email? Check your spam folder or <a href="contact.html" style="color:var(--muted);">contact us</a>.</p>
 
 <script>
 (function() {
+  // Carry the key straight into the dashboard link so the customer lands
+  // logged in — but never render the key on screen (it's emailed instead).
   const key = new URLSearchParams(window.location.search).get('key');
-  if (key) {
-    const disp = document.getElementById('key-display');
-    if (disp) disp.textContent = key;
-    const btn = document.getElementById('dash-btn');
-    if (btn) btn.href = 'app.html?key=' + encodeURIComponent(key);
-  }
+  const btn = document.getElementById('dash-btn');
+  if (key && btn) btn.href = 'app.html?key=' + encodeURIComponent(key);
 })();
 </script>
 
