@@ -93,7 +93,7 @@ class IntelHandler(BaseHTTPRequestHandler):
     def _run_agent(self, mode, reason):
         agent_path = BASE_DIR / 'agent.py'
         if not agent_path.exists():
-            self._respond(500, {'error': 'agent.py not found in Syphir_box'})
+            self._respond(500, {'error': 'agent.py not found in Block_device'})
             return
 
         # Create job entry

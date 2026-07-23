@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Syphir Shield — Report</title>
+<title>co|op Block — Report</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -82,7 +82,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="header-top">
       <div class="shield-icon">🛡️</div>
       <div>
-        <div class="header-title">Syphir Shield — Agent Report</div>
+        <div class="header-title">co|op Block — Agent Report</div>
         <div class="header-sub" id="header-sub">Your IT security box ran a scan on this machine</div>
       </div>
     </div>
@@ -143,7 +143,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <!-- Footer -->
   <div class="card-footer">
     <div class="footer-left">
-      Ran by <span>Syphir Shield</span> · <span id="footer-time">—</span>
+      Ran by <span>co|op Block</span> · <span id="footer-time">—</span>
     </div>
     <button class="close-btn" onclick="window.close()">Close Report</button>
   </div>
@@ -296,7 +296,7 @@ function render() {
   if (!report) {
     // Show a demo / fallback state
     setStatus('clean');
-    document.getElementById('summary-text').textContent = 'Syphir Shield ran a diagnostic on this machine. No issues were found.';
+    document.getElementById('summary-text').textContent = 'co|op Block ran a diagnostic on this machine. No issues were found.';
     document.getElementById('meta-machine').textContent  = window.location.hostname || 'This Machine';
     document.getElementById('meta-os').textContent       = navigator.platform || '—';
     document.getElementById('meta-trigger').textContent  = 'Manual diagnostic';

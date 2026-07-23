@@ -381,7 +381,7 @@ select option{background:var(--bg3);color:var(--text);}
     <div class="nav-item" onclick="nav('incidents',this)"><span class="nav-icon">⚠</span>Incidents<span class="nav-badge" id="nav-badge">0</span></div>
     <div class="nav-item" onclick="nav('live',this)"><span class="nav-icon">◉</span>Live Feed</div>
     <div class="nav-item" onclick="nav('network',this)"><span class="nav-icon">⬡</span>Network Security<span id="badge-network" style="margin-left:auto;background:#f44336;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;display:none;">0</span></div>
-    <div class="nav-item" onclick="nav('intel',this)"><span class="nav-icon">⌘</span>Intel<span id="intel-shield-pill" style="margin-left:auto;font-size:9px;font-weight:700;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:1px 5px;border-radius:3px;display:none;">SHIELD</span></div>
+    <div class="nav-item" onclick="nav('intel',this)"><span class="nav-icon">⌘</span>Intel<span id="intel-shield-pill" style="margin-left:auto;font-size:9px;font-weight:700;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:1px 5px;border-radius:3px;display:none;">BLOCK</span></div>
   </div>
   <div class="nav-section">
     <div class="nav-label">Protection</div>
@@ -520,7 +520,7 @@ select option{background:var(--bg3);color:var(--text);}
         <div class="intel-connect" id="intel-connect-screen">
           <div class="intel-connect-card">
             <div class="intel-connect-icon">○</div>
-            <div class="intel-connect-title">Connect your Shield device</div>
+            <div class="intel-connect-title">Connect your Block device</div>
             <div class="intel-connect-sub">Enter your Block device routing number to enable Intel commands. You'll find it on the sticker on the bottom of your co|op Block box.</div>
             <input class="intel-connect-input" id="intel-device-input" placeholder="SYP-NET-XXXX-XXXX" maxlength="19" oninput="intelFormatKey(this)" onkeydown="if(event.key==='Enter')intelConnect()">
             <button class="intel-connect-btn" onclick="intelConnect()">Connect Device</button>
@@ -613,7 +613,7 @@ select option{background:var(--bg3);color:var(--text);}
           <div class="threat-card-hdr">
             <div>
               <div class="threat-card-title" style="color:#f87171;">⬡ Isolated Devices</div>
-              <div class="threat-card-sub">Cut off from network — Shield connection preserved</div>
+              <div class="threat-card-sub">Cut off from network — Block connection preserved</div>
             </div>
           </div>
           <div id="ns-isolated-list"><div class="threat-empty">No devices currently isolated</div></div>
@@ -1189,7 +1189,7 @@ function openSidePanel(incId) {
     </div>` : ''}
     <div class="sp-sev-row">
       <div class="sp-sev-icon" style="background:${scfg.bg};">${scfg.icon}</div>
-      <div class="sp-sev-info"><div class="sp-sev-type" style="color:${scfg.color};">${sev.toUpperCase()} RISK</div><div class="sp-sev-meta">${inc.ai_tool||'AI Tool'} · ${src==='network'?'Shield Network':'Browser Extension'}</div></div>
+      <div class="sp-sev-info"><div class="sp-sev-type" style="color:${scfg.color};">${sev.toUpperCase()} RISK</div><div class="sp-sev-meta">${inc.ai_tool||'AI Tool'} · ${src==='network'?'Block Network':'Browser Extension'}</div></div>
       <span class="sev-badge ${sev}" style="margin-left:auto;flex-shrink:0;">${sev.toUpperCase()}</span>
     </div>
     <div class="sp-section">
@@ -1381,7 +1381,7 @@ function exportCSV() {
   const h=['ID','User','AI Tool','Risk','Detections','Time','Resolved'];
   const r=incidents.map(i=>[i.id,i.user_email,i.ai_tool,i.risk_level,(i.detections||[]).map(d=>d.label||d.entity_type).join('|'),i.timestamp,i.resolved]);
   const csv=[h,...r].map(x=>x.join(',')).join('\n');
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`syphir-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`coop-${new Date().toISOString().split('T')[0]}.csv`; a.click();
 }
 
 function copyInstallLink() {
@@ -1428,7 +1428,7 @@ const INTEL_COMMANDS = [
   { pattern: /repair\s+(\w+)/i,    type: 'repair',     label: (m) => `Repair ${m[1]}'s machine` },
   { pattern: /diagnos\w*\s+(\w+)/i,type: 'diagnostic', label: (m) => `Diagnose ${m[1]}'s machine` },
   { pattern: /scan\s+(\w+)/i,      type: 'diagnostic', label: (m) => `Scan ${m[1]}'s machine` },
-  { pattern: /status/i,            type: 'status',     label: () => 'Shield status' },
+  { pattern: /status/i,            type: 'status',     label: () => 'Block status' },
   { pattern: /ping\s+([\d.]+)/i,   type: 'ping',       label: (m) => `Ping ${m[1]}` },
   { pattern: /^stop$/i,            type: 'stop',       label: () => 'Stop' },
   { pattern: /^continue$/i,        type: 'continue',   label: () => 'Continue' },
@@ -1467,7 +1467,7 @@ function intelActivate(key) {
   document.getElementById('intel-shield-pill').style.display    = 'inline-flex';
   const msgs = document.getElementById('intel-messages');
   msgs.innerHTML = '';
-  intelAddMsg('system', `Shield device connected. Ready for commands.`);
+  intelAddMsg('system', `Block device connected. Ready for commands.`);
   intelAddMsg('system', `Try: "Fix John's computer", "Diagnose Sarah's machine", "Status", or "Help"`);
 }
 
@@ -1541,7 +1541,7 @@ async function intelRunRepair(id, name) {
     intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
     intelTermLine(id, 'Then try again.', '#8b949e');
     intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Block server. Run python3 local_server.py in your Syphir_box folder.');
+    intelDone(id, 'Could not connect to local Block server. Run python3 local_server.py in your Block_device folder.');
     return;
   }
 
@@ -1568,7 +1568,7 @@ async function intelRunRepair(id, name) {
     } else {
       intelTermLine(id, `Error: ${data.error || 'Unknown error'}`, '#f87171');
       intelProgress(id, 100, 'Failed');
-      intelDone(id, 'Dispatch failed — check that agent.py is in your Syphir_box folder.');
+      intelDone(id, 'Dispatch failed — check that agent.py is in your Block_device folder.');
     }
   } catch(e) {
     intelTermLine(id, `Connection error: ${e.message}`, '#f87171');
@@ -1583,7 +1583,7 @@ async function intelRunDiagnostic(id, name) {
     intelTermLine(id, 'Local server not running.', '#f87171');
     intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
     intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Block server. Run python3 local_server.py in your Syphir_box folder.');
+    intelDone(id, 'Could not connect to local Block server. Run python3 local_server.py in your Block_device folder.');
     return;
   }
 
@@ -1686,7 +1686,7 @@ async function intelRunStatus(id) {
     return;
   }
 
-  intelTermLine(id, 'Querying Shield device...', '#e0e0e0');
+  intelTermLine(id, 'Querying Block device...', '#e0e0e0');
   intelProgress(id, 30, 'Querying...');
 
   try {
@@ -1700,12 +1700,12 @@ async function intelRunStatus(id) {
     intelProgress(id, 70, 'Reading response...');
     await new Promise(r => setTimeout(r, 300));
 
-    intelTermLine(id, `Shield: Online`, '#a3e635');
+    intelTermLine(id, `Block: Online`, '#a3e635');
     intelTermLine(id, `Machine: ${data.machine}`, '#e6edf3');
     intelTermLine(id, `OS: ${data.os}`, '#e6edf3');
     intelTermLine(id, `Agent: ${data.agent_ready ? 'Ready' : 'Not found'}`, data.agent_ready ? '#a3e635' : '#f87171');
     intelProgress(id, 100, 'Complete');
-    intelDone(id, `Shield is online on ${data.machine} (${data.os}). Agent is ${data.agent_ready ? 'ready to deploy' : 'not found — check Syphir_box folder'}.`);
+    intelDone(id, `Block is online on ${data.machine} (${data.os}). Agent is ${data.agent_ready ? 'ready to deploy' : 'not found — check Block_device folder'}.`);
   } catch(e) {
     intelTermLine(id, `Error: ${e.message}`, '#f87171');
     intelProgress(id, 100, 'Error');
@@ -1744,7 +1744,7 @@ function intelHelp() {
     `Available commands:<br>
     <strong>Fix [name]</strong> — run diagnostic scan on an employee's machine<br>
     <strong>Diagnose [name]</strong> — same as Fix<br>
-    <strong>Status</strong> — show Shield device status<br>
+    <strong>Status</strong> — show Block device status<br>
     <strong>Ping [ip]</strong> — check if a machine is reachable<br>
     <strong>Stop</strong> — pause the running agent<br>
     <strong>Continue</strong> — resume after stop<br>
@@ -1772,7 +1772,7 @@ async function intelSend() {
         intelRunning = true;
         document.getElementById('intel-send-btn').disabled = true;
         document.getElementById('intel-input').disabled    = true;
-        intelAddMsg('system', 'Checking Shield status...', id);
+        intelAddMsg('system', 'Checking Block status...', id);
         await intelRunStatus(id);
         break;
       }
@@ -2244,7 +2244,7 @@ function ptShowSummaryPanel(incident, ip, chain) {
   const plain = explain[incident.sig] || incident.detail || 'Suspicious network activity was detected on this device.';
 
   const respMap = {
-    'isolate_and_alert': { label:'Device Isolated', desc:'The Shield cut this device off from the network to stop the threat from spreading. It can still be reached by co|op for diagnostics.', col:'#ef4444' },
+    'isolate_and_alert': { label:'Device Isolated', desc:'The Block cut this device off from the network to stop the threat from spreading. It can still be reached by co|op for diagnostics.', col:'#ef4444' },
     'block_and_alert':   { label:'IP Blocked', desc:'Incoming traffic from this external IP has been dropped at the network level. The attacker can no longer reach your devices.', col:'#f97316' },
     'alert':             { label:'Admin Alerted', desc:'The activity was flagged and you were notified. No automated action was taken — review and decide if isolation is needed.', col:'#eab308' },
   };
@@ -2596,7 +2596,7 @@ function tlDragStart(){}
 // ── WORKBENCH ─────────────────────────────────────────────────────────────────
 let _wb = { pan:{x:0,y:0}, drag:null, ox:0, oy:0, devices:{} };
 
-// ── Live device data from Shield ──────────────────────────────────────────────
+// ── Live device data from Block ──────────────────────────────────────────────
 let _wbLiveDevices = null;   // null = not fetched yet, [] = fetched but empty
 let _wbPollTimer   = null;
 
@@ -2634,7 +2634,7 @@ function wbPaint() {
   // Known devices from timelines + any new ones from incidents
   const deviceMap = {};
 
-  // If we have live data from the Shield scanner, use it
+  // If we have live data from the Block scanner, use it
   if (_wbLiveDevices && _wbLiveDevices.length) {
     _wbLiveDevices.forEach(d => {
       const ip     = d.ip;
@@ -2674,7 +2674,7 @@ function wbPaint() {
   const devices = Object.values(deviceMap);
   const N = devices.length;
 
-  // Position devices in a ring around the center Shield box
+  // Position devices in a ring around the center Block box
   const RING_R = Math.min(W,H) * 0.32;
   devices.forEach((d,i) => {
     const angle = (2*Math.PI/N)*i - Math.PI/2;
@@ -2762,17 +2762,17 @@ function wbPaint() {
     }
   });
 
-  // Center — Shield icon (no bubble, just the icon + label)
-  html+=`<g onclick="wbClickShield()" style="cursor:pointer;">
+  // Center — Block icon (no bubble, just the icon + label)
+  html+=`<g onclick="wbClickBlock()" style="cursor:pointer;">
     <path d="M${CX} ${CY-18} L${CX+13} ${CY-12} L${CX+13} ${CY-2}
       C${CX+13} ${CY+9} ${CX+7} ${CY+16} ${CX} ${CY+20}
       C${CX-7} ${CY+16} ${CX-13} ${CY+9} ${CX-13} ${CY-2}
       L${CX-13} ${CY-12} Z"
       fill="rgba(255,255,255,0.12)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
-    <!-- Circle highlight ring around shield to distinguish center -->
+    <!-- Circle highlight ring around block to distinguish center -->
     <circle cx="${CX}" cy="${CY}" r="26" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.25" stroke-dasharray="3,4"/>
     <text x="${CX}" y="${CY+36}" text-anchor="middle" font-size="10" font-weight="600"
-      fill="#ffffff" font-family="Inter,sans-serif">SHIELD</text>
+      fill="#ffffff" font-family="Inter,sans-serif">BLOCK</text>
     <text x="${CX}" y="${CY+47}" text-anchor="middle" font-size="8.5"
       fill="#334155" font-family="Inter,sans-serif">co|op Box</text>
   </g>`;
@@ -2857,7 +2857,7 @@ function wbBuildLegend(devices) {
   total.textContent = `${devices.length + 1} entities`;
 
   const entityTypes = [
-    { key:'shield',  label:'Shield Box',   col:'#ffffff', iconType:'shield'  },
+    { key:'shield',  label:'Block',   col:'#ffffff', iconType:'shield'  },
     { key:'monitor', label:'Workstation',  col:'#94a3b8', iconType:'monitor' },
     { key:'laptop',  label:'Laptop / Mac', col:'#94a3b8', iconType:'laptop'  },
     { key:'phone',   label:'Mobile',       col:'#94a3b8', iconType:'phone'   },
@@ -2963,14 +2963,14 @@ function wbToggleDetection(header) {
 
 function wbCenter() { wbPaint(); }
 
-function wbClickShield() {
+function wbClickBlock() {
   const panel = document.getElementById('wb-detail-panel');
   document.getElementById('wb-detail-title').textContent = 'co|op Block';
   document.getElementById('wb-detail-title').style.color = '#2196d3';
   document.getElementById('wb-detail-body').innerHTML = `
     <div style="display:grid;gap:14px;color:#e6edf3;">
       <div style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);border-radius:8px;padding:12px;">
-        <div style="font-size:12px;font-weight:700;color:#4db8f0;">Shield Box</div>
+        <div style="font-size:12px;font-weight:700;color:#4db8f0;">Block</div>
         <div style="font-size:11px;color:#8b949e;margin-top:3px;">Network security appliance</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
           <div style="width:6px;height:6px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676;"></div>
