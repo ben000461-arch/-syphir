@@ -1,6 +1,9 @@
 const API = "https://syphir-api.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
+  const ftrVer = document.getElementById("ftrVer");
+  if (ftrVer) ftrVer.textContent = `co|op v${chrome.runtime.getManifest().version}`;
+
   chrome.storage.local.get(["syphir_key", "syphir_org", "syphir_expired"], (data) => {
     if (!data.syphir_key || !data.syphir_org) {
       showLogin();
