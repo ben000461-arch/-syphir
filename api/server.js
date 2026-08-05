@@ -238,7 +238,7 @@ function buildExpiryNoticeHtml(org, expiryDate, total) {
 function buildUpgradeConfirmationHtml(org, plan, bizKey, empKey) {
   const planInfo  = PLAN_DETAILS[plan] || {};
   const dashUrl   = `https://syphir.vercel.app/app.html?key=${bizKey}`;
-  const installUrl = empKey ? `https://syphir.vercel.app/install.html?key=${empKey}` : 'https://syphir.vercel.app/install.html';
+  const installUrl = 'https://chromewebstore.google.com/detail/coop/pjiecheghojfaippohdocghkphjjakjd';
   return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
@@ -965,7 +965,7 @@ app.post("/invite-user", async (c) => {
   } catch (err) {
     console.log("User save error:", err.message);
   }
-  const installUrl = `https://syphir.vercel.app/install.html?key=${org_key}&email=${employee_email}&org=${encodeURIComponent(org_name || org.name)}`;
+  const installUrl = 'https://chromewebstore.google.com/detail/coop/pjiecheghojfaippohdocghkphjjakjd';
   const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,sans-serif;"><div style="max-width:560px;margin:0 auto;padding:40px 20px;"><div style="text-align:center;margin-bottom:32px;"><div style="font-size:32px;">🛡️</div><div style="font-size:22px;font-weight:800;color:#fff;">co|op</div></div><div style="background:#161b25;border:1px solid #242d3e;border-radius:12px;padding:32px;"><h1 style="color:#e6edf3;font-size:20px;font-weight:700;margin:0 0 12px;">You've been protected 🛡️</h1><p style="color:#8b949e;font-size:14px;line-height:1.6;margin:0 0 24px;"><strong style="color:#e6edf3;">${org_name || org.name}</strong> has added you to their co|op data protection system.</p><a href="${installUrl}" style="display:block;background:#5b4fe8;color:#fff;text-align:center;padding:14px 24px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:16px;">Install co|op →</a><p style="color:#4a5568;font-size:11px;text-align:center;margin:0;">Only takes 60 seconds · Chrome, Edge, and Brave</p></div></div></body></html>`;
   try {
     await resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: employee_email, subject: `You've been added to ${org_name || org.name}'s co|op`, html: emailHtml });
