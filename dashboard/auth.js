@@ -183,7 +183,7 @@ function renderNavAuthState() {
         <button class="profile-btn" onclick="toggleProfileMenu(event)" aria-label="Account menu">${initial}</button>
         <div class="profile-dropdown" id="profileDropdown">
           ${session.email ? `<div class="profile-dropdown-email">${session.email}</div>` : ''}
-          <a href="#" onclick="goToDashboard('${session.key}','${(session.org_name||'').replace(/'/g,"\\'")}');return false;">
+          <a href="#" onclick="openDashboardChecked('${session.key}','${(session.org_name||'').replace(/'/g,"\\'")}');return false;">
             <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             Open Dashboard
           </a>
@@ -498,6 +498,61 @@ async function handleRecovery() {
 function goToDashboard(key, orgName) {
   closeModal();
   window.location.href = `app.html?key=${encodeURIComponent(key)}&org=${encodeURIComponent(orgName || '')}`;
+}
+
+// ── Shared trial-expired overlay ── shown when "Open Dashboard" is clicked with a
+// cached session whose trial has actually expired. Same card app.html shows,
+// but right here, without navigating away first. Uses its own internal
+// names (startTrialCheckout / trial-checkout-msg) so it can never collide
+// with app.html's separate copy of this same card.
+function showTrialExpiredOverlay(key) {
+  document.body.style.overflow = 'hidden';
+  document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;background:rgba(5,8,15,0.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px;z-index:9999;"><div style="background:#161b25;border:1px solid #242d3e;border-radius:16px;padding:48px 40px;max-width:480px;width:100%;text-align:center;"><div style="font-size:52px;margin-bottom:20px;">&#128274;</div><h1 style="font-size:22px;font-weight:800;color:#e6edf3;margin:0 0 12px;">Your 7-day free trial has ended</h1><p style="font-size:14px;color:#8b949e;line-height:1.6;margin:0 0 28px;">Upgrade to keep your team's AI activity protected.</p><div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"><button onclick="startTrialCheckout('Starter')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Starter</span><span style="color:#4db8f0;font-weight:700;">$129/mo</span></button><button onclick="startTrialCheckout('Professional')" style="background:#2196d3;border:none;color:#fff;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Professional Most Popular</span><span>$299/mo</span></button><button onclick="startTrialCheckout('Institution')" style="background:#1c2333;border:1px solid #2d3a50;color:#e6edf3;padding:13px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;justify-content:space-between;align-items:center;"><span>Institution</span><span style="color:#4db8f0;font-weight:700;">$599/mo</span></button></div><div id="trial-checkout-msg" style="font-size:12px;color:#8b949e;min-height:18px;margin-bottom:12px;"></div><a href="mailto:syphir26@gmail.com" style="display:block;font-size:12px;color:#4a5568;text-decoration:none;">Questions? Email syphir26@gmail.com</a></div></div>`);
+
+  window.startTrialCheckout = async (plan) => {
+    const msg = document.getElementById('trial-checkout-msg');
+    if (msg) msg.textContent = 'Redirecting to checkout...';
+    try {
+      const r = await fetch(`${API}/create-checkout-session`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, plan }),
+      });
+      const d = await r.json();
+      if (d.url) window.location.href = d.url;
+      else if (msg) { msg.style.color = '#f44336'; msg.textContent = d.error || 'Could not start checkout'; }
+    } catch(e) {
+      if (msg) { msg.style.color = '#f44336'; msg.textContent = 'Network error — try again'; }
+    }
+  };
+}
+
+// ── "Open Dashboard" from a cached session ── checks it's still valid FIRST instead
+// of navigating to app.html blindly and finding out there. If the trial
+// expired since this session was saved, shows the overlay right here.
+async function openDashboardChecked(key, orgName) {
+  try {
+    const r = await fetch(`${API}/validate-key`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, context: 'dashboard' }),
+    });
+    const data = await r.json();
+    if (data.valid) {
+      goToDashboard(key, orgName);
+    } else if (data.expired) {
+      closeModal();
+      showTrialExpiredOverlay(key);
+    } else {
+      // Key no longer valid at all (revoked, etc.) — safest is to sign out
+      // and let them re-authenticate normally rather than guess further.
+      clearSession();
+      renderNavAuthState();
+      openModal();
+    }
+  } catch(e) {
+    // Network hiccup — fall back to normal navigation rather than blocking
+    // them entirely; app.html's own check will still catch it from there.
+    goToDashboard(key, orgName);
+  }
 }
 
 // ── Modal open/close ──────────────────────────────────────────────────────────
