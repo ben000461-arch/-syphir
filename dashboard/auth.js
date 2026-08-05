@@ -23,6 +23,10 @@ const AUTH_MODAL_HTML = `
         <label>Business email</label>
         <input type="email" id="magicEmail" placeholder="you@company.com" autocomplete="email"/>
       </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="magicPassword" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
       <div class="err-msg" id="magicErr"></div>
       <button class="modal-btn" onclick="authContinue()" id="magicBtn">Continue →</button>
 
@@ -49,6 +53,10 @@ const AUTH_MODAL_HTML = `
       <div class="field">
         <label>Phone number</label>
         <input type="tel" id="detailsPhone" placeholder="(555) 123-4567" autocomplete="tel"/>
+      </div>
+      <div class="field">
+        <label>Create a password</label>
+        <input type="password" id="detailsPassword" placeholder="At least 8 characters" autocomplete="new-password"/>
       </div>
       <div class="err-msg" id="detailsErr"></div>
       <button class="modal-btn" onclick="submitSignupDetails()" id="detailsBtn">Request Trial →</button>
@@ -96,6 +104,18 @@ const AUTH_MODAL_HTML = `
       <div style="text-align:center;margin-top:14px;font-size:11.5px;color:#475569;">
         Still stuck? Email us at <a href="mailto:syphir26@gmail.com" style="color:#6366f1;text-decoration:none;">syphir26@gmail.com</a>
       </div>
+    </div>
+
+    <!-- ── SET PASSWORD panel (legacy accounts with no password on file) ── -->
+    <div id="pane-set-password" style="display:none;">
+      <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Secure your account</h2>
+      <p class="modal-sub" style="margin-bottom:16px;line-height:1.55;">We've added password protection to co|op accounts. Set a password now to continue — you'll use it to sign in from here on.</p>
+      <div class="field">
+        <label>New password</label>
+        <input type="password" id="setPwField" placeholder="At least 8 characters" autocomplete="new-password"/>
+        <div class="err-msg" id="setPwErr"></div>
+      </div>
+      <button class="modal-btn" onclick="setLegacyPassword()" id="setPwBtn">Set Password & Continue →</button>
     </div>
 
   </div>
@@ -205,7 +225,7 @@ document.addEventListener('click', () => {
 
 // ── Panel navigation ──────────────────────────────────────────────────────────
 function showPane(id) {
-  ['pane-main','pane-details','pane-submitted','pane-key','pane-forgot'].forEach(p => {
+  ['pane-main','pane-details','pane-submitted','pane-key','pane-forgot','pane-set-password'].forEach(p => {
     const el = document.getElementById(p);
     if (el) el.style.display = p === id ? '' : 'none';
   });
@@ -232,6 +252,7 @@ let _pendingSignupEmail = '';
 async function authContinue() {
   const emailField = document.getElementById('magicEmail');
   const email = (emailField?.value || '').trim().toLowerCase();
+  const password = document.getElementById('magicPassword')?.value || '';
   if (!email || !email.includes('@')) {
     showModalErr('Enter a valid business email.', 'magicErr');
     return;
@@ -248,7 +269,7 @@ async function authContinue() {
     const r = await fetchWithTimeout(`${API}/auth/provision-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
     const data = await r.json();
     btn.disabled = false;
@@ -267,6 +288,15 @@ async function authContinue() {
       if (emailPreview) emailPreview.textContent = email;
       showPane('pane-details');
       setTimeout(() => document.getElementById('detailsBizName')?.focus(), 100);
+      return;
+    }
+
+    if (data.legacy_no_password) {
+      // Account exists from before password auth existed — walk them through
+      // setting one now instead of rejecting them or letting them straight in.
+      _pendingSignupEmail = email;
+      showPane('pane-set-password');
+      setTimeout(() => document.getElementById('setPwField')?.focus(), 100);
       return;
     }
 
@@ -297,11 +327,16 @@ async function authContinue() {
 async function submitSignupDetails() {
   const bizName = (document.getElementById('detailsBizName')?.value || '').trim();
   const phone   = (document.getElementById('detailsPhone')?.value || '').trim();
+  const password = document.getElementById('detailsPassword')?.value || '';
   const err     = document.getElementById('detailsErr');
   const btn     = document.getElementById('detailsBtn');
 
   if (!bizName) {
     if (err) err.textContent = 'Enter your business name.';
+    return;
+  }
+  if (password.length < 8) {
+    if (err) err.textContent = 'Password must be at least 8 characters.';
     return;
   }
   if (!_pendingSignupEmail) {
@@ -318,7 +353,7 @@ async function submitSignupDetails() {
     const r = await fetchWithTimeout(`${API}/auth/signup-request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: _pendingSignupEmail, business_name: bizName, phone }),
+      body: JSON.stringify({ email: _pendingSignupEmail, business_name: bizName, phone, password }),
     });
     const data = await r.json().catch(() => ({}));
     btn.disabled = false;
@@ -335,6 +370,56 @@ async function submitSignupDetails() {
     btn.disabled = false;
     btn.textContent = 'Request Trial →';
     console.error('co|op: submitSignupDetails failed:', e);
+    if (err) err.textContent = e.name === 'AbortError'
+      ? 'Still connecting — our server may be waking up. Try again in a few seconds.'
+      : 'Could not connect. Try again in a moment.';
+  }
+}
+
+// ── Set password for a legacy (pre-password) account ──────────────────────────
+async function setLegacyPassword() {
+  const password = document.getElementById('setPwField')?.value || '';
+  const err = document.getElementById('setPwErr');
+  const btn = document.getElementById('setPwBtn');
+
+  if (password.length < 8) {
+    if (err) err.textContent = 'Password must be at least 8 characters.';
+    return;
+  }
+  if (!_pendingSignupEmail) {
+    showPane('pane-main');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Setting password…';
+  if (err) err.textContent = '';
+
+  try {
+    const r = await fetchWithTimeout(`${API}/auth/set-legacy-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _pendingSignupEmail, password }),
+    });
+    const data = await r.json().catch(() => ({}));
+    btn.disabled = false;
+    btn.textContent = 'Set Password & Continue →';
+
+    if (!r.ok || data.error) {
+      if (err) err.textContent = data.error || 'Could not connect. Try again in a moment.';
+      return;
+    }
+
+    if (data.pending) {
+      showPane('pane-main');
+      return;
+    }
+
+    saveSession({ key: data.key, org_name: data.org_name, org_id: data.org_id, email: _pendingSignupEmail }, true);
+    goToDashboard(data.key, data.org_name);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Set Password & Continue →';
     if (err) err.textContent = e.name === 'AbortError'
       ? 'Still connecting — our server may be waking up. Try again in a few seconds.'
       : 'Could not connect. Try again in a moment.';
@@ -468,11 +553,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('magicEmail')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') authContinue();
   });
+  document.getElementById('magicPassword')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') authContinue();
+  });
   document.getElementById('detailsBizName')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') submitSignupDetails();
   });
   document.getElementById('detailsPhone')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') submitSignupDetails();
+  });
+  document.getElementById('detailsPassword')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitSignupDetails();
+  });
+  document.getElementById('setPwField')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') setLegacyPassword();
   });
   document.getElementById('keyInput')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleKey();

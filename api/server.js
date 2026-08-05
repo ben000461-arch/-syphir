@@ -536,6 +536,15 @@ app.use("/*", cors({
 // the request should be blocked (caller responds 429). Real users never hit the
 // caps; this just stops brute-force and spam.
 const _rlStore = new Map();
+
+// Minimum password bar for both signup and legacy-account migration.
+// Returns null when valid, or a user-facing error string when not.
+function validatePasswordLength(pw) {
+  if (!pw || typeof pw !== 'string') return 'Password is required.';
+  if (pw.length < 8) return 'Password must be at least 8 characters.';
+  return null;
+}
+
 function isRateLimited(c, bucket, max, windowMs) {
   const ip =
     (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
@@ -1917,7 +1926,7 @@ app.post('/validate-key-by-email', async (c) => {
 // Used by the simple "sign in with email" flow — no magic link wait.
 app.post('/auth/provision-email', async (c) => {
   if (isRateLimited(c, "provision-email", 20, 60_000)) return c.json({ error: "Too many attempts. Slow down." }, 429);
-  const { email } = await c.req.json().catch(() => ({}));
+  const { email, password } = await c.req.json().catch(() => ({}));
   if (!email || !email.includes('@')) return c.json({ error: 'Valid email required' }, 400);
 
   const userEmail = email.toLowerCase().trim();
@@ -1940,6 +1949,15 @@ app.post('/auth/provision-email', async (c) => {
         return c.json({ error: 'This signup was not approved. Contact syphir26@gmail.com for details.' }, 403);
       }
 
+      // Account predates password auth entirely — walk them through setting
+      // one now instead of either rejecting them or letting them straight in.
+      if (!org.password_hash) {
+        return c.json({ legacy_no_password: true, org_id: org.id });
+      }
+      if (!password) return c.json({ error: 'Password required.' }, 400);
+      const passwordOk = await Bun.password.verify(password, org.password_hash);
+      if (!passwordOk) return c.json({ error: 'Incorrect password.' }, 401);
+
       const keys = await db(
         `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
       ).catch(() => []);
@@ -1960,13 +1978,64 @@ app.post('/auth/provision-email', async (c) => {
   }
 });
 
+// ── AUTH: Set a first password for a "legacy" account (created before ──────
+// password auth existed, so it has no password_hash on file yet). Verifies
+// the account is real and approved, hashes + stores the password, then logs
+// them straight in — same response shape as a normal successful login.
+app.post('/auth/set-legacy-password', async (c) => {
+  if (isRateLimited(c, "set-legacy-password", 10, 60_000)) return c.json({ error: "Too many attempts. Try again shortly." }, 429);
+  const { email, password } = await c.req.json().catch(() => ({}));
+  if (!email || !email.includes('@')) return c.json({ error: 'Valid email required' }, 400);
+  const pwErr = validatePasswordLength(password);
+  if (pwErr) return c.json({ error: pwErr }, 400);
+
+  const userEmail = email.toLowerCase().trim();
+
+  try {
+    const existing = await db(
+      `organizations?admin_email=eq.${encodeURIComponent(userEmail)}&select=*`
+    ).catch(() => []);
+    if (!existing?.length) return c.json({ error: 'No account found for this email.' }, 404);
+
+    const org = existing[0];
+    if (org.signup_status === 'pending') return c.json({ pending: true }, 200);
+    if (org.signup_status === 'rejected') {
+      return c.json({ error: 'This signup was not approved. Contact syphir26@gmail.com for details.' }, 403);
+    }
+    if (org.password_hash) {
+      return c.json({ error: 'This account already has a password set. Use the sign-in form.' }, 409);
+    }
+
+    const passwordHash = await Bun.password.hash(password);
+    await db(`organizations?id=eq.${encodeURIComponent(org.id)}`, {
+      method: 'PATCH', prefer: 'return=minimal',
+      body: JSON.stringify({ password_hash: passwordHash }),
+    });
+
+    const keys = await db(
+      `license_keys?org_id=eq.${encodeURIComponent(org.id)}&key_type=eq.business&status=eq.active&select=key`
+    ).catch(() => []);
+    const key = keys?.[0]?.key;
+    if (!key) return c.json({ error: 'No active key found. Contact support.' }, 404);
+
+    console.log(`[Auth] Legacy password set: ${userEmail} → org ${org.id}`);
+    return c.json({ key, org_name: org.name, org_id: org.id, plan: org.plan });
+
+  } catch(err) {
+    console.error('[Auth] set-legacy-password error:', err.message);
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 // ── AUTH: Submit a trial request — creates a PENDING org, no dashboard access yet ──
 // Trial + keys only activate once approved from the admin panel.
 app.post('/auth/signup-request', async (c) => {
   if (isRateLimited(c, "signup-request", 10, 60_000)) return c.json({ error: "Too many attempts. Try again shortly." }, 429);
-  const { email, business_name, phone } = await c.req.json().catch(() => ({}));
+  const { email, business_name, phone, password } = await c.req.json().catch(() => ({}));
   if (!email || !email.includes('@')) return c.json({ error: 'Valid email required' }, 400);
   if (!business_name || !business_name.trim()) return c.json({ error: 'Business name required' }, 400);
+  const pwErr = validatePasswordLength(password);
+  if (pwErr) return c.json({ error: pwErr }, 400);
 
   const userEmail = email.toLowerCase().trim();
   const orgName = business_name.trim();
@@ -1986,16 +2055,20 @@ app.post('/auth/signup-request', async (c) => {
 
     const bizKey = genKey();
     const empKey = genEmpKey();
+    const passwordHash = await Bun.password.hash(password);
 
     // Create the org. If the optional signup_status/phone columns aren't in the
     // schema yet, fall back to a minimal insert so signup still works.
+    // password_hash is deliberately NOT treated as droppable here like phone/
+    // signup_status are — if that column is missing this should fail loudly
+    // rather than silently create a passwordless account.
     let newOrg;
     try {
       newOrg = await db('organizations', {
         method: 'POST', prefer: 'return=representation',
         body: JSON.stringify({
           name: orgName, admin_email: userEmail, phone: userPhone, plan: 'Demo',
-          active: false, signup_status: 'pending',
+          active: false, signup_status: 'pending', password_hash: passwordHash,
         }),
       });
     } catch (colErr) {
@@ -2004,6 +2077,7 @@ app.post('/auth/signup-request', async (c) => {
         method: 'POST', prefer: 'return=representation',
         body: JSON.stringify({
           name: orgName, admin_email: userEmail, plan: 'Demo', active: false,
+          password_hash: passwordHash,
         }),
       });
     }
