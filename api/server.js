@@ -47,11 +47,11 @@ function genEmpKey() {
 // ── EMAIL BUILDERS ─────────────────────────────────────────────────────────
 
 const EMAIL_FROM    = "co|op <hello@co-optech.com>";
-const EMAIL_REPLYTO = "syphir26@gmail.com";
+const EMAIL_REPLYTO = "cooptech126@gmail.com";
 
 function emailFooter(orgName) {
   return `<div style="padding-top:20px;border-top:1px solid #1e2636;text-align:center;margin-top:8px;">
-    <p style="font-size:11px;color:#4a5568;margin:0;">co|op AI Data Protection &middot; <a href="https://syphir.vercel.app" style="color:#4a5568;text-decoration:none;">syphir.vercel.app</a> &middot; <a href="mailto:syphir26@gmail.com" style="color:#4a5568;text-decoration:none;">syphir26@gmail.com</a></p>
+    <p style="font-size:11px;color:#4a5568;margin:0;">co|op AI Data Protection &middot; <a href="https://syphir.vercel.app" style="color:#4a5568;text-decoration:none;">syphir.vercel.app</a> &middot; <a href="mailto:cooptech126@gmail.com" style="color:#4a5568;text-decoration:none;">cooptech126@gmail.com</a></p>
     <p style="font-size:11px;color:#4a5568;margin:6px 0 0;">You're receiving this as admin of ${orgName}</p>
   </div>`;
 }
@@ -266,7 +266,7 @@ function buildUpgradeConfirmationHtml(org, plan, bizKey, empKey) {
   <div style="text-align:center;margin-bottom:24px;">
     <a href="${dashUrl}" style="display:inline-block;background:#2DD4BF;color:#0d1117;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Open Dashboard &#8594;</a>
   </div>
-  <p style="font-size:12px;color:#8b949e;text-align:center;margin:0 0 24px;">Questions? Reply to this email or contact <a href="mailto:syphir26@gmail.com" style="color:#2DD4BF;text-decoration:none;">syphir26@gmail.com</a></p>
+  <p style="font-size:12px;color:#8b949e;text-align:center;margin:0 0 24px;">Questions? Reply to this email or contact <a href="mailto:cooptech126@gmail.com" style="color:#2DD4BF;text-decoration:none;">cooptech126@gmail.com</a></p>
   ${emailFooter(org.name)}
 </div></body></html>`;
 }
@@ -460,7 +460,7 @@ async function generateWeeklyPdf(org, incidents, periodLabel, dateLabel) {
       const footerY = PH - 44;
       hRule(footerY);
       doc.fontSize(7.5).font('Helvetica').fillColor(C.muted)
-         .text('co|op AI Data Protection  ·  syphir.vercel.app  ·  syphir26@gmail.com',
+         .text('co|op AI Data Protection  ·  syphir.vercel.app  ·  cooptech126@gmail.com',
                M, footerY + 8, { align: 'center', width: PW - M * 2, lineBreak: false });
       doc.text(`Generated ${new Date().toLocaleDateString()}  ·  Confidential`,
                M, footerY + 20, { align: 'center', width: PW - M * 2, lineBreak: false });
@@ -1946,7 +1946,7 @@ app.post('/auth/provision-email', async (c) => {
         return c.json({ pending: true, is_new: false, org_id: org.id });
       }
       if (org.signup_status === 'rejected') {
-        return c.json({ error: 'This signup was not approved. Contact syphir26@gmail.com for details.' }, 403);
+        return c.json({ error: 'This signup was not approved. Contact cooptech126@gmail.com for details.' }, 403);
       }
 
       // Account predates password auth entirely — walk them through setting
@@ -2000,7 +2000,7 @@ app.post('/auth/set-legacy-password', async (c) => {
     const org = existing[0];
     if (org.signup_status === 'pending') return c.json({ pending: true }, 200);
     if (org.signup_status === 'rejected') {
-      return c.json({ error: 'This signup was not approved. Contact syphir26@gmail.com for details.' }, 403);
+      return c.json({ error: 'This signup was not approved. Contact cooptech126@gmail.com for details.' }, 403);
     }
     if (org.password_hash) {
       return c.json({ error: 'This account already has a password set. Use the sign-in form.' }, 409);
@@ -2049,7 +2049,7 @@ app.post('/auth/signup-request', async (c) => {
     if (existing?.length) {
       const org = existing[0];
       if (org.signup_status === 'pending') return c.json({ pending: true, is_new: false, org_id: org.id });
-      if (org.signup_status === 'rejected') return c.json({ error: 'This signup was not approved. Contact syphir26@gmail.com for details.' }, 403);
+      if (org.signup_status === 'rejected') return c.json({ error: 'This signup was not approved. Contact cooptech126@gmail.com for details.' }, 403);
       return c.json({ error: 'An account already exists for this email.' }, 409);
     }
 
