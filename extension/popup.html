@@ -150,6 +150,38 @@
     </div>
     <button class="act-btn" id="actBtn">Activate →</button>
     <div class="msg" id="actMsg"></div>
+    <div style="text-align:center; margin-top:10px;">
+      <button class="ftr-link" id="guestModeBtn" style="color:#6868a0; font-size:11px;">Continue without an account</button>
+    </div>
+  </div>
+
+  <div id="guestInfoView" style="display:none;padding:18px 16px;">
+    <div class="login-title">Welcome to co|op 👋</div>
+    <div class="login-sub">co|op catches sensitive data — SSNs, credit card numbers, API keys — before it's pasted into AI tools like ChatGPT and Claude, right in your browser.</div>
+    <div class="login-sub">You're using it without a company account, which is completely fine — protection works exactly the same. Nothing is collected or sent anywhere in this mode.</div>
+    <button class="act-btn" id="guestContinueBtn">Got it, continue →</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+      <button class="ftr-link" id="guestBackBtn" style="color:#6868a0; font-size:11px;">← Back</button>
+      <button class="ftr-link" id="guestLearnBtn" style="font-size:11px;">co-optech.com →</button>
+    </div>
+  </div>
+
+  <div id="guestActiveView" style="display:none;">
+    <div class="section">
+      <div class="sec-lbl">Protection Status</div>
+      <div class="shield-card">
+        <div class="shield-icon"><span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;color:#fff;">co<span style="font-weight:300;opacity:0.7;">|</span>op</span></div>
+        <div>
+          <div class="shield-name">Protection Active</div>
+          <div class="shield-org">No account — just browsing</div>
+        </div>
+        <div class="pill" style="background:rgba(255,255,255,0.08); color:#8b8bb0; border-color:rgba(255,255,255,0.14);">Guest</div>
+      </div>
+      <div class="login-sub" style="margin-top:12px; margin-bottom:0;">Sensitive data is still caught and blocked before it's sent. Nothing is logged or reported anywhere in this mode.</div>
+    </div>
+    <div class="section" style="border-bottom:none;">
+      <button class="toggle-btn" id="guestActivateBtn">Have a work key? Activate →</button>
+    </div>
   </div>
 
   <div id="activeView">

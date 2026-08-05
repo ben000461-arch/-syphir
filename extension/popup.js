@@ -4,9 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const ftrVer = document.getElementById("ftrVer");
   if (ftrVer) ftrVer.textContent = `co|op v${chrome.runtime.getManifest().version}`;
 
-  chrome.storage.local.get(["syphir_key", "syphir_org", "syphir_expired"], (data) => {
+  chrome.storage.local.get(["syphir_key", "syphir_org", "syphir_expired", "syphir_guest_mode"], (data) => {
     if (!data.syphir_key || !data.syphir_org) {
-      showLogin();
+      if (data.syphir_guest_mode) { showGuestActive(); } else { showLogin(); }
       return;
     }
     // Always re-validate on popup open so trial resets/renewals take effect immediately.
@@ -23,6 +23,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("empKey").addEventListener("keydown",   e => { if (e.key === "Enter") document.getElementById("empEmail").focus(); });
   document.getElementById("empEmail").addEventListener("keydown", e => { if (e.key === "Enter") activate(); });
   document.getElementById("actBtn").addEventListener("click", activate);
+
+  document.getElementById("guestModeBtn").addEventListener("click", showGuestInfo);
+  document.getElementById("guestBackBtn").addEventListener("click", showLogin);
+  document.getElementById("guestActivateBtn").addEventListener("click", showLogin);
+  document.getElementById("guestLearnBtn").addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://co-optech.com" });
+  });
+  document.getElementById("guestContinueBtn").addEventListener("click", () => {
+    chrome.storage.local.set({ syphir_guest_mode: true }, showGuestActive);
+  });
 
   document.getElementById("alertToggleBtn").addEventListener("click", () => {
     chrome.storage.local.get(["syphir_hide_alerts"], (data) => {
@@ -69,13 +79,35 @@ function showLogin() {
   document.getElementById("loginView").style.display   = "block";
   document.getElementById("activeView").style.display  = "none";
   document.getElementById("expiredView").style.display = "none";
+  document.getElementById("guestInfoView").style.display = "none";
+  document.getElementById("guestActiveView").style.display = "none";
   document.getElementById("statusDot").className = "sdot sdot-off";
+}
+
+function showGuestInfo() {
+  document.getElementById("loginView").style.display   = "none";
+  document.getElementById("activeView").style.display  = "none";
+  document.getElementById("expiredView").style.display = "none";
+  document.getElementById("guestInfoView").style.display = "block";
+  document.getElementById("guestActiveView").style.display = "none";
+  document.getElementById("statusDot").className = "sdot sdot-off";
+}
+
+function showGuestActive() {
+  document.getElementById("loginView").style.display   = "none";
+  document.getElementById("activeView").style.display  = "none";
+  document.getElementById("expiredView").style.display = "none";
+  document.getElementById("guestInfoView").style.display = "none";
+  document.getElementById("guestActiveView").style.display = "block";
+  document.getElementById("statusDot").className = "sdot sdot-on";
 }
 
 function showExpired() {
   document.getElementById("loginView").style.display   = "none";
   document.getElementById("activeView").style.display  = "none";
   document.getElementById("expiredView").style.display = "block";
+  document.getElementById("guestInfoView").style.display = "none";
+  document.getElementById("guestActiveView").style.display = "none";
   document.getElementById("statusDot").className = "sdot sdot-exp";
 }
 
@@ -83,6 +115,8 @@ async function showActive(orgName, key) {
   document.getElementById("loginView").style.display   = "none";
   document.getElementById("activeView").style.display  = "block";
   document.getElementById("expiredView").style.display = "none";
+  document.getElementById("guestInfoView").style.display = "none";
+  document.getElementById("guestActiveView").style.display = "none";
   document.getElementById("statusDot").className = "sdot sdot-on";
   document.getElementById("orgLabel").textContent = orgName;
 
