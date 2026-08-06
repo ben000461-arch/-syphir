@@ -1413,9 +1413,16 @@ app.post("/stripe-webhook", async (c) => {
   const sig = c.req.header("stripe-signature");
   const rawBody = await c.req.text();
 
+  // TEMPORARY DEBUG - safe, doesn't print the real secret
+  const _secret = process.env.STRIPE_WEBHOOK_SECRET || "";
+  console.log("[Webhook Debug] secret length:", _secret.length,
+    "| starts:", _secret.slice(0, 4), "| ends:", _secret.slice(-4),
+    "| sig header present:", !!sig, "| sig header length:", (sig || "").length,
+    "| body length:", rawBody.length);
+
   let event;
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET || "");
+    event = stripe.webhooks.constructEvent(rawBody, sig, _secret);
   } catch (err) {
     console.error("Webhook signature failed:", err.message);
     return c.text("Webhook signature invalid", 400);
