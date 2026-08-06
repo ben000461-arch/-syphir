@@ -107,6 +107,30 @@
     <div id="addErr" style="color:var(--danger); font-size:0.82rem; margin-top:0.5rem; display:none;"></div>
   </div>
 
+  <!-- Compose Email -->
+  <div class="add-biz-form" style="margin-top:2rem;">
+    <h3>Compose Email</h3>
+    <p style="color:var(--muted); font-size:0.82rem; margin-bottom:1rem; margin-top:-0.3rem;">Sends from hello@co-optech.com, replies land at cooptech126@gmail.com.</p>
+    <div class="form-row">
+      <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">To</label>
+        <input class="form-input" id="composeTo" type="email" placeholder="someone@theirbusiness.com">
+      </div>
+      <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Subject</label>
+        <input class="form-input" id="composeSubject" placeholder="Quick question about your data protection">
+      </div>
+    </div>
+    <div class="form-row">
+      <div style="grid-column: 1 / -1;">
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Message</label>
+        <textarea class="form-input" id="composeMessage" rows="6" style="resize:vertical; font-family:inherit;" placeholder="Write your message..."></textarea>
+      </div>
+    </div>
+    <button class="add-btn" onclick="sendComposeEmail()" id="composeBtn" style="width:100%;">Send Email</button>
+    <div id="composeErr" style="color:var(--danger); font-size:0.82rem; margin-top:0.5rem; display:none;"></div>
+  </div>
+
   <!-- Business Table -->
   <div class="biz-table" id="bizTable">
     <div class="biz-table-head">
@@ -446,6 +470,46 @@ function mrr(list) {
   const prices = { Starter:129, Professional:299, Institution:599, Demo:0 };
   return list.filter(b => !b.expires_at && b.key_status === 'active')
     .reduce((s, b) => s + (prices[b.plan]||0), 0).toLocaleString();
+}
+
+async function sendComposeEmail() {
+  const to      = document.getElementById('composeTo').value.trim();
+  const subject = document.getElementById('composeSubject').value.trim();
+  const message = document.getElementById('composeMessage').value.trim();
+  const err     = document.getElementById('composeErr');
+
+  if (!to || !to.includes('@')) { err.textContent = 'Enter a valid recipient email.'; err.style.display = 'block'; return; }
+  if (!subject) { err.textContent = 'Subject is required.'; err.style.display = 'block'; return; }
+  if (!message) { err.textContent = 'Message is required.'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  const btn = document.getElementById('composeBtn');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const res = await apiFetch(`${API}/admin/send-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': _adminSecret },
+      body: JSON.stringify({ to, subject, message })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      err.textContent = data.error || 'Failed to send email.';
+      err.style.display = 'block';
+      return;
+    }
+    document.getElementById('composeTo').value = '';
+    document.getElementById('composeSubject').value = '';
+    document.getElementById('composeMessage').value = '';
+    showToast('✓ Email sent to ' + to);
+  } catch(e) {
+    err.textContent = 'API error: ' + e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = 'Send Email';
+    btn.disabled = false;
+  }
 }
 
 async function addBusiness() {

@@ -985,6 +985,38 @@ app.post("/invite-user", async (c) => {
 });
 
 // ── ADMIN: CREATE ORG ──────────────────────────────────────────────────────
+// ── ADMIN: COMPOSE & SEND EMAIL ── outreach tool, sends from the real co|op
+// domain via Resend to any address the admin types in.
+app.post("/admin/send-email", async (c) => {
+  if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
+  if (isRateLimited(c, "admin-send-email", 15, 60_000)) return c.json({ error: "Too many emails sent. Slow down." }, 429);
+
+  const { to, subject, message } = await c.req.json().catch(() => ({}));
+  if (!to || !to.includes("@")) return c.json({ error: "Valid recipient email required" }, 400);
+  if (!subject || !subject.trim()) return c.json({ error: "Subject required" }, 400);
+  if (!message || !message.trim()) return c.json({ error: "Message required" }, 400);
+
+  const safeMessage = message
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  try {
+    await resend.emails.send({
+      from: EMAIL_FROM, replyTo: EMAIL_REPLYTO, to: to.trim(), subject: subject.trim(),
+      html: `
+        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;color:#1a1a2e;">
+          <div style="font-size:20px;font-weight:700;margin-bottom:20px;">co|op</div>
+          <div style="white-space:pre-wrap;line-height:1.6;color:#333;font-size:15px;">${safeMessage}</div>
+        </div>
+      `,
+    });
+    console.log(`[Admin] Email sent to ${to}: "${subject}"`);
+    return c.json({ success: true });
+  } catch (err) {
+    console.error("[Admin] send-email failed:", err.message);
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 app.post("/admin/create-org", async (c) => {
   const adminSecret = c.req.header("X-Admin-Secret");
   if (!requireAdmin(c)) return c.json({ error: "Unauthorized" }, 401);
