@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>co|op — AI Data Protection</title>
+<title>co|op — AI Security</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -662,7 +662,7 @@ select option{background:var(--bg3);color:var(--text);}
             <button onclick="ptSetFilter('high',this)" class="pt-filter-btn">High</button>
             <button onclick="ptSetFilter('medium',this)" class="pt-filter-btn">Medium</button>
             <button onclick="ptSetFilter('network',this)" class="pt-filter-btn">Network</button>
-            <button onclick="ptSetFilter('extension',this)" class="pt-filter-btn">Extension</button>
+            <button onclick="ptSetFilter('extension',this)" class="pt-filter-btn">Trace</button>
           </div>
           <button onclick="ptReset()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:10px;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;">Reset View</button>
         </div>
@@ -809,7 +809,7 @@ select option{background:var(--bg3);color:var(--text);}
           <div class="card-body">
             <div style="padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;">
               <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Employee Install Link</div>
-              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share with employees — they install the extension and are added automatically on first use.</div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Share with employees — they install Trace and are added automatically on first use.</div>
               <div style="display:flex;gap:8px;align-items:center;">
                 <input class="inp" id="install-link" readonly style="flex:1;font-size:11px;opacity:0.8;">
                 <button class="btn btn-ghost" onclick="copyInstallLink()" style="white-space:nowrap;flex-shrink:0;">Copy</button>
