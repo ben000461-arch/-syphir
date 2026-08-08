@@ -157,10 +157,7 @@
   ground.position.y = -1.05;
   ground.receiveShadow = true;
   scene.add(ground);
-  const ring = new THREE.Mesh(new THREE.RingGeometry(3.4,3.42,80), new THREE.MeshBasicMaterial({color:0x161616, side:THREE.DoubleSide, transparent:true, opacity:0.6}));
-  ring.rotation.x = -Math.PI/2;
-  ring.position.y = -1.04;
-  scene.add(ring);
+  // decorative ground ring removed - shadow-only ground plane above stays
 
   // ---------- Brushed-metal texture (base color + roughness) ----------
   function makeBrushedTexture(){
