@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>co|op Block — 3D Model</title>
+<style>
+  :root{
+    --bg:#000;
+    --panel:#0a0a0a;
+    --border:#232323;
+    --coral:#ff5a4d;
+    --text:#f4f4f4;
+    --grey:#8a8a8a;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-family: var(--display); height:100%; overflow:hidden; }
+  #app{ position:relative; width:100%; height:100vh; }
+  #canvas-wrap{ position:absolute; inset:0; }
+  canvas{ display:block; width:100%; height:100%; touch-action:none; cursor:grab; }
+  canvas:active{ cursor:grabbing; }
+
+  .hud{ position:absolute; left:0; right:0; top:0; display:flex; align-items:flex-start; justify-content:space-between; padding:28px 32px; pointer-events:none; }
+  .brand{ display:flex; align-items:center; gap:10px; pointer-events:auto; }
+  .brand .mark{ font-size:20px; font-weight:700; letter-spacing:-0.02em; }
+  .brand .mark .pipe{ color:var(--text); }
+  .brand .tag{ font-family:var(--mono); font-size:10px; letter-spacing:0.14em; color:var(--grey); text-transform:uppercase; margin-top:2px; }
+
+  .dims{ font-family:var(--mono); font-size:10px; letter-spacing:0.1em; color:var(--grey); text-transform:uppercase; margin-top:6px; }
+
+  .badge{ font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey); border:1px solid var(--border); border-radius:999px; padding:6px 12px; pointer-events:auto; }
+
+  .bottom-bar{ position:absolute; left:0; right:0; bottom:0; padding:24px 32px 32px; display:flex; flex-direction:column; align-items:center; gap:16px; pointer-events:none; }
+
+  .label-strip{ font-family:var(--mono); font-size:11px; color:var(--grey); letter-spacing:0.08em; text-transform:uppercase; opacity:0; transition:opacity .3s ease; min-height:16px; text-align:center; }
+  .label-strip.show{ opacity:1; }
+
+  .controls{ display:flex; align-items:center; gap:10px; pointer-events:auto; }
+
+  button.ctrl{ font-family:var(--display); font-weight:600; font-size:13px; background:var(--panel); color:var(--text); border:1px solid var(--border); padding:13px 22px; border-radius:10px; cursor:pointer; letter-spacing:0.01em; transition:border-color .2s ease, transform .12s ease, background .2s ease; }
+  button.ctrl:hover{ border-color:#3a3a3a; }
+  button.ctrl:active{ transform:scale(0.97); }
+  button.primary{ background:var(--coral); color:#0a0a0a; border-color:var(--coral); }
+  button.primary:hover{ background:#ff6f63; border-color:#ff6f63; }
+  button.primary.active{ background:var(--panel); color:var(--coral); border-color:var(--coral); }
+
+  .icon-btn{ width:44px; height:44px; border-radius:10px; background:var(--panel); border:1px solid var(--border); color:var(--grey); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s ease, color .2s ease; pointer-events:auto; }
+  .icon-btn:hover{ color:var(--text); border-color:#3a3a3a; }
+  .icon-btn svg{ width:18px; height:18px; }
+
+  .hint{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-family:var(--mono); font-size:11px; color:var(--grey); letter-spacing:0.1em; text-transform:uppercase; display:flex; align-items:center; gap:8px; pointer-events:none; opacity:0.85; animation: fadeOut 2.4s ease forwards; }
+  @keyframes fadeOut{ 0%{opacity:0.85;} 70%{opacity:0.85;} 100%{opacity:0;} }
+
+  .parts-panel{ position:absolute; top:96px; right:32px; width:210px; background:rgba(10,10,10,0.72); backdrop-filter: blur(10px); border:1px solid var(--border); border-radius:14px; padding:16px 16px 14px; opacity:0; transform:translateY(-6px); transition:opacity .35s ease, transform .35s ease; pointer-events:none; }
+  .parts-panel.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .parts-panel h4{ margin:0 0 10px; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--grey); font-family:var(--mono); font-weight:500; }
+  .part-row{ display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12.5px; color:var(--text); border-top:1px solid #1a1a1a; }
+  .part-row:first-of-type{ border-top:none; }
+  .dot{ width:7px; height:7px; border-radius:50%; flex:none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="canvas-wrap"></div>
+
+  <div class="hud">
+    <div class="brand">
+      <div>
+        <div class="mark">co<span class="pipe">|</span>op</div>
+        <div class="tag">Block — Hardware Preview</div>
+        <div class="dims">3.5in × 2.5in × 1.5in</div>
+      </div>
+    </div>
+    <div class="badge" id="statusBadge">Assembled</div>
+  </div>
+
+  <div class="parts-panel" id="partsPanel">
+    <h4>Inside the Block</h4>
+    <div class="part-row"><span class="dot" style="background:#c9cbce"></span>Machined metal shell</div>
+    <div class="part-row"><span class="dot" style="background:#3cb44b"></span>Raspberry Pi 5 board</div>
+    <div class="part-row"><span class="dot" style="background:#9aa0a6"></span>Active cooler + fan</div>
+    <div class="part-row"><span class="dot" style="background:#111"></span>NVMe SSD + carrier</div>
+    <div class="part-row"><span class="dot" style="background:#6e6e6e"></span>Gigabit ports (x2)</div>
+  </div>
+
+  <div class="hint" id="hint">◈ drag to rotate &nbsp;·&nbsp; scroll to zoom</div>
+
+  <div class="bottom-bar">
+    <div class="label-strip" id="labelStrip"></div>
+    <div class="controls">
+      <div class="icon-btn" id="resetBtn" title="Reset view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 21v-6h6"/></svg>
+      </div>
+      <button class="ctrl primary" id="explodeBtn">Explode view</button>
+      <div class="icon-btn" id="spinBtn" title="Toggle auto-rotate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const wrap = document.getElementById('canvas-wrap');
+  const W = () => wrap.clientWidth, H = () => wrap.clientHeight;
+
+  // ---------- Real-world dimensions (1 unit = 1 inch) ----------
+  const DIM_X = 3.5;   // width
+  const DIM_Z = 2.5;   // depth
+  const DIM_Y = 1.5;   // height
+  const WALL = 0.07;
+
+  // ---------- Scene ----------
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  scene.fog = new THREE.Fog(0x000000, 16, 30);
+
+  const camera = new THREE.PerspectiveCamera(36, W()/H(), 0.1, 100);
+  const camDistDefault = 8.4;
+  camera.position.set(camDistDefault*0.6, camDistDefault*0.42, camDistDefault*0.72);
+
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W(), H());
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  wrap.appendChild(renderer.domElement);
+
+  // ---------- Lighting ----------
+  scene.add(new THREE.AmbientLight(0x606060, 0.6));
+  const key = new THREE.DirectionalLight(0xffffff, 1.5);
+  key.position.set(5, 8, 4);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048,2048);
+  key.shadow.camera.left=-6; key.shadow.camera.right=6; key.shadow.camera.top=6; key.shadow.camera.bottom=-6;
+  key.shadow.bias = -0.0006;
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.55);
+  rim.position.set(-6, 3, -5);
+  scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xaebbff, 0.3);
+  fill.position.set(-3, -2, 4);
+  scene.add(fill);
+  const spot = new THREE.SpotLight(0xffffff, 0.5, 22, Math.PI/6, 0.5);
+  spot.position.set(0, 8, 1);
+  scene.add(spot);
+  const kicker = new THREE.DirectionalLight(0xffffff, 0.4);
+  kicker.position.set(2, 1.5, -6);
+  scene.add(kicker);
+
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(9,64), new THREE.ShadowMaterial({opacity:0.4}));
+  ground.rotation.x = -Math.PI/2;
+  ground.position.y = -1.05;
+  ground.receiveShadow = true;
+  scene.add(ground);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(3.4,3.42,80), new THREE.MeshBasicMaterial({color:0x161616, side:THREE.DoubleSide, transparent:true, opacity:0.6}));
+  ring.rotation.x = -Math.PI/2;
+  ring.position.y = -1.04;
+  scene.add(ring);
+
+  // ---------- Brushed-metal texture (base color + roughness) ----------
+  function makeBrushedTexture(){
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 512;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createLinearGradient(0,0,512,512);
+    grad.addColorStop(0,'#c7c9cc');
+    grad.addColorStop(0.5,'#d9dbdd');
+    grad.addColorStop(1,'#bcbec1');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,512,512);
+    // brushed horizontal streaks
+    for(let i=0;i<2600;i++){
+      const y = Math.random()*512;
+      const shade = 180 + Math.random()*60;
+      ctx.strokeStyle = `rgba(${shade},${shade},${shade+3},${0.04+Math.random()*0.05})`;
+      ctx.lineWidth = 0.6 + Math.random()*0.8;
+      ctx.beginPath();
+      ctx.moveTo(0,y);
+      ctx.lineTo(512, y + (Math.random()-0.5)*3);
+      ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1.6,1.6);
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  }
+  const brushedMap = makeBrushedTexture();
+
+  const shellMat = new THREE.MeshStandardMaterial({ map: brushedMap, metalness: 0.9, roughness: 0.3 });
+  const shellEdgeMat = new THREE.MeshStandardMaterial({ map: brushedMap, metalness: 0.92, roughness: 0.24 });
+  const darkPort = new THREE.MeshStandardMaterial({ color:0x030303, metalness:0.3, roughness:0.7 });
+  const portRimMat = new THREE.MeshStandardMaterial({ color:0xe3e4e6, metalness:0.9, roughness:0.25 });
+
+  // ---------- Front-face texture: brushed metal + co|op logo baked in (black & white only) ----------
+  function makeFrontFaceTexture(){
+    const c = document.createElement('canvas');
+    c.width = 1024; c.height = 1024/(DIM_X/DIM_Y);
+    const ctx = c.getContext('2d');
+    // base brushed fill
+    const grad = ctx.createLinearGradient(0,0,c.width,c.height);
+    grad.addColorStop(0,'#c9cbce'); grad.addColorStop(0.5,'#dbdddf'); grad.addColorStop(1,'#bdbfc2');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,c.width,c.height);
+    for(let i=0;i<1800;i++){
+      const y = Math.random()*c.height;
+      const shade = 180 + Math.random()*60;
+      ctx.strokeStyle = `rgba(${shade},${shade},${shade+3},${0.04+Math.random()*0.05})`;
+      ctx.lineWidth = 0.6 + Math.random()*0.7;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(c.width, y+(Math.random()-0.5)*3); ctx.stroke();
+    }
+    // logo, bottom-right corner, black & white only
+    ctx.textBaseline = 'alphabetic';
+    const fontSize = Math.round(c.height*0.11);
+    ctx.font = `700 ${fontSize}px "Space Grotesk", Arial, sans-serif`;
+    const marginX = c.width*0.05, marginY = c.height*0.12;
+    const label = 'co|op';
+    const totalW = ctx.measureText(label).width;
+    const x0 = c.width - marginX - totalW;
+    const y0 = c.height - marginY;
+    // subtle recessed shadow for engraved feel
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillText(label, x0+1.5, y0+2);
+    ctx.fillStyle = '#161616';
+    ctx.fillText(label, x0, y0);
+    const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    tex.anisotropy = 8;
+    return tex;
+  }
+  const frontFaceTex = makeFrontFaceTexture();
+  const frontFaceMat = new THREE.MeshStandardMaterial({ map: frontFaceTex, metalness:0.85, roughness:0.4 });
+
+  // ---------- Back-face texture: brushed metal + port cutout shading baked in ----------
+  function makeBackFaceTexture(){
+    const c = document.createElement('canvas');
+    c.width = 1024; c.height = Math.round(1024/(DIM_X/DIM_Y));
+    const ctx = c.getContext('2d');
+    const grad = ctx.createLinearGradient(0,0,c.width,c.height);
+    grad.addColorStop(0,'#c9cbce'); grad.addColorStop(0.5,'#dbdddf'); grad.addColorStop(1,'#bdbfc2');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,c.width,c.height);
+    for(let i=0;i<1800;i++){
+      const y = Math.random()*c.height;
+      const shade = 180 + Math.random()*60;
+      ctx.strokeStyle = `rgba(${shade},${shade},${shade+3},${0.04+Math.random()*0.05})`;
+      ctx.lineWidth = 0.6 + Math.random()*0.7;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(c.width, y+(Math.random()-0.5)*3); ctx.stroke();
+    }
+    return new THREE.CanvasTexture(c);
+  }
+  const backFaceTex = makeBackFaceTexture();
+  backFaceTex.encoding = THREE.sRGBEncoding;
+  const backFaceMat = new THREE.MeshStandardMaterial({ map: backFaceTex, metalness:0.85, roughness:0.4 });
+
+  // ---------- Root ----------
+  const root = new THREE.Group();
+  root.position.y = 0.15;
+  scene.add(root);
+
+  const hx = DIM_X/2, hy = DIM_Y/2, hz = DIM_Z/2;
+
+  const explodable = [];
+  function addExplodable(mesh, offset){
+    mesh.userData.home = mesh.position.clone();
+    mesh.userData.explode = mesh.position.clone().add(offset);
+    explodable.push(mesh);
+    return mesh;
+  }
+
+  const shellGroup = new THREE.Group();
+  root.add(shellGroup);
+
+  function panelMesh(geo, mat, pos, offset){
+    const m = new THREE.Mesh(geo, mat);
+    m.position.copy(pos);
+    m.castShadow = true; m.receiveShadow = true;
+    shellGroup.add(m);
+    addExplodable(m, offset);
+    return m;
+  }
+
+  // top / bottom (explode along Y — the short axis, like a lid lifting off)
+  const topPanel = panelMesh(new THREE.BoxGeometry(DIM_X, WALL, DIM_Z), shellMat, new THREE.Vector3(0, hy-WALL/2, 0), new THREE.Vector3(0, 1.5, 0));
+  panelMesh(new THREE.BoxGeometry(DIM_X, WALL, DIM_Z), shellMat, new THREE.Vector3(0, -hy+WALL/2, 0), new THREE.Vector3(0, -1.5, 0));
+
+  // Small corner screws on the top panel — a machined-hardware realism detail
+  const screwHeadMat = new THREE.MeshStandardMaterial({color:0x8f9194, metalness:0.9, roughness:0.28});
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz])=>{
+    const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.02,10), screwHeadMat);
+    screw.position.set(sx*(DIM_X/2-0.16), WALL/2+0.001, sz*(DIM_Z/2-0.16));
+    topPanel.add(screw);
+  });
+  // left / right
+  panelMesh(new THREE.BoxGeometry(WALL, DIM_Y, DIM_Z), shellMat, new THREE.Vector3(-hx+WALL/2, 0, 0), new THREE.Vector3(-1.4, 0, 0));
+  const rightPanel = panelMesh(new THREE.BoxGeometry(WALL, DIM_Y, DIM_Z), shellMat, new THREE.Vector3(hx-WALL/2, 0, 0), new THREE.Vector3(1.4, 0, 0));
+  // front (logo baked into its own material) / back
+  const frontPanel = panelMesh(new THREE.BoxGeometry(DIM_X, DIM_Y, WALL), frontFaceMat, new THREE.Vector3(0,0,hz-WALL/2), new THREE.Vector3(0,0,1.3));
+  const backPanel  = panelMesh(new THREE.BoxGeometry(DIM_X, DIM_Y, WALL), backFaceMat,  new THREE.Vector3(0,0,-hz+WALL/2), new THREE.Vector3(0,0,-1.3));
+
+  // Ports removed for now (Aug 2026) — side panel left plain until the port look is revisited.
+
+  // ---------- Internal stack (matches real BOM order: bottom → NVMe carrier+SSD → Pi 5 → active cooler → top) ----------
+  const internals = new THREE.Group();
+  root.add(internals);
+
+  const stackFloor = -hy + WALL + 0.02;
+
+  // NVMe carrier board + SSD (bottom layer)
+  const carrierGroup = new THREE.Group();
+  const carrierBoard = new THREE.Mesh(new THREE.BoxGeometry(DIM_X-0.5, 0.035, DIM_Z-0.5), new THREE.MeshStandardMaterial({color:0x141414, metalness:0.3, roughness:0.7}));
+  carrierGroup.add(carrierBoard);
+  // Aorus-style SSD stick: black PCB, orange label band
+  const ssdBody = new THREE.Mesh(new THREE.BoxGeometry(1.5,0.035,0.35), new THREE.MeshStandardMaterial({color:0x0c0c0c, metalness:0.6, roughness:0.35}));
+  ssdBody.position.set(0.2, 0.035, -0.35);
+  const ssdLabel = new THREE.Mesh(new THREE.BoxGeometry(0.95,0.006,0.24), new THREE.MeshStandardMaterial({color:0xe0812c, metalness:0.1, roughness:0.6}));
+  ssdLabel.position.set(0.1, 0.021, -0.35);
+  carrierGroup.add(ssdBody, ssdLabel);
+  carrierGroup.position.set(0, stackFloor, 0);
+  carrierGroup.castShadow = true;
+  internals.add(carrierGroup);
+  addExplodable(carrierGroup, new THREE.Vector3(0, -1.3, 0.5));
+
+  // Raspberry Pi 5 board (middle layer) — built to resemble the real board layout
+  const piGroup = new THREE.Group();
+  const piBoardW = DIM_X-0.35, piBoardD = DIM_Z-0.35;
+
+  // PCB silkscreen texture: green board, copper trace hints, white silkscreen labels
+  function makePiBoardTexture(){
+    const c = document.createElement('canvas');
+    c.width = 1024; c.height = Math.round(1024 * (piBoardD/piBoardW));
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#1c6b34';
+    ctx.fillRect(0,0,c.width,c.height);
+    // subtle darker/lighter patches for a less-flat PCB look
+    for(let i=0;i<40;i++){
+      ctx.fillStyle = `rgba(0,0,0,${0.03+Math.random()*0.05})`;
+      const w=40+Math.random()*120, h=20+Math.random()*80;
+      ctx.fillRect(Math.random()*c.width, Math.random()*c.height, w, h);
+    }
+    // trace lines (copper hints)
+    ctx.strokeStyle = 'rgba(210,190,120,0.35)';
+    ctx.lineWidth = 1.4;
+    for(let i=0;i<70;i++){
+      ctx.beginPath();
+      let x = Math.random()*c.width, y = Math.random()*c.height;
+      ctx.moveTo(x,y);
+      for(let s=0;s<4;s++){
+        x += (Math.random()-0.5)*90; y += (Math.random()-0.5)*90;
+        ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    // via dots
+    ctx.fillStyle = 'rgba(200,200,200,0.5)';
+    for(let i=0;i<150;i++){
+      ctx.beginPath();
+      ctx.arc(Math.random()*c.width, Math.random()*c.height, 1.6, 0, Math.PI*2);
+      ctx.fill();
+    }
+    return new THREE.CanvasTexture(c);
+  }
+  const piBoardTex = makePiBoardTexture();
+  piBoardTex.encoding = THREE.sRGBEncoding;
+
+  const piBoard = new THREE.Mesh(new THREE.BoxGeometry(piBoardW, 0.045, piBoardD), new THREE.MeshStandardMaterial({map:piBoardTex, color:0xffffff, metalness:0.1, roughness:0.6}));
+  piBoard.castShadow = true; piBoard.receiveShadow = true;
+  piGroup.add(piBoard);
+
+  // Mounting standoff holes (four corners) — small dark rings
+  const standoffMat = new THREE.MeshStandardMaterial({color:0x0a0a0a, metalness:0.5, roughness:0.5});
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz])=>{
+    const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.05,16), standoffMat);
+    hole.position.set(sx*(piBoardW/2-0.18), 0.024, sz*(piBoardD/2-0.18));
+    piGroup.add(hole);
+  });
+
+  // Scattered small capacitors/components for density
+  const capMat = new THREE.MeshStandardMaterial({color:0x2b2b2b, metalness:0.3, roughness:0.5});
+  const capPositions = [[-0.3,0.35],[-0.15,0.4],[0.4,-0.05],[-0.55,-0.15],[0.15,0.45],[-0.4,0.1]];
+  capPositions.forEach(([cx,cz])=>{
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.03,10), capMat);
+    cap.position.set(cx, 0.045/2+0.015, cz);
+    piGroup.add(cap);
+  });
+
+  // Micro-SD card slot (edge-mounted, dark notch)
+  const sdSlot = new THREE.Mesh(new THREE.BoxGeometry(0.28,0.03,0.06), new THREE.MeshStandardMaterial({color:0x111111, metalness:0.4, roughness:0.5}));
+  sdSlot.position.set(-piBoardW/2+0.02, -0.01, piBoardD/2-0.55);
+  piGroup.add(sdSlot);
+
+  // PCIe FPC connector (flat flex cable slot, toward the NVMe carrier below)
+  const fpcConnector = new THREE.Mesh(new THREE.BoxGeometry(0.32,0.025,0.09), new THREE.MeshStandardMaterial({color:0x1a1a1a, metalness:0.3, roughness:0.6}));
+  fpcConnector.position.set(0.55, -0.02, piBoardD/2-0.15);
+  piGroup.add(fpcConnector);
+
+  const silverPort = new THREE.MeshStandardMaterial({color:0xc9cbce, metalness:0.7, roughness:0.35});
+  const blackPort = new THREE.MeshStandardMaterial({color:0x111111, metalness:0.4, roughness:0.5});
+
+  // USB stack (two stacked ports) on one edge
+  const usbGroup = new THREE.Group();
+  const usb1 = new THREE.Mesh(new THREE.BoxGeometry(0.55,0.1,0.28), silverPort);
+  usb1.position.set(0, 0.045+0.05, 0);
+  const usb2 = usb1.clone(); usb2.position.y += 0.1;
+  usbGroup.add(usb1, usb2);
+  usbGroup.position.set(piBoardW/2-0.35, 0, -piBoardD/2+0.2);
+  piGroup.add(usbGroup);
+
+  // Ethernet port
+  const eth = new THREE.Mesh(new THREE.BoxGeometry(0.34,0.16,0.3), blackPort);
+  eth.position.set(piBoardW/2-0.35, 0.045+0.08, piBoardD/2-0.22);
+  piGroup.add(eth);
+
+  // Micro-HDMI x2 (small)
+  const hdmi1 = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.06,0.12), blackPort);
+  hdmi1.position.set(-piBoardW/2+0.18, 0.045+0.03, piBoardD/2-0.15);
+  const hdmi2 = hdmi1.clone(); hdmi2.position.z -= 0.16;
+  piGroup.add(hdmi1, hdmi2);
+
+  // USB-C power
+  const usbc = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.05,0.1), blackPort);
+  usbc.position.set(-piBoardW/2+0.15, 0.045+0.025, -piBoardD/2+0.15);
+  piGroup.add(usbc);
+
+  // GPIO header — grid of pins
+  const pinMat = new THREE.MeshStandardMaterial({color:0xd8d8d8, metalness:0.6, roughness:0.3});
+  const gpioGroup = new THREE.Group();
+  for(let r=0;r<2;r++){
+    for(let p=0;p<20;p++){
+      const pin = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.06,0.02), pinMat);
+      pin.position.set(-piBoardW/2+0.3+p*0.045, 0.045+0.03, -0.55+r*0.05);
+      gpioGroup.add(pin);
+    }
+  }
+  piGroup.add(gpioGroup);
+
+  // SoC chip (under the cooler)
+  const soc = new THREE.Mesh(new THREE.BoxGeometry(0.32,0.045,0.32), new THREE.MeshStandardMaterial({color:0x0a0a0a, metalness:0.4, roughness:0.4}));
+  soc.position.set(0.05, 0.045+0.02, 0.05);
+  piGroup.add(soc);
+
+  piGroup.position.set(0, stackFloor + 0.14, 0);
+  internals.add(piGroup);
+  addExplodable(piGroup, new THREE.Vector3(0, -0.15, -0.4));
+
+  // Active cooler (heatsink + fan) mounted directly on the SoC — top layer.
+  // Modeled after a real Pi 5 active cooler: a flat finned heatsink plate with a small
+  // square fan mounted flush on one side (not centered/full-cover), a visible red+black
+  // wire pair running from the fan to a board connector, and thin metal mounting clips
+  // at two corners pinning it down to the board standoffs.
+  const coolerGroup = new THREE.Group();
+
+  const heatsinkMetal = new THREE.MeshStandardMaterial({ color:0xc7c9cc, metalness:0.88, roughness:0.3 });
+  const heatsinkBase = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.05, 0.66), heatsinkMetal);
+  heatsinkBase.castShadow = true; heatsinkBase.receiveShadow = true;
+  coolerGroup.add(heatsinkBase);
+
+  // Dense fin stack covering the left ~55% of the base (fan sits on the remainder)
+  const finZoneW = 0.42;
+  const finGroup = new THREE.Group();
+  const finCount = 14;
+  for(let i=0;i<finCount;i++){
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.14, 0.6), heatsinkMetal);
+    fin.position.set(-0.78/2 + 0.05 + i*(finZoneW/finCount), 0.05/2+0.07, 0);
+    fin.castShadow = true;
+    finGroup.add(fin);
+  }
+  coolerGroup.add(finGroup);
+
+  // Square fan, mounted flush on the right portion of the heatsink base (offset, like the reference)
+  const fanX = 0.16; // offset toward the open side, away from the fin stack
+  const fanGroup = new THREE.Group();
+  const fanFrameMat = new THREE.MeshStandardMaterial({ color:0x151515, metalness:0.3, roughness:0.55 });
+  const fanFrameBox = new THREE.Mesh(new THREE.BoxGeometry(0.34,0.09,0.34), fanFrameMat);
+  fanFrameBox.position.y = 0.045;
+  fanGroup.add(fanFrameBox);
+
+  const fanHubMat = new THREE.MeshStandardMaterial({color:0x0c0c0c, metalness:0.5, roughness:0.4});
+  const fanBladeMat = new THREE.MeshStandardMaterial({color:0x2a2a2a, metalness:0.35, roughness:0.5, side:THREE.DoubleSide});
+  const fanHub = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.05,20), fanHubMat);
+  fanHub.position.y = 0.095;
+  fanGroup.add(fanHub);
+  const bladeSpin = new THREE.Group();
+  for(let i=0;i<7;i++){
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.13,0.01,0.045), fanBladeMat);
+    const ang = (i/7)*Math.PI*2;
+    blade.position.set(Math.cos(ang)*0.075, 0.09, Math.sin(ang)*0.075);
+    blade.rotation.y = ang; blade.rotation.z = 0.3;
+    bladeSpin.add(blade);
+  }
+  fanGroup.add(bladeSpin);
+  // corner screws on the fan frame (small detail matching reference)
+  const screwMat = new THREE.MeshStandardMaterial({color:0x555555, metalness:0.7, roughness:0.35});
+  [[-0.145,-0.145],[0.145,-0.145],[-0.145,0.145],[0.145,0.145]].forEach(([sx,sz])=>{
+    const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.014,0.014,0.03,8), screwMat);
+    screw.position.set(sx, 0.06, sz);
+    fanGroup.add(screw);
+  });
+  fanGroup.position.set(fanX, 0.05/2, 0.02);
+  coolerGroup.add(fanGroup);
+
+  // Red/black wire pair running from the fan to a small connector on the board
+  const wireRedMat = new THREE.MeshStandardMaterial({color:0xb5342a, metalness:0.1, roughness:0.6});
+  const wireBlackMat = new THREE.MeshStandardMaterial({color:0x111111, metalness:0.1, roughness:0.6});
+  function wireSegment(mat, len, pos, rotZ){
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,len,8), mat);
+    seg.position.copy(pos);
+    seg.rotation.z = rotZ;
+    return seg;
+  }
+  const wireGroup = new THREE.Group();
+  wireGroup.add(wireSegment(wireRedMat, 0.18, new THREE.Vector3(fanX-0.02, 0.05, 0.2), Math.PI/2*0.15));
+  wireGroup.add(wireSegment(wireBlackMat, 0.18, new THREE.Vector3(fanX-0.05, 0.05, 0.22), Math.PI/2*0.15));
+  const connector = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.04,0.03), new THREE.MeshStandardMaterial({color:0x222222, metalness:0.3, roughness:0.6}));
+  connector.position.set(fanX-0.12, 0.045, 0.28);
+  wireGroup.add(connector);
+  coolerGroup.add(wireGroup);
+
+  // Thin metal mounting clips at two diagonal corners, pinning the cooler to the board
+  const clipMat = new THREE.MeshStandardMaterial({color:0xaaaaaa, metalness:0.8, roughness:0.3});
+  function mountingClip(x,z){
+    const g = new THREE.Group();
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.02,0.12), clipMat);
+    arm.position.set(0, 0, 0.06);
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.16,0.02), clipMat);
+    leg.position.set(0, -0.08, 0.11);
+    g.add(arm, leg);
+    g.position.set(x, 0.05/2+0.005, z);
+    return g;
+  }
+  coolerGroup.add(mountingClip(-0.3, -0.28));
+  coolerGroup.add(mountingClip(0.3, 0.28));
+
+  coolerGroup.position.set(0, stackFloor + 0.14 + 0.045 + 0.02 + 0.02, 0.02);
+  internals.add(coolerGroup);
+  addExplodable(coolerGroup, new THREE.Vector3(0, 1.15, 0.3));
+
+  // ---------- Interaction ----------
+  let isDragging=false, prevX=0, prevY=0;
+  let rotY=0.6, rotX=-0.16, targetRotY=0.6, targetRotX=-0.16;
+  let dist=camDistDefault, targetDist=camDistDefault;
+  let autoRotate=true;
+
+  const canvas = renderer.domElement;
+  function onDown(x,y){ isDragging=true; prevX=x; prevY=y; autoRotate=false; }
+  function onMove(x,y){
+    if(!isDragging) return;
+    const dx=x-prevX, dy=y-prevY;
+    targetRotY += dx*0.006; targetRotX += dy*0.006;
+    targetRotX = Math.max(-0.9, Math.min(0.9, targetRotX));
+    prevX=x; prevY=y;
+  }
+  function onUp(){ isDragging=false; }
+  canvas.addEventListener('mousedown', e=>onDown(e.clientX,e.clientY));
+  window.addEventListener('mousemove', e=>onMove(e.clientX,e.clientY));
+  window.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', e=>{const t=e.touches[0]; onDown(t.clientX,t.clientY);}, {passive:true});
+  canvas.addEventListener('touchmove', e=>{const t=e.touches[0]; onMove(t.clientX,t.clientY);}, {passive:true});
+  canvas.addEventListener('touchend', onUp);
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    targetDist += e.deltaY*0.003;
+    targetDist = Math.max(5, Math.min(13, targetDist));
+  }, {passive:false});
+
+  // ---------- Explode ----------
+  let exploded=false, explodeT=0, explodeTarget=0;
+  const explodeBtn=document.getElementById('explodeBtn');
+  const statusBadge=document.getElementById('statusBadge');
+  const labelStrip=document.getElementById('labelStrip');
+  const partsPanel=document.getElementById('partsPanel');
+  const spinBtn=document.getElementById('spinBtn');
+  const resetBtn=document.getElementById('resetBtn');
+  const hint=document.getElementById('hint');
+
+  explodeBtn.addEventListener('click', ()=>{
+    exploded=!exploded; explodeTarget = exploded?1:0;
+    explodeBtn.textContent = exploded?'Reassemble':'Explode view';
+    explodeBtn.classList.toggle('active', exploded);
+    statusBadge.textContent = exploded?'Exploded':'Assembled';
+    partsPanel.classList.toggle('show', exploded);
+    labelStrip.classList.toggle('show', exploded);
+    labelStrip.textContent = exploded ? 'SHELL · NVME SSD + CARRIER · RASPBERRY PI 5 · ACTIVE COOLER · DUAL GIGABIT NIC' : '';
+  });
+  spinBtn.addEventListener('click', ()=>{
+    autoRotate=!autoRotate;
+    spinBtn.style.color = autoRotate ? '#ff5a4d' : '';
+    spinBtn.style.borderColor = autoRotate ? '#ff5a4d' : '';
+  });
+  resetBtn.addEventListener('click', ()=>{ targetRotY=0.6; targetRotX=-0.16; targetDist=camDistDefault; });
+
+  const clock = new THREE.Clock();
+  function animate(){
+    requestAnimationFrame(animate);
+    const dt = clock.getDelta();
+    if(autoRotate && !isDragging){ targetRotY += dt*0.16; }
+    rotY += (targetRotY-rotY)*0.09;
+    rotX += (targetRotX-rotX)*0.09;
+    dist += (targetDist-dist)*0.09;
+    camera.position.x = Math.sin(rotY)*Math.cos(rotX)*dist;
+    camera.position.z = Math.cos(rotY)*Math.cos(rotX)*dist;
+    camera.position.y = Math.sin(rotX)*dist*0.9 + 0.9;
+    camera.lookAt(0,0.15,0);
+
+    explodeT += (explodeTarget-explodeT)*0.08;
+    explodable.forEach(m=> m.position.lerpVectors(m.userData.home, m.userData.explode, explodeT));
+
+    bladeSpin.rotation.y += dt*(exploded?1.0:5.5);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', ()=>{
+    camera.aspect = W()/H();
+    camera.updateProjectionMatrix();
+    renderer.setSize(W(), H());
+  });
+
+  setTimeout(()=>{ hint.style.display='none'; }, 2600);
+})();
+</script>
+</body>
+</html>
