@@ -40,15 +40,18 @@ def build_incident(verdict, risk_level, config):
     )
 
     return {
-        # Core fields (match Chrome extension schema exactly)
+        # Core fields — must match what POST /log-incident on the live API expects.
+        # API auth is a single 'key' field (org_key or emp_key), NOT separate
+        # org_key/device_key fields. device_key is kept below in shield_meta
+        # for traceability, just not used for auth.
         'id':           f"inc_{uuid.uuid4().hex[:20]}",
-        'org_key':      config['org_key'],
-        'device_key':   config['device_key'],
+        'key':          config['org_key'],
         'source':       'network',              # tells dashboard: Shield, not browser
         'risk_level':   risk_level,
         'ai_tool':      tool['name'],
         'user_email':   None,                   # filled in later when IP->employee mapping exists
         'ip_address':   verdict['ip'],
+        'message':      verdict.get('reason', 'Network threat detected'),
         'timestamp':    datetime.utcnow().isoformat() + 'Z',
         'resolved':     False,
 
@@ -74,6 +77,7 @@ def build_incident(verdict, risk_level, config):
             'reason':        verdict['reason'],
             'provider':      tool.get('provider', 'Unknown'),
             'device_name':   config.get('device_name', 'Syphir Shield'),
+            'device_key':    config.get('device_key'),
             'firmware':      config.get('firmware_version', '1.0.0'),
         }
     }
@@ -206,7 +210,7 @@ class Reporter:
         try:
             payload = json.dumps(incident, default=str).encode()
             req = urllib.request.Request(
-                f"{self.api_url}/incidents",
+                f"{self.api_url}/log-incident",
                 data=payload,
                 headers={'Content-Type': 'application/json'},
                 method='POST'
