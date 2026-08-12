@@ -104,11 +104,9 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
 @media(max-width:640px){ .flow-row{ grid-template-columns:1fr; gap:16px; padding:32px 24px; } .flow-n{font-size:1.6rem;} }
 
 .demo-card { border:1px solid var(--line); border-radius: 16px; background: var(--paper-2); overflow:hidden; }
-.demo-card-head { padding:16px 22px; border-bottom:1px solid var(--line-soft); display:flex; align-items:center; justify-content:space-between; }
 .demo-tag { font-family:'JetBrains Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey-dim); }
-.demo-live { display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--grey); }
-.demo-live .dot { width:6px; height:6px; border-radius:50%; background:#3fb950; box-shadow:0 0 8px rgba(63,185,80,0.7); }
-.demo-body { padding: 28px 22px; min-height: 90px; }
+.demo-body { padding: 22px 22px 6px; min-height: 0; }
+.demo-body:empty { display:none; }
 .demo-msg { display:flex; gap:12px; align-items:flex-start; margin-bottom: 14px; animation: fadein 0.25s ease; }
 .demo-msg .who { font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--grey-dim); text-transform:uppercase; letter-spacing:0.08em; width:64px; flex-shrink:0; padding-top:3px; }
 .demo-msg .txt { font-size:0.95rem; line-height:1.55; color:#e6e6e6; }
@@ -116,15 +114,15 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
 .demo-msg.result.blocked .txt { color:#f85149; }
 .demo-msg.result.clean .txt { color:#3fb950; }
 @keyframes fadein { from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
-.demo-input-row { display:flex; gap:10px; padding: 16px 22px; border-top:1px solid var(--line-soft); background: rgba(255,255,255,0.015); }
+.demo-input-row { display:flex; gap:10px; padding: 22px 22px 16px; }
 .demo-input { flex:1; background: #000; border:1px solid var(--line); border-radius: 10px; padding: 13px 16px; color:#fff; font-family:'Inter',sans-serif; font-size:0.92rem; outline:none; }
 .demo-input:focus { border-color: rgba(255,255,255,0.35); }
 .demo-send { background:#fff; color:#000; border:none; border-radius:10px; padding:0 22px; font-weight:600; font-size:0.9rem; cursor:pointer; font-family:'Inter',sans-serif; }
 .demo-send:hover { opacity:0.88; }
-.demo-hint { padding: 0 22px 18px; font-size:0.78rem; color: var(--grey-dim); }
+.demo-hint { padding: 0 22px 6px; font-size:0.78rem; color: var(--grey-dim); }
 .demo-hint button.chip { background:none; border:1px solid var(--line-soft); color:var(--grey); font-size:0.75rem; padding:5px 10px; border-radius:20px; cursor:pointer; font-family:'JetBrains Mono',monospace; margin: 4px 6px 0 0; }
 .demo-hint button.chip:hover { border-color: var(--line); color:#fff; }
-.demo-privacy { padding: 14px 22px; border-top:1px solid var(--line-soft); font-size:0.75rem; color:var(--grey-dim); text-align:center; }
+.demo-privacy { padding: 16px 22px; border-top:1px solid var(--line-soft); font-size:0.75rem; color:var(--grey-dim); text-align:center; margin-top:6px; }
 
 .insights { margin-top: 40px; display:grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
 .insight .k { font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--grey-dim); margin-bottom:8px; }
@@ -148,8 +146,16 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
 
 .subhead-mt { font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--grey-dim); margin: 72px 0 20px; }
 
-.video-wrap { margin-top: 24px; border:1px solid var(--line-soft); border-radius:16px; overflow:hidden; max-width: 760px; margin-left:auto; margin-right:auto; background:#000; }
+.video-wrap { margin-top: 24px; border:1px solid var(--line-soft); border-radius:16px; overflow:hidden; background:#000; }
 .video-wrap video { display:block; width:100%; height:auto; }
+.video-info { margin-top: 32px; display:grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items:start; }
+.video-info p { font-size:1rem; color:var(--grey); line-height:1.65; }
+.video-info-list { display:flex; flex-direction:column; gap:18px; }
+.video-info-item { display:flex; gap:14px; }
+.video-info-item .dot2 { width:6px; height:6px; border-radius:50%; background:#fff; flex-shrink:0; margin-top:8px; }
+.video-info-item div h5 { font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:600; margin-bottom:4px; }
+.video-info-item div p { font-size:0.86rem; color:var(--grey); line-height:1.55; }
+@media (max-width: 800px){ .video-info{ grid-template-columns:1fr; gap:28px; } }
 
 @keyframes syphirSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
@@ -221,27 +227,17 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
   <div class="wrap">
 
     <div class="demo-card">
-      <div class="demo-card-head">
-        <span class="demo-tag">// live demo</span>
-        <span class="demo-live"><span class="dot"></span>Trace is watching</span>
-      </div>
+      <div class="demo-body" id="demoBody"></div>
 
-      <div class="demo-body" id="demoBody">
-        <div class="demo-msg">
-          <div class="who">You</div>
-          <div class="txt" style="color:var(--grey-dim);">Type something below — try pasting a fake card number, or ask something totally harmless.</div>
-        </div>
+      <div class="demo-input-row">
+        <input class="demo-input" id="demoInput" type="text" placeholder="e.g. Here's John's card: 4111 1111 1111 1111" onkeydown="if(event.key==='Enter') sendDemo();">
+        <button class="demo-send" onclick="sendDemo()">Send</button>
       </div>
 
       <div class="demo-hint">
         Try: <button class="chip" onclick="fillAndSend('Here\'s John\'s card: 4111 1111 1111 1111')">a card number</button>
         <button class="chip" onclick="fillAndSend('Can you help me write a follow-up email to a client?')">something harmless</button>
         <button class="chip" onclick="fillAndSend('His SSN is 512-33-9081, can you fill out the form?')">an SSN</button>
-      </div>
-
-      <div class="demo-input-row">
-        <input class="demo-input" id="demoInput" type="text" placeholder="e.g. Here's John's card: 4111 1111 1111 1111" onkeydown="if(event.key==='Enter') sendDemo();">
-        <button class="demo-send" onclick="sendDemo()">Send</button>
       </div>
 
       <div class="demo-privacy">Nothing you type here is stored, logged, or sent anywhere — this runs entirely in your browser, just like Trace does.</div>
@@ -298,6 +294,33 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
       <video controls preload="metadata">
         <source src="coop_dashboard_tour.mp4" type="video/mp4">
       </video>
+    </div>
+
+    <div class="video-info">
+      <p>This is the dashboard your team gets from day one — every AI prompt Trace catches shows up here, scored and organized automatically. No spreadsheets, no manual review. You open it, and you already know what happened, when, and how serious it was.</p>
+      <div class="video-info-list">
+        <div class="video-info-item">
+          <div class="dot2"></div>
+          <div>
+            <h5>Risk, sorted for you</h5>
+            <p>Every incident is scored High, Medium, or Low the moment it's caught — no digging to find what matters.</p>
+          </div>
+        </div>
+        <div class="video-info-item">
+          <div class="dot2"></div>
+          <div>
+            <h5>A running record</h5>
+            <p>Daily incident trends and a full recent-activity feed, so you can see patterns forming, not just single events.</p>
+          </div>
+        </div>
+        <div class="video-info-item">
+          <div class="dot2"></div>
+          <div>
+            <h5>Only your data</h5>
+            <p>This view is scoped entirely to your organization — nothing here ever mixes with another company's incidents.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
