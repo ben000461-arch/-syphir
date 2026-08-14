@@ -957,6 +957,40 @@ app.post("/extension/heartbeat", async (c) => {
 // doesn't false-positive, short enough to still be useful.
 const HEARTBEAT_STALE_MS = 48 * 60 * 60 * 1000;
 
+// ── POLICIES ───────────────────────────────────────────────────────────────
+// Whitelist of exact values Trace should never flag for a given org. Fetched
+// by the extension (accepts either business or employee key, same as /scan)
+// and edited from the dashboard (business key only, ownership-checked).
+app.get("/policies", async (c) => {
+  const key = c.req.query("key");
+  if (!key) return c.json({ whitelist: [] });
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=organizations(policies)`);
+    if (!rows || rows.length === 0) return c.json({ whitelist: [] });
+    const policies = rows[0].organizations?.policies || {};
+    return c.json({ whitelist: Array.isArray(policies.whitelist) ? policies.whitelist : [] });
+  } catch (err) {
+    return c.json({ whitelist: [] }); // non-fatal — extension just detects with no whitelist this cycle
+  }
+});
+
+app.put("/policies/:org_id", async (c) => {
+  const { org_id } = c.req.param();
+  const { key, whitelist } = await c.req.json().catch(() => ({}));
+  if (!(await keyOwnsOrg(key, org_id))) return c.json({ success: false, message: "Unauthorized" }, 401);
+  if (!Array.isArray(whitelist)) return c.json({ success: false, message: "whitelist must be an array" }, 400);
+  const cleaned = whitelist.map(v => String(v).trim()).filter(Boolean).slice(0, 200); // sane cap
+  try {
+    await db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
+      method: "PATCH", prefer: "return=minimal",
+      body: JSON.stringify({ policies: { whitelist: cleaned } }),
+    });
+    return c.json({ success: true, whitelist: cleaned });
+  } catch (err) {
+    return c.json({ success: false, message: err.message }, 500);
+  }
+});
+
 // ── TEAM ───────────────────────────────────────────────────────────────────
 app.get("/team/:org_id", async (c) => {
   const { org_id } = c.req.param();

@@ -51,9 +51,30 @@ chrome.runtime.onInstalled.addListener(sendHeartbeat);
 chrome.runtime.onStartup.addListener(sendHeartbeat);
 chrome.alarms.create("syphir-heartbeat", { periodInMinutes: 20 });
 
+// ── POLICIES ───────────────────────────────────────────────────────────────
+// Pulls the org's whitelist (values Trace should never flag) and caches it
+// locally so content.js can check matches instantly with no network call —
+// detection stays fully client-side either way, this just keeps the
+// whitelist current.
+async function fetchPolicies() {
+  chrome.storage.local.get(["syphir_key"], async (data) => {
+    if (!data.syphir_key) return; // guest mode — no org to fetch policies for
+    try {
+      const res = await fetch(`${API}/policies?key=${encodeURIComponent(data.syphir_key)}`);
+      const result = await res.json();
+      chrome.storage.local.set({ syphir_whitelist: Array.isArray(result.whitelist) ? result.whitelist : [] });
+    } catch (e) {} // non-fatal — keep using whatever was cached last
+  });
+}
+
+chrome.runtime.onInstalled.addListener(fetchPolicies);
+chrome.runtime.onStartup.addListener(fetchPolicies);
+chrome.alarms.create("syphir-policies", { periodInMinutes: 30 });
+
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "syphir-revalidate") validateKeyStatus();
   if (alarm.name === "syphir-heartbeat") sendHeartbeat();
+  if (alarm.name === "syphir-policies") fetchPolicies();
 });
 
 // ── BADGE ──────────────────────────────────────────────────────────────────

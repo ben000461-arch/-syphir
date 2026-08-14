@@ -1,6 +1,7 @@
 const SYPHIR_API = "https://syphir-api.onrender.com";
 let SYPHIR_KEY = null;
 let USER_EMAIL = null;
+let SYPHIR_WHITELIST = [];
 let lastScanned = "";
 let lastScannedTime = 0;
 let scannedFiles = new Set();
@@ -9,7 +10,8 @@ let syphirExpired = false;
 
 (function loadStoredCredentials(attempt) {
   try {
-    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired"], (data) => {
+    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired", "syphir_whitelist"], (data) => {
+      if (Array.isArray(data.syphir_whitelist)) SYPHIR_WHITELIST = data.syphir_whitelist;
       if (data.syphir_expired) {
         syphirExpired = true;
         wakeAPI();
@@ -35,13 +37,24 @@ function wakeAPI() {
 setInterval(() => {
   if (!chrome?.runtime?.id) return;
   try {
-    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired"], (data) => {
+    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired", "syphir_whitelist"], (data) => {
       syphirExpired = data.syphir_expired === true;
       if (data.syphir_key)   SYPHIR_KEY  = data.syphir_key;
       if (data.syphir_email) USER_EMAIL  = data.syphir_email;
+      if (Array.isArray(data.syphir_whitelist)) SYPHIR_WHITELIST = data.syphir_whitelist;
     });
   } catch(_) {}
 }, 30 * 60 * 1000);
+
+// True if the raw matched text is something this org has said to never flag.
+// Exact match, case-insensitive, whitespace-trimmed on both sides — simple
+// and predictable on purpose. Checked before anything is masked or stored,
+// so a whitelisted value never leaves this function in any form.
+function isWhitelisted(raw) {
+  if (!SYPHIR_WHITELIST.length) return false;
+  const norm = raw.trim().toLowerCase();
+  return SYPHIR_WHITELIST.some(w => String(w).trim().toLowerCase() === norm);
+}
 
 // ── PII PATTERNS ──────────────────────────────────────────────────────────────
 const PII_PATTERNS = [
@@ -169,6 +182,7 @@ function detectPII(text) {
       const matches = [...text.matchAll(p.regex)];
       for (const m of matches) {
         const raw = m[0];
+        if (isWhitelisted(raw)) continue;
         const key = p.type + "|" + raw.replace(/\s/g, "").slice(0, 12);
         if (seen.has(key)) continue;
         seen.add(key);
@@ -194,6 +208,7 @@ function detectCodeSecrets(text) {
         const matches = [...line.matchAll(p.regex)];
         for (const m of matches) {
           const raw = m[0];
+          if (isWhitelisted(raw)) continue;
           const dedupeKey = p.type + "|" + lineNum + "|" + raw.slice(0, 8);
           if (seen.has(dedupeKey)) continue;
           seen.add(dedupeKey);

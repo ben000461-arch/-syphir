@@ -750,7 +750,7 @@ select option{background:var(--bg3);color:var(--text);}
 
     <!-- POLICIES -->
     <div class="page" id="page-policies">
-      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what co|op detects</div></div><button class="btn btn-primary" onclick="showToast('Detection policies saved!')">Save Changes</button></div>
+      <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what co|op detects</div></div><button class="btn btn-primary" onclick="savePolicies()">Save Changes</button></div>
       <div class="grid-2">
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">📋 Sensitive Data Types</div></div>
@@ -776,6 +776,14 @@ select option{background:var(--bg3);color:var(--text);}
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">🎯 Custom Keywords</div></div>
           <div class="card-body"><div class="inp-group"><label class="inp-lbl">Sensitive terms (one per line)</label><textarea class="inp" rows="7" style="resize:vertical;" placeholder="patient portal&#10;acquisition target&#10;internal pricing"></textarea></div></div>
+        </div>
+        <div class="card mb-16">
+          <div class="card-hdr"><div class="card-title">✅ Whitelist</div></div>
+          <div class="card-body">
+            <div class="tog-sub" style="margin-bottom:10px;">Exact values Trace should never flag — a test card number, an internal ID format that looks like an SSN, your own published phone number. One per line, matched exactly (not case-sensitive).</div>
+            <div class="inp-group"><textarea class="inp" id="policy-whitelist" rows="7" style="resize:vertical;font-family:monospace;" placeholder="4242 4242 4242 4242&#10;555-01-2345"></textarea></div>
+            <div class="tog-sub" id="policy-whitelist-status" style="margin-top:8px;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1040,6 +1048,7 @@ function nav(page, el) {
   if (page !== 'incidents') closeSidePanel();
   if (['overview','incidents','live'].includes(page)) loadData();
   if (page === 'settings') { loadTeamMembers(); refreshSettingsBilling(); }
+  if (page === 'policies') loadPolicies();
   if (page === 'gateway') renderProviders();
   if (page === 'intel') intelCheckSavedDevice();
   if (page === 'network' && !window._nsSeeded) { window._nsSeeded=true; setTimeout(networkSeedDemo,300); }
@@ -1049,6 +1058,42 @@ function setFilter(f, el) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   loadData();
+}
+
+async function loadPolicies() {
+  const ta = document.getElementById('policy-whitelist');
+  const status = document.getElementById('policy-whitelist-status');
+  if (!ta || !ORG_KEY) return;
+  try {
+    const res = await fetch(`${API}/policies?key=${encodeURIComponent(ORG_KEY)}`);
+    const data = await res.json();
+    ta.value = (Array.isArray(data.whitelist) ? data.whitelist : []).join('\n');
+    if (status) status.textContent = '';
+  } catch (e) {
+    if (status) { status.textContent = 'Could not load saved whitelist — try refreshing.'; status.style.color = 'var(--red)'; }
+  }
+}
+
+async function savePolicies() {
+  const ta = document.getElementById('policy-whitelist');
+  const status = document.getElementById('policy-whitelist-status');
+  if (!ta || !ORG_ID) { showToast('Still loading your org — try again in a moment'); return; }
+  const whitelist = ta.value.split('\n').map(v => v.trim()).filter(Boolean);
+  try {
+    const res = await fetch(`${API}/policies/${encodeURIComponent(ORG_ID)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, whitelist }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Detection policies saved!');
+      if (status) { status.style.color = 'var(--text3)'; status.textContent = `${whitelist.length} whitelisted value${whitelist.length===1?'':'s'} — Trace picks this up within 30 minutes.`; }
+    } else {
+      if (status) { status.style.color = 'var(--red)'; status.textContent = data.message || 'Could not save — try again.'; }
+    }
+  } catch (e) {
+    if (status) { status.style.color = 'var(--red)'; status.textContent = 'Network error — try again.'; }
+  }
 }
 
 function setIncFilter(type, value, el) {
