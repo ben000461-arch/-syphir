@@ -28,8 +28,32 @@ chrome.runtime.onStartup.addListener(validateKeyStatus);
 
 // Re-validate every 6 hours to catch renewals and expiry
 chrome.alarms.create("syphir-revalidate", { periodInMinutes: 360 });
+
+// ── HEARTBEAT ──────────────────────────────────────────────────────────────
+// Lets the dashboard know Trace is still installed and running. Absence of
+// heartbeats over time (not a real-time "uninstalled" signal — nothing can
+// fire once the extension is actually gone) is how Settings shows an
+// employee as Inactive and logs it as an incident.
+async function sendHeartbeat() {
+  chrome.storage.local.get(["syphir_key", "syphir_email"], async (data) => {
+    if (!data.syphir_key || !data.syphir_email) return; // guest mode / not signed in — nothing to report
+    try {
+      await fetch(`${API}/extension/heartbeat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: data.syphir_key, email: data.syphir_email }),
+      });
+    } catch (e) {} // non-fatal — offline or Render cold start, next heartbeat will catch up
+  });
+}
+
+chrome.runtime.onInstalled.addListener(sendHeartbeat);
+chrome.runtime.onStartup.addListener(sendHeartbeat);
+chrome.alarms.create("syphir-heartbeat", { periodInMinutes: 20 });
+
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "syphir-revalidate") validateKeyStatus();
+  if (alarm.name === "syphir-heartbeat") sendHeartbeat();
 });
 
 // ── BADGE ──────────────────────────────────────────────────────────────────

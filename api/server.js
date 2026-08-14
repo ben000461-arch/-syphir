@@ -612,9 +612,9 @@ app.post("/validate-key", async (c) => {
         const now = new Date().toISOString();
         const existing = await db(`users?org_id=eq.${encodeURIComponent(org.id)}&email=eq.${encodeURIComponent(email)}&select=id`);
         if (existing && existing.length > 0) {
-          await db(`users?id=eq.${existing[0].id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "active" }) });
+          await db(`users?id=eq.${existing[0].id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "active", last_seen: now, inactive_flagged: false }) });
         } else {
-          await db("users", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: `user_${Date.now()}_${Math.random().toString(36).substr(2,4)}`, org_id: org.id, email, role: "member", status: "active", invited_at: now }) });
+          await db("users", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: `user_${Date.now()}_${Math.random().toString(36).substr(2,4)}`, org_id: org.id, email, role: "member", status: "active", invited_at: now, last_seen: now, inactive_flagged: false }) });
         }
         console.log(`✓ Employee registered: ${email} → org ${org.name}`);
       } catch(e) { console.warn("User upsert failed (non-fatal):", e.message); }
@@ -668,7 +668,7 @@ app.post("/scan", async (c) => {
         if (existing && existing.length > 0) {
           await db(`users?id=eq.${encodeURIComponent(existing[0].id)}`, {
             method: "PATCH", prefer: "return=minimal",
-            body: JSON.stringify({ status: "active" }),
+            body: JSON.stringify({ status: "active", last_seen: now, inactive_flagged: false }),
           });
         } else {
           await db("users", {
@@ -677,7 +677,7 @@ app.post("/scan", async (c) => {
               id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
               org_id: org.id, email: user_email,
               role: "member", status: "active",
-              invited_at: now,
+              invited_at: now, last_seen: now, inactive_flagged: false,
             }),
           });
         }
@@ -916,6 +916,47 @@ app.patch("/incidents/:id/resolve", async (c) => {
   }
 });
 
+// ── EXTENSION HEARTBEAT ──────────────────────────────────────────────────────
+// Trace pings this periodically while it's installed and running. Updates
+// last_seen so Settings > Team can show Active/Inactive, and clears the
+// inactive_flagged guard so a returning employee doesn't stay flagged.
+app.post("/extension/heartbeat", async (c) => {
+  if (isRateLimited(c, "heartbeat", 20, 60_000)) return c.json({ ok: false }, 429);
+  const { key, email } = await c.req.json().catch(() => ({}));
+  if (!key || !email) return c.json({ ok: false, message: "key and email are required" }, 400);
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=*,organizations(*)`);
+    if (!rows || rows.length === 0) return c.json({ ok: false, message: "Invalid key" }, 401);
+    const org = rows[0].organizations;
+    if (!org || !org.id) return c.json({ ok: false, message: "Org not found" }, 401);
+    const now = new Date().toISOString();
+    const existing = await db(`users?org_id=eq.${encodeURIComponent(org.id)}&email=eq.${encodeURIComponent(email)}&select=id`);
+    if (existing && existing.length > 0) {
+      await db(`users?id=eq.${encodeURIComponent(existing[0].id)}`, {
+        method: "PATCH", prefer: "return=minimal",
+        body: JSON.stringify({ status: "active", last_seen: now, inactive_flagged: false }),
+      });
+    } else {
+      await db("users", {
+        method: "POST", prefer: "return=minimal",
+        body: JSON.stringify({
+          id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          org_id: org.id, email, role: "member", status: "active",
+          invited_at: now, last_seen: now, inactive_flagged: false,
+        }),
+      });
+    }
+    return c.json({ ok: true });
+  } catch (err) {
+    return c.json({ ok: false }, 500); // non-fatal from the extension's side either way
+  }
+});
+
+// How long without a heartbeat before an employee shows Inactive and gets
+// logged as an incident. 48h — long enough that a laptop off for a weekend
+// doesn't false-positive, short enough to still be useful.
+const HEARTBEAT_STALE_MS = 48 * 60 * 60 * 1000;
+
 // ── TEAM ───────────────────────────────────────────────────────────────────
 app.get("/team/:org_id", async (c) => {
   const { org_id } = c.req.param();
@@ -923,11 +964,44 @@ app.get("/team/:org_id", async (c) => {
   if (!(await keyOwnsOrg(key, org_id))) return c.json({ error: "Unauthorized" }, 401);
   try {
     const users = await db(`users?org_id=eq.${encodeURIComponent(org_id)}&order=invited_at.desc`);
+    await flagStaleExtensions(org_id, users || []);
     return c.json({ users: users || [] });
   } catch (err) {
     return c.json({ users: [] });
   }
 });
+
+// Sweeps for employees whose Trace install has gone quiet longer than the
+// stale window and hasn't already been flagged, logs one incident per
+// employee per staleness event, and marks them flagged so refreshing the
+// page doesn't spam duplicate incidents.
+async function flagStaleExtensions(org_id, users) {
+  const now = Date.now();
+  for (const u of users) {
+    if (u.status !== "active" || !u.last_seen || u.inactive_flagged) continue;
+    const staleMs = now - new Date(u.last_seen).getTime();
+    if (staleMs < HEARTBEAT_STALE_MS) continue;
+    try {
+      const incident = {
+        id: `inc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        org_id, user_email: u.email, ai_tool: "Trace", source: "browser",
+        risk_level: "medium",
+        message: `Trace stopped reporting for ${u.email} — the extension may have been disabled or removed, or their computer's been off a while. Last seen ${lastSeenRelative(u.last_seen)}.`,
+        detections: [{ type: "EXTENSION_INACTIVE", label: "Trace stopped reporting", entity_type: "SYSTEM", isCode: false, value: u.email }],
+        resolved: false, timestamp: new Date().toISOString(),
+      };
+      await db("incidents", { method: "POST", prefer: "return=minimal", body: JSON.stringify(incident) });
+      await db(`users?id=eq.${encodeURIComponent(u.id)}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ inactive_flagged: true }) });
+    } catch (e) { console.warn("flagStaleExtensions failed for", u.email, e.message); } // non-fatal — team list still returns
+  }
+}
+
+function lastSeenRelative(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  const hrs = Math.round(ms / 3_600_000);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
+}
 
 app.patch("/team/:id/remove", async (c) => {
   const { id } = c.req.param();

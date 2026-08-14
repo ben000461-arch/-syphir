@@ -1318,7 +1318,9 @@ async function loadTeamMembers() {
     if (!members.length) { list.innerHTML=hdr+adminRow+'<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px;">No employees yet</div>'; return; }
     const rows=members.map(u=>{
       _memberMap[u.id]=u;
-      const isActive=u.status==='active'; const sc=isActive?'var(--green)':'var(--yellow)'; const sl=isActive?'Active':'Invited';
+      const STALE_MS=48*60*60*1000; const seenRecently=u.last_seen && (Date.now()-new Date(u.last_seen).getTime())<STALE_MS;
+      const isInvited=u.status==='invited'; const isActive=!isInvited && seenRecently;
+      const sc=isInvited?'var(--yellow)':(isActive?'var(--green)':'var(--red)'); const sl=isInvited?'Invited':(isActive?'Active':'Inactive');
       const dn=u.name?`<div style="font-size:12.5px;font-weight:600;">${u.name}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">${u.email}</div>`:`<div style="font-size:12.5px;font-weight:600;">${u.email}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">${u.role||'Member'}</div>`;
       return `<div style="display:grid;grid-template-columns:1fr 80px 100px 100px;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;"><div>${dn}</div><div><span style="font-size:10.5px;font-weight:600;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;">${u.role||'Member'}</span></div><div style="font-size:11px;color:${sc};font-weight:500;">${sl}<div style="font-size:10px;color:var(--text3);font-weight:400;margin-top:1px;">${lastSeenLabel(u.last_seen)}</div></div><div style="display:flex;gap:4px;"><button onclick="openEditUser('${u.id}')" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;" title="Edit">Edit</button><button onclick="removeUser('${u.id}')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;" title="Remove">X</button></div></div>`;
     }).join('');
