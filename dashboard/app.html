@@ -232,6 +232,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .toggle::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left 0.2s;opacity:0.7;}
 .toggle.on{background:var(--blue);}
 .toggle.on::after{left:19px;opacity:1;}
+.mode-switch{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0;}
+.mode-btn{background:transparent;border:none;color:var(--text3);font-size:10.5px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:inherit;transition:background 0.15s,color 0.15s;}
+.mode-btn:first-child{border-right:1px solid var(--border);}
+.mode-btn.active[data-mode="block"]{background:var(--red);color:#fff;}
+.mode-btn.active[data-mode="warn"]{background:var(--yellow);color:#1a1a1a;}
 .tog-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);}
 .tog-lbl{font-size:12px;font-weight:500;color:var(--text);}
 .tog-sub{font-size:10.5px;color:var(--text3);margin-top:1px;}
@@ -752,19 +757,10 @@ select option{background:var(--bg3);color:var(--text);}
     <div class="page" id="page-policies">
       <div class="section-hdr"><div><div class="section-title">Detection Policies</div><div class="section-sub">Control what co|op detects</div></div><button class="btn btn-primary" onclick="savePolicies()">Save Changes</button></div>
       <div class="grid-2">
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">📋 Sensitive Data Types</div></div>
-          <div class="tog-row"><div><div class="tog-lbl">Client Names</div><div class="tog-sub">Names in business context</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Contract Numbers</div><div class="tog-sub">Agreement and deal IDs</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Financial Data</div><div class="tog-sub">Revenue, pricing, forecasts</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Account Numbers</div><div class="tog-sub">Bank and billing account IDs</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-        </div>
-        <div class="card mb-16">
-          <div class="card-hdr"><div class="card-title">🔒 PII Detection</div></div>
-          <div class="tog-row"><div><div class="tog-lbl">Social Security Numbers</div><div class="tog-sub">SSN in any format</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Email Addresses</div><div class="tog-sub">Personal and work emails</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Phone Numbers</div><div class="tog-sub">US and international</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><div><div class="tog-lbl">Credit Card Numbers</div><div class="tog-sub">All major card formats</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="card mb-16" style="grid-column:1/-1;">
+          <div class="card-hdr"><div class="card-title">🔒 Block vs. Warn</div></div>
+          <div class="tog-sub" style="margin:0 0 14px;">These are the types Trace treats as critical by default — sending stops and the employee has to confirm before it goes through. Switch any of them to Warn if it's too disruptive for your team; everything else already just banners and never blocks.</div>
+          <div id="policy-modes-list"></div>
         </div>
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">⚡ Response Actions</div></div>
@@ -1060,17 +1056,61 @@ function setFilter(f, el) {
   loadData();
 }
 
+// Real detection types Trace treats as critical by default (matches
+// DEFAULT_CRITICAL_TYPES in extension/content.js — keep these in sync).
+const POLICY_TYPES = [
+  { type: 'SSN',                label: 'Social Security Numbers', sub: 'SSN in any format' },
+  { type: 'CREDIT_CARD',        label: 'Credit Card Numbers', sub: 'All major card formats' },
+  { type: 'BANK_ACCOUNT',       label: 'Bank & Routing Numbers', sub: 'Account and routing numbers' },
+  { type: 'PASSPORT',           label: 'Passport Numbers', sub: '' },
+  { type: 'DRIVERS_LICENSE',    label: "Driver's License Numbers", sub: '' },
+  { type: 'MEDICAL_RECORD',     label: 'Medical Record Numbers', sub: 'MRN and similar formats' },
+  { type: 'API_KEY',            label: 'API Keys & Secrets', sub: 'Stripe, GitHub, OpenAI, AWS, and more' },
+  { type: 'PRIVATE_KEY',        label: 'Private Keys', sub: 'RSA / PEM key blocks' },
+  { type: 'JWT_TOKEN',          label: 'JWT Tokens', sub: '' },
+  { type: 'DB_CREDENTIAL',      label: 'Database Credentials', sub: 'Connection strings with embedded passwords' },
+  { type: 'OAUTH_TOKEN',        label: 'OAuth / Bearer Tokens', sub: '' },
+  { type: 'HARDCODED_PASSWORD', label: 'Hardcoded Passwords', sub: 'In pasted code' },
+];
+
+let currentModeOverrides = {};
+
+function renderModesList() {
+  const el = document.getElementById('policy-modes-list');
+  if (!el) return;
+  el.innerHTML = POLICY_TYPES.map(t => {
+    const mode = currentModeOverrides[t.type] || 'block'; // all 12 default to block
+    return `<div class="tog-row">
+      <div><div class="tog-lbl">${t.label}</div>${t.sub ? `<div class="tog-sub">${t.sub}</div>` : ''}</div>
+      <div class="mode-switch" data-type="${t.type}">
+        <button class="mode-btn${mode==='block'?' active':''}" data-mode="block" onclick="setPolicyMode('${t.type}','block')">Block</button>
+        <button class="mode-btn${mode==='warn'?' active':''}" data-mode="warn" onclick="setPolicyMode('${t.type}','warn')">Warn</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setPolicyMode(type, mode) {
+  currentModeOverrides[type] = mode;
+  const row = document.querySelector(`.mode-switch[data-type="${type}"]`);
+  if (!row) return;
+  row.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+}
+
 async function loadPolicies() {
   const ta = document.getElementById('policy-whitelist');
   const status = document.getElementById('policy-whitelist-status');
+  renderModesList(); // draw defaults immediately, don't wait on the network
   if (!ta || !ORG_KEY) return;
   try {
     const res = await fetch(`${API}/policies?key=${encodeURIComponent(ORG_KEY)}`);
     const data = await res.json();
     ta.value = (Array.isArray(data.whitelist) ? data.whitelist : []).join('\n');
+    currentModeOverrides = (data.mode_overrides && typeof data.mode_overrides === 'object') ? data.mode_overrides : {};
+    renderModesList();
     if (status) status.textContent = '';
   } catch (e) {
-    if (status) { status.textContent = 'Could not load saved whitelist — try refreshing.'; status.style.color = 'var(--red)'; }
+    if (status) { status.textContent = 'Could not load saved policies — try refreshing.'; status.style.color = 'var(--red)'; }
   }
 }
 
@@ -1082,7 +1122,7 @@ async function savePolicies() {
   try {
     const res = await fetch(`${API}/policies/${encodeURIComponent(ORG_ID)}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: ORG_KEY, whitelist }),
+      body: JSON.stringify({ key: ORG_KEY, whitelist, mode_overrides: currentModeOverrides }),
     });
     const data = await res.json();
     if (data.success) {

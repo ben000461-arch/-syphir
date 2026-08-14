@@ -62,7 +62,10 @@ async function fetchPolicies() {
     try {
       const res = await fetch(`${API}/policies?key=${encodeURIComponent(data.syphir_key)}`);
       const result = await res.json();
-      chrome.storage.local.set({ syphir_whitelist: Array.isArray(result.whitelist) ? result.whitelist : [] });
+      chrome.storage.local.set({
+        syphir_whitelist: Array.isArray(result.whitelist) ? result.whitelist : [],
+        syphir_mode_overrides: (result.mode_overrides && typeof result.mode_overrides === "object") ? result.mode_overrides : {},
+      });
     } catch (e) {} // non-fatal — keep using whatever was cached last
   });
 }

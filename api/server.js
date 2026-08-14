@@ -958,34 +958,47 @@ app.post("/extension/heartbeat", async (c) => {
 const HEARTBEAT_STALE_MS = 48 * 60 * 60 * 1000;
 
 // ── POLICIES ───────────────────────────────────────────────────────────────
-// Whitelist of exact values Trace should never flag for a given org. Fetched
-// by the extension (accepts either business or employee key, same as /scan)
-// and edited from the dashboard (business key only, ownership-checked).
+// Two things live here per org: a whitelist of exact values Trace should
+// never flag, and mode_overrides — per-type block-vs-warn choices that
+// override the extension's default critical-type list. Fetched by the
+// extension (accepts either business or employee key, same as /scan) and
+// edited from the dashboard (business key only, ownership-checked).
+const VALID_MODES = new Set(["block", "warn"]);
+
 app.get("/policies", async (c) => {
   const key = c.req.query("key");
-  if (!key) return c.json({ whitelist: [] });
+  if (!key) return c.json({ whitelist: [], mode_overrides: {} });
   try {
     const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=organizations(policies)`);
-    if (!rows || rows.length === 0) return c.json({ whitelist: [] });
+    if (!rows || rows.length === 0) return c.json({ whitelist: [], mode_overrides: {} });
     const policies = rows[0].organizations?.policies || {};
-    return c.json({ whitelist: Array.isArray(policies.whitelist) ? policies.whitelist : [] });
+    return c.json({
+      whitelist: Array.isArray(policies.whitelist) ? policies.whitelist : [],
+      mode_overrides: (policies.mode_overrides && typeof policies.mode_overrides === "object") ? policies.mode_overrides : {},
+    });
   } catch (err) {
-    return c.json({ whitelist: [] }); // non-fatal — extension just detects with no whitelist this cycle
+    return c.json({ whitelist: [], mode_overrides: {} }); // non-fatal — extension just uses defaults this cycle
   }
 });
 
 app.put("/policies/:org_id", async (c) => {
   const { org_id } = c.req.param();
-  const { key, whitelist } = await c.req.json().catch(() => ({}));
+  const { key, whitelist, mode_overrides } = await c.req.json().catch(() => ({}));
   if (!(await keyOwnsOrg(key, org_id))) return c.json({ success: false, message: "Unauthorized" }, 401);
   if (!Array.isArray(whitelist)) return c.json({ success: false, message: "whitelist must be an array" }, 400);
-  const cleaned = whitelist.map(v => String(v).trim()).filter(Boolean).slice(0, 200); // sane cap
+  const cleanedWhitelist = whitelist.map(v => String(v).trim()).filter(Boolean).slice(0, 200); // sane cap
+  const cleanedModes = {};
+  if (mode_overrides && typeof mode_overrides === "object") {
+    for (const [type, mode] of Object.entries(mode_overrides)) {
+      if (VALID_MODES.has(mode)) cleanedModes[type] = mode;
+    }
+  }
   try {
     await db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
       method: "PATCH", prefer: "return=minimal",
-      body: JSON.stringify({ policies: { whitelist: cleaned } }),
+      body: JSON.stringify({ policies: { whitelist: cleanedWhitelist, mode_overrides: cleanedModes } }),
     });
-    return c.json({ success: true, whitelist: cleaned });
+    return c.json({ success: true, whitelist: cleanedWhitelist, mode_overrides: cleanedModes });
   } catch (err) {
     return c.json({ success: false, message: err.message }, 500);
   }

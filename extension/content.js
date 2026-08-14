@@ -2,6 +2,7 @@ const SYPHIR_API = "https://syphir-api.onrender.com";
 let SYPHIR_KEY = null;
 let USER_EMAIL = null;
 let SYPHIR_WHITELIST = [];
+let SYPHIR_MODE_OVERRIDES = {}; // { TYPE: "block" | "warn" }
 let lastScanned = "";
 let lastScannedTime = 0;
 let scannedFiles = new Set();
@@ -10,8 +11,9 @@ let syphirExpired = false;
 
 (function loadStoredCredentials(attempt) {
   try {
-    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired", "syphir_whitelist"], (data) => {
+    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired", "syphir_whitelist", "syphir_mode_overrides"], (data) => {
       if (Array.isArray(data.syphir_whitelist)) SYPHIR_WHITELIST = data.syphir_whitelist;
+      if (data.syphir_mode_overrides && typeof data.syphir_mode_overrides === "object") SYPHIR_MODE_OVERRIDES = data.syphir_mode_overrides;
       if (data.syphir_expired) {
         syphirExpired = true;
         wakeAPI();
@@ -37,11 +39,12 @@ function wakeAPI() {
 setInterval(() => {
   if (!chrome?.runtime?.id) return;
   try {
-    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired", "syphir_whitelist"], (data) => {
+    chrome.storage.local.get(["syphir_key", "syphir_email", "syphir_expired", "syphir_whitelist", "syphir_mode_overrides"], (data) => {
       syphirExpired = data.syphir_expired === true;
       if (data.syphir_key)   SYPHIR_KEY  = data.syphir_key;
       if (data.syphir_email) USER_EMAIL  = data.syphir_email;
       if (Array.isArray(data.syphir_whitelist)) SYPHIR_WHITELIST = data.syphir_whitelist;
+      if (data.syphir_mode_overrides && typeof data.syphir_mode_overrides === "object") SYPHIR_MODE_OVERRIDES = data.syphir_mode_overrides;
     });
   } catch(_) {}
 }, 30 * 60 * 1000);
@@ -238,18 +241,31 @@ function buildMessage(findings) {
 }
 
 // ── CRITICAL INTERCEPT ────────────────────────────────────────────────────────
-// For high-risk sends (SSN, card, API key): block the send and show a
+// For high-risk sends (SSN, card, API key, etc): block the send and show a
 // "Critical data detected — proceed?" overlay. User must confirm explicitly.
 // Medium/low: show banner only, never block.
+//
+// DEFAULT_CRITICAL_TYPES is every type that blocks unless an org has said
+// otherwise. SYPHIR_MODE_OVERRIDES (loaded from Settings > Policies, cached
+// locally, refreshed periodically) can downgrade any of these to warn-only,
+// or upgrade a normally-medium/low type up to block — checked first, before
+// falling back to the default.
 
-const CRITICAL_TYPES = new Set([
-  "SSN","CREDIT_CARD","API_KEY","PRIVATE_KEY","JWT_TOKEN","AWS_KEY",
-  "BANK_ACCOUNT","PASSPORT","DRIVERS_LICENSE","MEDICAL_RECORD","STRIPE_KEY",
-  "GITHUB_TOKEN","GOOGLE_KEY","SLACK_TOKEN",
+const DEFAULT_CRITICAL_TYPES = new Set([
+  "SSN", "CREDIT_CARD", "API_KEY", "PRIVATE_KEY", "JWT_TOKEN",
+  "BANK_ACCOUNT", "PASSPORT", "DRIVERS_LICENSE", "MEDICAL_RECORD",
+  "DB_CREDENTIAL", "OAUTH_TOKEN", "HARDCODED_PASSWORD",
 ]);
 
+function isCriticalType(type) {
+  const override = SYPHIR_MODE_OVERRIDES[type];
+  if (override === "block") return true;
+  if (override === "warn")  return false;
+  return DEFAULT_CRITICAL_TYPES.has(type);
+}
+
 function isCriticalFindings(findings) {
-  return findings.some(f => f.risk === "high" && CRITICAL_TYPES.has(f.type));
+  return findings.some(f => f.risk === "high" && isCriticalType(f.type));
 }
 
 // Stores the pending event so we can re-fire it after user confirms
