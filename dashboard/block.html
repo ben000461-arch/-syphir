@@ -121,6 +121,21 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
 .nstep .sn b { color:#fff; font-weight:500; }
 .nstep h3 { font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:600; margin-bottom:8px; }
 .nstep p { font-size:0.9rem; color:var(--grey); line-height:1.6; }
+.stats { display:grid; grid-template-columns: repeat(4,1fr); gap:1px; background:var(--line-soft); border:1px solid var(--line-soft); border-radius:14px; overflow:hidden; margin-top:56px; }
+.stat { background:var(--paper); padding:28px 24px; }
+.stat .n { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:2.1rem; letter-spacing:-0.02em; margin-bottom:6px; }
+.stat .l { font-size:0.82rem; color:var(--grey); line-height:1.4; }
+@media (max-width: 760px){ .stats{ grid-template-columns:repeat(2,1fr); } }
+
+.usecases { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+.usecase { border:1px solid var(--line-soft); border-radius:14px; padding:26px; transition:border-color 0.15s; }
+.usecase:hover { border-color:var(--line); }
+.usecase .k { font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--grey-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; }
+.usecase h4 { font-family:'Space Grotesk',sans-serif; font-size:1rem; font-weight:600; margin-bottom:8px; }
+.usecase p { font-size:0.85rem; color:var(--grey); line-height:1.55; }
+@media (max-width: 900px){ .usecases{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width: 540px){ .usecases{ grid-template-columns:1fr; } }
+
 .bundle { border:1px solid var(--line); border-radius:18px; padding:44px 40px; text-align:center; max-width:520px; margin:0 auto; }
 .bundle-price { font-family:'Space Grotesk',sans-serif; font-size:2.6rem; font-weight:700; letter-spacing:-0.03em; margin-bottom:4px; }
 .bundle-price span { font-size:1rem; font-weight:400; color:var(--grey-dim); }
@@ -188,7 +203,7 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
   <div class="wrap">
     <span class="node-badge"><span class="dot"></span>Coming Soon</span>
     <h1>Meet <span class="div">|</span> The Block.</h1>
-    <p>The browser extension protects what your team types into AI tools. The Block protects everything else — a dedicated security appliance that plugs into your network and watches what the browser can't see.</p>
+    <p>Trace protects what your team types into ChatGPT and Claude. The Block protects everything else — a small device that plugs into your office internet and watches every computer, phone, and printer connected to it, not just what happens inside a browser.</p>
     <div class="hero-cta" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:36px;">
       <button class="btn-solid" onclick="openWaitlist()">Join the waitlist →</button>
       <a href="pricing.html" class="btn-line">See all pricing</a>
@@ -208,14 +223,21 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
   <div class="wrap">
     <div class="section-head">
       <div class="section-eyebrow">What it unlocks</div>
-      <h2 class="section-title">Network-level protection.</h2>
-      <p class="section-desc">Two dashboard sections come alive the moment your Block is online — the same ones you're previewing now.</p>
+      <h2 class="section-title">Protection for everything on your network.</h2>
+      <p class="section-desc">Two dashboard sections come alive the moment your Block is online — the same ones you're previewing above.</p>
     </div>
     <div class="node-grid">
-      <div class="ncard"><div class="nk">// network</div><h3>Network Security</h3><p>Live threat detection across every device on your network. Spot port scans, brute-force attempts, and data exfiltration — then isolate the device with one click.</p></div>
-      <div class="ncard"><div class="nk">// intel</div><h3>Intel commands</h3><p>Run security actions in plain English. "Isolate John's computer." "Block that IP." The Block carries out the command and reports back to your dashboard.</p></div>
-      <div class="ncard"><div class="nk">// coverage</div><h3>Sees what the browser can't</h3><p>The extension only sees browser activity. The Block watches every device — laptops, phones, printers — so shadow devices stop being blind spots.</p></div>
-      <div class="ncard"><div class="nk">// private</div><h3>Runs on-site, privately</h3><p>Monitoring happens on the device in your office. No mirroring your network to the cloud — the Node processes traffic locally and sends only the alerts that matter.</p></div>
+      <div class="ncard"><div class="nk">// network</div><h3>Network Security</h3><p>Watches every device connected to your office internet — computers, phones, printers, all of it. If something's trying to sneak in, guess a password, or quietly copy your files out, you'll see it the moment it happens, and can cut that device off with one click.</p></div>
+      <div class="ncard"><div class="nk">// intel</div><h3>Talk to it in plain English</h3><p>Type security actions the way you'd say them out loud. "Isolate John's computer." "Block that connection." The Block carries it out and reports back to your dashboard.</p></div>
+      <div class="ncard"><div class="nk">// coverage</div><h3>Sees what the browser can't</h3><p>Trace can only see what happens inside a web browser. The Block watches everything else on your network too — so a phone, printer, or laptop nobody's paying attention to can't quietly become the weak link.</p></div>
+      <div class="ncard"><div class="nk">// private</div><h3>Runs on-site, privately</h3><p>All the watching happens right there on the device in your office. Your day-to-day traffic never gets sent to the cloud — only the alerts that actually matter reach your dashboard.</p></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">26</div><div class="l">AI tool domains watched at the network level — beyond what any browser extension can see</div></div>
+      <div class="stat"><div class="n">9</div><div class="l">known malicious domains it automatically recognizes and blocks</div></div>
+      <div class="stat"><div class="n">12</div><div class="l">built-in attack patterns it watches for out of the box</div></div>
+      <div class="stat"><div class="n">0</div><div class="l">bytes of your everyday network traffic ever sent to the cloud</div></div>
     </div>
   </div>
 </div>
@@ -228,9 +250,41 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
       <p class="section-desc">No IT project, no rewiring. Built for small teams without a security team.</p>
     </div>
     <div class="nsteps">
-      <div class="nstep"><div class="sn"><b>01</b> / 03</div><h3>Plug in the Block</h3><p>Connect it to power and your router. It provisions itself and links to your co|op account automatically.</p></div>
-      <div class="nstep"><div class="sn"><b>02</b> / 03</div><h3>Enter your routing number</h3><p>Type the code from the sticker on the box into your dashboard. Network Security and Intel switch on.</p></div>
-      <div class="nstep"><div class="sn"><b>03</b> / 03</div><h3>Watch it work</h3><p>Threats show up live, scored by confidence before any action is taken. Isolate, block, or investigate from the dashboard.</p></div>
+      <div class="nstep"><div class="sn"><b>01</b> / 03</div><h3>Plug in the Block</h3><p>Connect it to a power outlet and your router with the included cables. It sets itself up automatically and connects to your co|op account — nothing to configure.</p></div>
+      <div class="nstep"><div class="sn"><b>02</b> / 03</div><h3>Enter your setup code</h3><p>Type the code printed on the sticker on the bottom of the box into your dashboard. That turns on Network Security and Intel.</p></div>
+      <div class="nstep"><div class="sn"><b>03</b> / 03</div><h3>Watch it work</h3><p>Anything suspicious shows up on your dashboard in real time, along with how serious it is. From there, cut a device off, block it, or dig into what happened — all in a couple clicks.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">Who needs it</div>
+      <h2 class="section-title">For everything Trace can't reach.</h2>
+      <p class="section-desc">Trace only sees what happens in a browser. These are the gaps that are left open without it.</p>
+    </div>
+    <div class="usecases">
+      <div class="usecase">
+        <div class="k">Medical &amp; dental offices</div>
+        <h4>Equipment that can't run an extension</h4>
+        <p>Imaging machines, front-desk terminals, and shared printers all sit on the same office network — none of them can install a browser extension. The Block watches them anyway.</p>
+      </div>
+      <div class="usecase">
+        <div class="k">Law firms</div>
+        <h4>Files move outside the browser too</h4>
+        <p>Case documents pass through scanners, shared drives, and printers just as often as Chrome. The Block covers the whole office, not just one app.</p>
+      </div>
+      <div class="usecase">
+        <div class="k">Any small office</div>
+        <h4>Personal phones on your WiFi</h4>
+        <p>An employee checking email on their own phone over your office WiFi is still inside your network. The Block sees that traffic too — Trace never could.</p>
+      </div>
+      <div class="usecase">
+        <div class="k">Multi-location businesses</div>
+        <h4>Every office, one dashboard</h4>
+        <p>Each location gets its own Block, all reporting to the same account — so you see what's happening everywhere without visiting every site.</p>
+      </div>
     </div>
   </div>
 </div>
