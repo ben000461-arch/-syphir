@@ -236,6 +236,62 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
   </div>
 </div>
 
+<div class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">Free for your team</div>
+      <h2 class="section-title">We'll teach your team AI safety — free.</h2>
+      <p class="section-desc">A 20-minute session, in person or on a call. No pitch, no obligation — just what your team actually needs to know before the next risky paste happens.</p>
+    </div>
+    <div class="feats">
+      <div class="feat">
+        <div class="feat-k">// what it covers</div>
+        <h3>The real risk, in plain terms</h3>
+        <p>Recent industry research found 77% of employees paste company data into AI tools, and over half of those pastes contain real sensitive information — most from personal accounts no one's watching.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// practical rules</div>
+        <h3>What safe AI use actually looks like</h3>
+        <p>Simple, memorable rules your team can use immediately — what never to paste, and how to describe a situation without the sensitive specifics.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// live demo</div>
+        <h3>See the gap it can't close alone</h3>
+        <p>Even the best-trained team forgets sometimes, especially on a busy day. We'll show you what catches the moment training isn't enough.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// zero pressure</div>
+        <h3>No obligation, no card required</h3>
+        <p>This is genuinely free, whether or not you ever use co|op. If it's useful, great — if not, your team still walks away knowing more than they did.</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:36px;">
+      <button class="btn-solid" onclick="openTrainingModal()">Request a Free Training Session →</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="trainingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeTrainingModal()">✕</button>
+    <div id="training-form-view">
+      <h2>Request free AI safety training</h2>
+      <p class="modal-sub">A 20-minute session for your team, in person or on a call. We'll reach out within 24 hours to find a time.</p>
+      <div class="field"><label>Name *</label><input type="text" id="training-name" placeholder="Jane Smith" autocomplete="name"></div>
+      <div class="field"><label>Work Email *</label><input type="email" id="training-email" placeholder="jane@company.com" autocomplete="email"></div>
+      <div class="field"><label>Company</label><input type="text" id="training-company" placeholder="Acme Dental Group" autocomplete="organization"></div>
+      <div class="err-msg" id="training-err"></div>
+      <button class="modal-btn" id="training-submit-btn" onclick="submitTraining()">Request Free Session →</button>
+    </div>
+    <div id="training-success-view" style="display:none;text-align:center;padding:8px 0;">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;">✓</div>
+      <h2>Request sent</h2>
+      <p class="modal-sub">Thanks — we'll reply to <strong id="training-success-email" style="color:#fff;"></strong> within 24 hours to find a time.</p>
+      <button class="modal-btn" onclick="closeTrainingModal()" style="margin-top:8px;">Done</button>
+    </div>
+  </div>
+</div>
+
 <div class="band">
   <div class="wrap">
     <h2>Hold the line.</h2>
@@ -259,6 +315,43 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
   </div>
 </footer>
 
+<script>
+const TRAINING_API = 'https://syphir-api.onrender.com';
+
+function openTrainingModal() {
+  document.getElementById('training-form-view').style.display = '';
+  document.getElementById('training-success-view').style.display = 'none';
+  document.getElementById('training-err').textContent = '';
+  document.getElementById('trainingModal').classList.add('active');
+  setTimeout(() => document.getElementById('training-name').focus(), 100);
+}
+function closeTrainingModal() { document.getElementById('trainingModal').classList.remove('active'); }
+async function submitTraining() {
+  const name    = document.getElementById('training-name').value.trim();
+  const email   = document.getElementById('training-email').value.trim();
+  const company = document.getElementById('training-company').value.trim();
+  const errEl   = document.getElementById('training-err');
+  const btn     = document.getElementById('training-submit-btn');
+  errEl.textContent = '';
+  if (!name || !email) { errEl.textContent = 'Name and email are required.'; return; }
+  if (!email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try {
+    const res = await fetch(`${TRAINING_API}/contact`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, company, message: 'Requesting a free 20-minute AI Safety Training session for their team.' })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to send');
+    document.getElementById('training-success-email').textContent = email;
+    document.getElementById('training-form-view').style.display = 'none';
+    document.getElementById('training-success-view').style.display = 'block';
+  } catch(e) {
+    errEl.textContent = 'Could not send: ' + e.message;
+    btn.textContent = 'Request Free Session →'; btn.disabled = false;
+  }
+}
+</script>
 <script src="auth.js"></script>
 </body>
 </html>
