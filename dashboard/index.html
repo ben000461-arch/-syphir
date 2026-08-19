@@ -279,6 +279,7 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
       <p class="modal-sub">A 20-minute session for your team, in person or on a call. We'll reach out within 24 hours to find a time.</p>
       <div class="field"><label>Name *</label><input type="text" id="training-name" placeholder="Jane Smith" autocomplete="name"></div>
       <div class="field"><label>Work Email *</label><input type="email" id="training-email" placeholder="jane@company.com" autocomplete="email"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="training-phone" placeholder="(951) 555-0123" autocomplete="tel"></div>
       <div class="field"><label>Company</label><input type="text" id="training-company" placeholder="Acme Dental Group" autocomplete="organization"></div>
       <div class="err-msg" id="training-err"></div>
       <button class="modal-btn" id="training-submit-btn" onclick="submitTraining()">Request Free Session →</button>
@@ -329,6 +330,7 @@ function closeTrainingModal() { document.getElementById('trainingModal').classLi
 async function submitTraining() {
   const name    = document.getElementById('training-name').value.trim();
   const email   = document.getElementById('training-email').value.trim();
+  const phone   = document.getElementById('training-phone').value.trim();
   const company = document.getElementById('training-company').value.trim();
   const errEl   = document.getElementById('training-err');
   const btn     = document.getElementById('training-submit-btn');
@@ -337,9 +339,10 @@ async function submitTraining() {
   if (!email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
   btn.textContent = 'Sending…'; btn.disabled = true;
   try {
+    const phoneLine = phone ? ` Phone: ${phone}.` : '';
     const res = await fetch(`${TRAINING_API}/contact`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, company, message: 'Requesting a free 20-minute AI Safety Training session for their team.' })
+      body: JSON.stringify({ name, email, company, message: `Requesting a free 20-minute AI Safety Training session for their team.${phoneLine}` })
     });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed to send');
