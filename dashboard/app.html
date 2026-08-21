@@ -1127,7 +1127,23 @@ async function savePolicies() {
     const data = await res.json();
     if (data.success) {
       showToast('Detection policies saved!');
-      if (status) { status.style.color = 'var(--text3)'; status.textContent = `${whitelist.length} whitelisted value${whitelist.length===1?'':'s'} — Trace picks this up within 30 minutes.`; }
+      // Reflect back what was actually saved (may be capped by plan), not what was typed —
+      // otherwise the textarea silently disagrees with the server on next load.
+      ta.value = data.whitelist.join('\n');
+      if (status) {
+        status.style.color = 'var(--text3)';
+        let msg = `${data.whitelist.length} whitelisted value${data.whitelist.length===1?'':'s'} — Trace picks this up within 30 minutes.`;
+        if (data.truncated) {
+          status.style.color = 'var(--yellow)';
+          msg = `Your ${data.plan || 'Starter'} plan is capped at ${data.whitelist_cap} whitelist entries — the rest weren't saved. Upgrade for more.`;
+        }
+        status.textContent = msg;
+      }
+      if (!data.mode_overrides_allowed && Object.keys(currentModeOverrides).length > 0) {
+        currentModeOverrides = {}; // server didn't save these — don't let the UI imply otherwise
+        renderModesList();
+        showToast(`Block/Warn customization needs Professional or higher — your ${data.plan || 'Starter'} plan uses the defaults.`);
+      }
     } else {
       if (status) { status.style.color = 'var(--red)'; status.textContent = data.message || 'Could not save — try again.'; }
     }

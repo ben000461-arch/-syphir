@@ -613,8 +613,10 @@ app.post("/validate-key", async (c) => {
         const existing = await db(`users?org_id=eq.${encodeURIComponent(org.id)}&email=eq.${encodeURIComponent(email)}&select=id`);
         if (existing && existing.length > 0) {
           await db(`users?id=eq.${existing[0].id}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ status: "active", last_seen: now, inactive_flagged: false }) });
-        } else {
+        } else if (await underSeatCap(org)) {
           await db("users", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: `user_${Date.now()}_${Math.random().toString(36).substr(2,4)}`, org_id: org.id, email, role: "member", status: "active", invited_at: now, last_seen: now, inactive_flagged: false }) });
+        } else {
+          console.log(`Seat cap reached for org ${org.name} (${org.plan}) — not adding new employee ${email}`);
         }
         console.log(`✓ Employee registered: ${email} → org ${org.name}`);
       } catch(e) { console.warn("User upsert failed (non-fatal):", e.message); }
@@ -670,7 +672,7 @@ app.post("/scan", async (c) => {
             method: "PATCH", prefer: "return=minimal",
             body: JSON.stringify({ status: "active", last_seen: now, inactive_flagged: false }),
           });
-        } else {
+        } else if (await underSeatCap(org)) {
           await db("users", {
             method: "POST", prefer: "return=minimal",
             body: JSON.stringify({
@@ -680,7 +682,7 @@ app.post("/scan", async (c) => {
               invited_at: now, last_seen: now, inactive_flagged: false,
             }),
           });
-        }
+        } // else: seat cap reached, this employee just won't get a Team Members row — scan result still returns fine
       } catch(_) {} // non-fatal — scan result must still return
     }
     return c.json({ flagged: result.flagged, risk_level: result.risk_level, message: result.message, detections: result.detections });
@@ -877,13 +879,56 @@ async function keyOwnsOrg(key, orgId) {
   }
 }
 
+// ── PLAN LIMITS ──────────────────────────────────────────────────────────────
+// The one place these live. Change a number here, it applies everywhere.
+const PLAN_SEAT_CAPS = { Starter: 15, Professional: 50, Institution: Infinity };
+const PLAN_RETENTION_DAYS = { Starter: 30, Professional: 365, Institution: Infinity };
+const PLAN_WHITELIST_CAPS = { Starter: 5, Professional: 200, Institution: 200 };
+const PLAN_ALLOWS_MODE_OVERRIDES = { Starter: false, Professional: true, Institution: true };
+
+async function getOrgPlan(org_id) {
+  try {
+    const rows = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=plan`);
+    return (rows && rows[0] && rows[0].plan) || "Starter";
+  } catch (_) {
+    return "Starter"; // fail safe to the most restrictive tier, never the most permissive
+  }
+}
+
+async function countActiveUsers(org_id) {
+  try {
+    const rows = await db(`users?org_id=eq.${encodeURIComponent(org_id)}&status=eq.active&select=id`);
+    return rows ? rows.length : 0;
+  } catch (_) {
+    return 0;
+  }
+}
+
+// True if this org can add one more active seat under its plan. Fetches the
+// plan itself, since callers already have `org` from a license_keys join but
+// not always trust that value (frontend never sets it, but cheap to be safe).
+async function underSeatCap(org) {
+  const plan = org.plan || "Starter";
+  const cap = PLAN_SEAT_CAPS[plan] ?? PLAN_SEAT_CAPS.Starter;
+  if (cap === Infinity) return true;
+  const activeCount = await countActiveUsers(org.id);
+  return activeCount < cap;
+}
+
 app.get("/incidents/:org_id", async (c) => {
   const { org_id } = c.req.param();
   const key = c.req.query("key");
   if (!(await keyOwnsOrg(key, org_id))) return c.json({ error: "Unauthorized" }, 401);
   try {
-    const incidents = await db(`incidents?org_id=eq.${encodeURIComponent(org_id)}&order=timestamp.desc&limit=100`);
-    return c.json({ incidents: incidents || [], total: incidents?.length || 0 });
+    const plan = await getOrgPlan(org_id);
+    const retentionDays = PLAN_RETENTION_DAYS[plan] ?? PLAN_RETENTION_DAYS.Starter;
+    let query = `incidents?org_id=eq.${encodeURIComponent(org_id)}&order=timestamp.desc&limit=100`;
+    if (retentionDays !== Infinity) {
+      const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000).toISOString();
+      query += `&timestamp=gte.${encodeURIComponent(cutoff)}`;
+    }
+    const incidents = await db(query);
+    return c.json({ incidents: incidents || [], total: incidents?.length || 0, plan, retention_days: retentionDays === Infinity ? null : retentionDays });
   } catch (err) {
     return c.json({ incidents: [], total: 0 });
   }
@@ -936,7 +981,7 @@ app.post("/extension/heartbeat", async (c) => {
         method: "PATCH", prefer: "return=minimal",
         body: JSON.stringify({ status: "active", last_seen: now, inactive_flagged: false }),
       });
-    } else {
+    } else if (await underSeatCap(org)) {
       await db("users", {
         method: "POST", prefer: "return=minimal",
         body: JSON.stringify({
@@ -945,7 +990,7 @@ app.post("/extension/heartbeat", async (c) => {
           invited_at: now, last_seen: now, inactive_flagged: false,
         }),
       });
-    }
+    } // else: seat cap reached — heartbeat still returns ok, this employee just isn't tracked as a seat
     return c.json({ ok: true });
   } catch (err) {
     return c.json({ ok: false }, 500); // non-fatal from the extension's side either way
@@ -986,9 +1031,12 @@ app.put("/policies/:org_id", async (c) => {
   const { key, whitelist, mode_overrides } = await c.req.json().catch(() => ({}));
   if (!(await keyOwnsOrg(key, org_id))) return c.json({ success: false, message: "Unauthorized" }, 401);
   if (!Array.isArray(whitelist)) return c.json({ success: false, message: "whitelist must be an array" }, 400);
-  const cleanedWhitelist = whitelist.map(v => String(v).trim()).filter(Boolean).slice(0, 200); // sane cap
+  const plan = await getOrgPlan(org_id);
+  const whitelistCap = PLAN_WHITELIST_CAPS[plan] ?? PLAN_WHITELIST_CAPS.Starter;
+  const modeOverridesAllowed = PLAN_ALLOWS_MODE_OVERRIDES[plan] ?? false;
+  const cleanedWhitelist = whitelist.map(v => String(v).trim()).filter(Boolean).slice(0, whitelistCap);
   const cleanedModes = {};
-  if (mode_overrides && typeof mode_overrides === "object") {
+  if (modeOverridesAllowed && mode_overrides && typeof mode_overrides === "object") {
     for (const [type, mode] of Object.entries(mode_overrides)) {
       if (VALID_MODES.has(mode)) cleanedModes[type] = mode;
     }
@@ -998,7 +1046,11 @@ app.put("/policies/:org_id", async (c) => {
       method: "PATCH", prefer: "return=minimal",
       body: JSON.stringify({ policies: { whitelist: cleanedWhitelist, mode_overrides: cleanedModes } }),
     });
-    return c.json({ success: true, whitelist: cleanedWhitelist, mode_overrides: cleanedModes });
+    return c.json({
+      success: true, whitelist: cleanedWhitelist, mode_overrides: cleanedModes,
+      plan, whitelist_cap: whitelistCap, mode_overrides_allowed: modeOverridesAllowed,
+      truncated: whitelist.length > cleanedWhitelist.length,
+    });
   } catch (err) {
     return c.json({ success: false, message: err.message }, 500);
   }
@@ -1089,6 +1141,10 @@ app.post("/invite-user", async (c) => {
     org = rows[0].organizations;
   } catch (err) {
     return c.json({ success: false, message: "Auth failed" }, 500);
+  }
+  if (!(await underSeatCap(org))) {
+    const cap = PLAN_SEAT_CAPS[org.plan] ?? PLAN_SEAT_CAPS.Starter;
+    return c.json({ success: false, message: `Your ${org.plan || "Starter"} plan is limited to ${cap} team members. Upgrade to add more.`, plan_limited: true }, 403);
   }
   try {
     await db("users", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: `user_${Date.now()}`, org_id: org.id, email: employee_email, role: "member", status: "invited", invited_at: new Date().toISOString() }) });
