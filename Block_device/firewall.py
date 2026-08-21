@@ -147,51 +147,64 @@ class IPTables:
             return False
 
     def block_ip(self, ip):
-        """Block all traffic from a source IP."""
-        self.run(['-I', 'FORWARD', '-s', ip, '-j', 'DROP'],
-                 f"Block inbound from {ip}")
-        self.run(['-I', 'INPUT', '-s', ip, '-j', 'DROP'],
-                 f"Block input from {ip}")
+        """Block all traffic from a source IP. Returns True only if every rule actually applied."""
+        ok1 = self.run(['-I', 'FORWARD', '-s', ip, '-j', 'DROP'],
+                        f"Block inbound from {ip}")
+        ok2 = self.run(['-I', 'INPUT', '-s', ip, '-j', 'DROP'],
+                        f"Block input from {ip}")
+        return ok1 and ok2
 
     def unblock_ip(self, ip):
-        """Remove block on a source IP."""
-        self.run(['-D', 'FORWARD', '-s', ip, '-j', 'DROP'],
-                 f"Unblock forward from {ip}")
-        self.run(['-D', 'INPUT', '-s', ip, '-j', 'DROP'],
-                 f"Unblock input from {ip}")
+        """Remove block on a source IP. Returns True only if every rule actually removed."""
+        ok1 = self.run(['-D', 'FORWARD', '-s', ip, '-j', 'DROP'],
+                        f"Unblock forward from {ip}")
+        ok2 = self.run(['-D', 'INPUT', '-s', ip, '-j', 'DROP'],
+                        f"Unblock input from {ip}")
+        return ok1 and ok2
 
     def isolate_device(self, device_ip, shield_ip=SHIELD_IP):
         """
         Isolate a LAN device — cut it off from internet AND other LAN devices.
         But keep Shield <-> device connection open so agent can still get in.
+        Returns True only if every rule actually applied.
         """
         # Allow Shield to reach isolated device (agent needs this)
-        self.run(['-I', 'FORWARD', '-s', shield_ip, '-d', device_ip, '-j', 'ACCEPT'],
-                 f"Keep Shield->device open for {device_ip}")
-        self.run(['-I', 'FORWARD', '-s', device_ip, '-d', shield_ip, '-j', 'ACCEPT'],
-                 f"Keep device->Shield open for {device_ip}")
+        ok1 = self.run(['-I', 'FORWARD', '-s', shield_ip, '-d', device_ip, '-j', 'ACCEPT'],
+                        f"Keep Shield->device open for {device_ip}")
+        ok2 = self.run(['-I', 'FORWARD', '-s', device_ip, '-d', shield_ip, '-j', 'ACCEPT'],
+                        f"Keep device->Shield open for {device_ip}")
 
         # Block everything else to/from the device
-        self.run(['-I', 'FORWARD', '-s', device_ip, '-j', 'DROP'],
-                 f"Block all outbound from {device_ip}")
-        self.run(['-I', 'FORWARD', '-d', device_ip, '-j', 'DROP'],
-                 f"Block all inbound to {device_ip}")
+        ok3 = self.run(['-I', 'FORWARD', '-s', device_ip, '-j', 'DROP'],
+                        f"Block all outbound from {device_ip}")
+        ok4 = self.run(['-I', 'FORWARD', '-d', device_ip, '-j', 'DROP'],
+                        f"Block all inbound to {device_ip}")
 
-        log.warning(f"Device ISOLATED: {device_ip} — cut off from network. Shield connection preserved.")
+        success = ok1 and ok2 and ok3 and ok4
+        if success:
+            log.warning(f"Device ISOLATED: {device_ip} — cut off from network. Shield connection preserved.")
+        else:
+            log.error(f"Device isolation FAILED for {device_ip} — one or more iptables rules did not apply. Device is NOT actually isolated.")
+        return success
 
     def release_device(self, device_ip, shield_ip=SHIELD_IP):
-        """Release an isolated device back onto the network."""
+        """Release an isolated device back onto the network. Returns True only if every rule actually removed."""
         # Remove isolation rules
-        self.run(['-D', 'FORWARD', '-s', shield_ip, '-d', device_ip, '-j', 'ACCEPT'],
-                 f"Remove Shield->device exception for {device_ip}")
-        self.run(['-D', 'FORWARD', '-s', device_ip, '-d', shield_ip, '-j', 'ACCEPT'],
-                 f"Remove device->Shield exception for {device_ip}")
-        self.run(['-D', 'FORWARD', '-s', device_ip, '-j', 'DROP'],
-                 f"Remove outbound block for {device_ip}")
-        self.run(['-D', 'FORWARD', '-d', device_ip, '-j', 'DROP'],
-                 f"Remove inbound block for {device_ip}")
+        ok1 = self.run(['-D', 'FORWARD', '-s', shield_ip, '-d', device_ip, '-j', 'ACCEPT'],
+                        f"Remove Shield->device exception for {device_ip}")
+        ok2 = self.run(['-D', 'FORWARD', '-s', device_ip, '-d', shield_ip, '-j', 'ACCEPT'],
+                        f"Remove device->Shield exception for {device_ip}")
+        ok3 = self.run(['-D', 'FORWARD', '-s', device_ip, '-j', 'DROP'],
+                        f"Remove outbound block for {device_ip}")
+        ok4 = self.run(['-D', 'FORWARD', '-d', device_ip, '-j', 'DROP'],
+                        f"Remove inbound block for {device_ip}")
 
-        log.info(f"Device RELEASED: {device_ip} — network access restored")
+        success = ok1 and ok2 and ok3 and ok4
+        if success:
+            log.info(f"Device RELEASED: {device_ip} — network access restored")
+        else:
+            log.error(f"Device release FAILED for {device_ip} — one or more iptables rules did not clear. Device may still be blocked.")
+        return success
 
     def flush_all(self):
         """Clear all Syphir-managed rules. Nuclear option."""
@@ -236,17 +249,20 @@ class Firewall:
             log.debug(f"IP {ip} already blocked")
             return
 
-        self._iptables.block_ip(ip)
-        self._state.add_blocked(ip, reason, expires_minutes)
-
+        success = self._iptables.block_ip(ip)
         action = {
             'action':      'block_ip',
             'ip':          ip,
             'reason':      reason,
             'expires_min': expires_minutes,
             'timestamp':   datetime.utcnow().isoformat(),
+            'success':     success,
         }
-        log.warning(f"BLOCKED: {ip} — {reason}")
+        if success:
+            self._state.add_blocked(ip, reason, expires_minutes)
+            log.warning(f"BLOCKED: {ip} — {reason}")
+        else:
+            log.error(f"BLOCK FAILED: {ip} — iptables did not apply. IP is NOT actually blocked.")
         self.on_action(action)
 
     def unblock_ip(self, ip):
@@ -255,11 +271,13 @@ class Firewall:
             log.debug(f"IP {ip} not in block list")
             return
 
-        self._iptables.unblock_ip(ip)
-        self._state.remove_blocked(ip)
-
-        log.info(f"UNBLOCKED: {ip}")
-        self.on_action({'action': 'unblock_ip', 'ip': ip, 'timestamp': datetime.utcnow().isoformat()})
+        success = self._iptables.unblock_ip(ip)
+        if success:
+            self._state.remove_blocked(ip)
+            log.info(f"UNBLOCKED: {ip}")
+        else:
+            log.error(f"UNBLOCK FAILED: {ip} — iptables rule may still be active.")
+        self.on_action({'action': 'unblock_ip', 'ip': ip, 'timestamp': datetime.utcnow().isoformat(), 'success': success})
 
     def isolate_device(self, device_ip, reason, signature_id=''):
         """
@@ -270,17 +288,20 @@ class Firewall:
             log.debug(f"Device {device_ip} already isolated")
             return
 
-        self._iptables.isolate_device(device_ip)
-        self._state.add_isolated(device_ip, reason, signature_id)
-
+        success = self._iptables.isolate_device(device_ip)
         action = {
             'action':       'isolate_device',
             'device_ip':    device_ip,
             'reason':       reason,
             'signature_id': signature_id,
             'timestamp':    datetime.utcnow().isoformat(),
+            'success':      success,
         }
-        log.error(f"ISOLATED: {device_ip} — {reason}")
+        if success:
+            self._state.add_isolated(device_ip, reason, signature_id)
+            log.error(f"ISOLATED: {device_ip} — {reason}")
+        else:
+            log.error(f"ISOLATION FAILED: {device_ip} — iptables did not apply. Device is NOT actually isolated, but the threat that triggered this is still real.")
         self.on_action(action)
 
     def release_device(self, device_ip, released_by='admin'):
@@ -292,16 +313,21 @@ class Firewall:
             log.debug(f"Device {device_ip} not isolated")
             return
 
-        self._iptables.release_device(device_ip)
-        self._state.remove_isolated(device_ip)
+        success = self._iptables.release_device(device_ip)
+        if success:
+            self._state.remove_isolated(device_ip)
 
         action = {
             'action':      'release_device',
             'device_ip':   device_ip,
             'released_by': released_by,
             'timestamp':   datetime.utcnow().isoformat(),
+            'success':     success,
         }
-        log.info(f"RELEASED: {device_ip} by {released_by}")
+        if success:
+            log.info(f"RELEASED: {device_ip} by {released_by}")
+        else:
+            log.error(f"RELEASE FAILED: {device_ip} — iptables rules may not have cleared. Device may still be isolated.")
         self.on_action(action)
 
     def get_status(self):

@@ -432,17 +432,38 @@ class IntrusionDetector:
 
     def _check_dns_tunneling(self, src_ip, domain):
         recent_dns = self._tracker.get_recent_dns(src_ip, seconds=60)
-        query_count = len(recent_dns)
-        avg_len     = sum(ln for _, _, ln in recent_dns) / max(len(recent_dns), 1)
-        if (query_count >= 60 or avg_len >= 50) and not self._already_alerted(src_ip, 'AS007'):
-            self._fire_threat({
-                'signature_id': 'AS007',
-                'name':         'DNS tunneling detected',
-                'src_ip':       src_ip,
-                'detail':       f"{src_ip} made {query_count} DNS queries in 60s (avg length {avg_len:.0f} chars)",
-                'risk':         'high',
-                'response':     'block_and_alert',
-            })
+        if not recent_dns:
+            return
+        # Real DNS tunneling needs sustained high volume to ONE domain (the
+        # tunnel's base domain) to move any real data, and encodes payload
+        # into long subdomain labels. Normal multi-tab browsing produces
+        # high AGGREGATE query volume spread across many DIFFERENT domains
+        # (ad networks, CDNs, analytics, fonts, tracking pixels per site) —
+        # grouping by base domain before thresholding is what actually
+        # distinguishes "several tabs open" from "something is exfiltrating
+        # data over DNS." Previously this counted all domains together,
+        # which any normal browsing session could trip within a minute.
+        by_domain = defaultdict(list)
+        for _, dom, ln in recent_dns:
+            base = '.'.join(dom.split('.')[-2:]) if dom.count('.') >= 1 else dom
+            by_domain[base].append(ln)
+
+        for base, lengths in by_domain.items():
+            query_count = len(lengths)
+            avg_len     = sum(lengths) / len(lengths)
+            # Both signals together, not either alone — high volume OR long
+            # labels individually are common in legitimate traffic (a chatty
+            # single-page app; a long CDN subdomain). Both at once, to the
+            # same domain, is what's actually rare and worth alerting on.
+            if query_count >= 40 and avg_len >= 45 and not self._already_alerted(src_ip, f'AS007_{base}'):
+                self._fire_threat({
+                    'signature_id': 'AS007',
+                    'name':         'DNS tunneling detected',
+                    'src_ip':       src_ip,
+                    'detail':       f"{src_ip} made {query_count} DNS queries to {base} in 60s (avg length {avg_len:.0f} chars)",
+                    'risk':         'high',
+                    'response':     'block_and_alert',
+                })
 
     def _check_reverse_shell(self, src_ip, dst_port):
         if 4000 <= dst_port <= 9999 and not self._already_alerted(src_ip, f'AS008_{dst_port}'):

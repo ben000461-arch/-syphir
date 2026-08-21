@@ -526,7 +526,7 @@ select option{background:var(--bg3);color:var(--text);}
           <div class="intel-connect-card">
             <div class="intel-connect-icon">○</div>
             <div class="intel-connect-title">Connect your Block device</div>
-            <div class="intel-connect-sub">Enter your Block device routing number to enable Intel commands. You'll find it on the sticker on the bottom of your co|op Block box.</div>
+            <div class="intel-connect-sub">Enter your Block device setup code to enable Intel commands. You'll find it on the sticker on the bottom of your co|op Block box.</div>
             <input class="intel-connect-input" id="intel-device-input" placeholder="SYP-NET-XXXX-XXXX" maxlength="19" oninput="intelFormatKey(this)" onkeydown="if(event.key==='Enter')intelConnect()">
             <button class="intel-connect-btn" onclick="intelConnect()">Connect Device</button>
             <div class="intel-connect-err" id="intel-connect-err"></div>
