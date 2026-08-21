@@ -579,6 +579,9 @@ select option{background:var(--bg3);color:var(--text);}
         <button onclick="nsOpenTool('ptree')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
           ⬡ Process Tree
         </button>
+        <button onclick="nsOpenTool('devices')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+          ⊞ Devices
+        </button>
       </div>
       <div class="section-hdr">
         <div><div class="section-title">Network Security</div><div class="section-sub">Active threats, isolated devices, and attack timelines</div></div>
@@ -698,7 +701,40 @@ select option{background:var(--bg3);color:var(--text);}
       </div>
     </div>
 
-    <!-- WORKBENCH — full page overlay -->
+    <!-- DEVICES — full page overlay -->
+    <div id="ns-tool-devices" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;flex-direction:column;">
+      <!-- Toolbar -->
+      <div style="display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);height:42px;flex-shrink:0;z-index:301;position:relative;">
+        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 16px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+          ← Network Security
+        </button>
+        <div style="font-size:11px;font-weight:700;color:var(--blue-l);padding:0 16px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;border-bottom:2px solid var(--blue);">Devices</div>
+        <div style="flex:1;"></div>
+        <div id="ns-devices-freshness" style="font-size:10px;color:var(--text3);padding:0 16px;font-family:'JetBrains Mono',monospace;"></div>
+        <button onclick="nsDevicesLoad()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:10px;padding:3px 10px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;margin-right:12px;">Refresh</button>
+      </div>
+      <!-- Body: left device list + right detail panel -->
+      <div style="display:flex;flex:1;overflow:hidden;">
+        <!-- LEFT — Device list -->
+        <div style="width:320px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;">Live Network Devices</div>
+            <div style="font-size:10px;color:var(--text3);" id="ns-devices-count">Loading…</div>
+          </div>
+          <div id="ns-devices-list" style="flex:1;overflow-y:auto;"></div>
+        </div>
+        <!-- CENTER — empty state when nothing selected -->
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;" id="ns-devices-empty">← Select a device to view details</div>
+        <!-- RIGHT — Device detail panel -->
+        <div id="ns-device-detail-panel" style="display:none;width:320px;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);">
+            <div id="ns-device-detail-title" style="font-size:13px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;"></div>
+            <button onclick="document.getElementById('ns-device-detail-panel').style.display='none';document.getElementById('ns-devices-empty').style.display='flex';" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
+          </div>
+          <div id="ns-device-detail-body" style="padding:16px;"></div>
+        </div>
+      </div>
+    </div>
     <div id="ns-tool-workbench" style="display:none;position:fixed;inset:0;background:#0a0f1a;z-index:300;flex-direction:column;">
       <!-- Toolbar -->
       <div style="display:flex;align-items:center;background:#0f1623;border-bottom:1px solid #1e2a3a;height:42px;flex-shrink:0;position:relative;z-index:301;">
@@ -1030,7 +1066,7 @@ async function refreshSettingsBilling() {
 const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings',intel:'Intel'};
 function nav(page, el) {
   // Close any full-page tool overlays first
-  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench'].forEach(id => {
+  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench','ns-tool-devices'].forEach(id => {
     const el2 = document.getElementById(id);
     if (el2) el2.style.display = 'none';
   });
@@ -2103,19 +2139,20 @@ function networkViewCase(ip) {
 
 // ── TOOL OPEN/CLOSE ───────────────────────────────────────────────────────────
 function nsOpenTool(which) {
-  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench'].forEach(id => {
+  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench','ns-tool-devices'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  const toolId = which==='ptree' ? 'ns-tool-ptree' : which==='timeline' ? 'ns-tool-timeline' : 'ns-tool-workbench';
+  const toolId = which==='ptree' ? 'ns-tool-ptree' : which==='timeline' ? 'ns-tool-timeline' : which==='devices' ? 'ns-tool-devices' : 'ns-tool-workbench';
   document.getElementById(toolId).style.display = 'flex';
   if (which==='ptree')     { _ptFilter='all'; ptBuildIncidentList(); ptPaintEmpty(); }
   if (which==='timeline')  { tlUpdateDeviceTabs(); tlPaint(); }
   if (which==='workbench') { wbStartPolling(); setTimeout(wbPaint, 100); }
+  if (which==='devices')   { nsDevicesLoad(); }
 }
 
 function nsCloseTool() {
-  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench'].forEach(id => {
+  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench','ns-tool-devices'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -2123,6 +2160,88 @@ function nsCloseTool() {
 }
 
 function nsToolSwitch(which) { nsCloseTool(); nsOpenTool(which); }
+
+// ── DEVICES ────────────────────────────────────────────────────────────────
+let _nsDevices = [];
+let _nsSelectedDeviceObj = null;
+
+async function nsDevicesLoad() {
+  const list  = document.getElementById('ns-devices-list');
+  const count = document.getElementById('ns-devices-count');
+  const fresh = document.getElementById('ns-devices-freshness');
+  count.textContent = 'Loading…';
+  try {
+    const res  = await fetch(`${API}/shield/devices?key=${encodeURIComponent(ORG_KEY)}`);
+    const data = await res.json();
+    _nsDevices = data.devices || [];
+
+    if (!data.scanned_at) {
+      fresh.textContent = '';
+      count.textContent = '0 devices';
+      list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;">No devices seen yet.<br>Make sure device_scanner.py is running on your Block.</div>`;
+      return;
+    }
+
+    fresh.textContent = data.online ? `● live — scanned ${_relTime(data.scanned_at)}` : `○ stale — last scan ${_relTime(data.scanned_at)}`;
+    fresh.style.color = data.online ? '#00e676' : 'var(--text3)';
+    count.textContent = `${_nsDevices.length} device${_nsDevices.length !== 1 ? 's' : ''} on ${data.subnet || 'network'}`;
+
+    if (!_nsDevices.length) {
+      list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text3);font-size:12px;">Last scan found no devices</div>`;
+      return;
+    }
+
+    list.innerHTML = _nsDevices.map((d, i) => {
+      const isNamed  = d.hostname && d.hostname !== d.ip;
+      const label    = isNamed ? d.hostname : 'Unknown Device';
+      const isSel    = _nsSelectedDeviceObj && _nsSelectedDeviceObj.ip === d.ip;
+      const dotColor = d.status === 'up' ? '#00e676' : '#4a5568';
+      return `<div onclick="nsDeviceSelect(${i})" style="padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;background:${isSel ? 'rgba(33,150,211,0.08)' : 'transparent'};border-left:2px solid ${isSel ? 'var(--blue)' : 'transparent'};">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:${dotColor};flex-shrink:0;${d.status==='up' ? 'box-shadow:0 0 5px '+dotColor+';' : ''}"></div>
+          <div style="font-size:12px;font-weight:700;color:${isNamed ? 'var(--text)' : 'var(--text3)'};${isNamed ? '' : 'font-style:italic;'}">${label}</div>
+        </div>
+        <div style="font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;padding-left:13px;">${d.ip} · ${d.device_type || 'unknown type'}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    count.textContent = '';
+    list.innerHTML = `<div style="padding:24px;text-align:center;color:#f87171;font-size:12px;">Could not load devices — try refreshing.</div>`;
+  }
+}
+
+function nsDeviceSelect(i) {
+  const d = _nsDevices[i];
+  if (!d) return;
+  _nsSelectedDeviceObj = d;
+  nsDevicesLoad(); // repaint list so the selected row highlights
+
+  document.getElementById('ns-devices-empty').style.display = 'none';
+  const panel = document.getElementById('ns-device-detail-panel');
+  panel.style.display = 'block';
+
+  const isNamed = d.hostname && d.hostname !== d.ip;
+  document.getElementById('ns-device-detail-title').textContent = isNamed ? d.hostname : 'Unknown Device';
+
+  const rows = [
+    ['IP address',    d.ip || '—'],
+    ['MAC address',   d.mac || '—'],
+    ['Vendor',        d.vendor || 'Unknown'],
+    ['Device type',   d.device_type || 'Unknown'],
+    ['Location',      d.location || '—'],
+    ['Open ports',    (d.open_ports && d.open_ports.length) ? d.open_ports.join(', ') : 'None detected'],
+    ['Status',        d.status === 'up' ? 'Online' : 'Offline'],
+    ['Last seen',     d.last_seen ? _relTime(d.last_seen) : '—'],
+    ['First seen',    d.first_seen ? _relTime(d.first_seen) : '—'],
+  ];
+
+  document.getElementById('ns-device-detail-body').innerHTML = rows.map(([label, value]) => `
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">${label}</div>
+      <div style="font-size:12.5px;color:var(--text);font-family:'JetBrains Mono',monospace;word-break:break-word;">${value}</div>
+    </div>
+  `).join('');
+}
 
 // ── PROCESS TREE ──────────────────────────────────────────────────────────────
 let _ptFilter = 'all';
