@@ -287,9 +287,9 @@ class IntrusionDetector:
         if not self._registry.is_known(src_ip):
             self._fire_threat({
                 'signature_id': 'AS011',
-                'name':         'New device on network',
+                'name':         'New device joined your network',
                 'src_ip':       src_ip,
-                'detail':       f"Unknown device {src_ip} appeared on network",
+                'detail':       f"A device we haven't seen before ({src_ip}) just connected to your network.",
                 'risk':         'medium',
                 'response':     'alert',
             })
@@ -301,10 +301,10 @@ class IntrusionDetector:
             if not self._already_alerted(src_ip, f"AS012_{domain}"):
                 self._fire_threat({
                     'signature_id': 'AS012',
-                    'name':         'Connection to known C2',
+                    'name':         'Device contacted a known hacker-controlled server',
                     'src_ip':       src_ip,
                     'domain':       domain,
-                    'detail':       f"{src_ip} connected to known C2 domain {domain} — {bad.get('label','')}",
+                    'detail':       f"{src_ip} connected to {domain} — a domain known to be used for remotely controlling hacked devices. {bad.get('label','')}",
                     'risk':         bad.get('risk', 'high'),
                     'response':     'isolate_and_alert',
                     'intel':        bad,
@@ -330,10 +330,10 @@ class IntrusionDetector:
             if not self._already_alerted(src_ip, f"bad_ip_{dst_ip}"):
                 self._fire_threat({
                     'signature_id': 'AS012',
-                    'name':         'Connection to malicious IP',
+                    'name':         'Device connected to a flagged dangerous address',
                     'src_ip':       src_ip,
                     'dst_ip':       dst_ip,
-                    'detail':       f"{src_ip} connected to malicious IP {dst_ip} — {bad_ip.get('label','')}",
+                    'detail':       f"{src_ip} connected to {dst_ip}, an address known for malicious activity. {bad_ip.get('label','')}",
                     'risk':         bad_ip.get('risk', 'high'),
                     'response':     'block_and_alert',
                     'intel':        bad_ip,
@@ -364,9 +364,9 @@ class IntrusionDetector:
         if unique_dsts >= 10 and not self._already_alerted(src_ip, 'AS001'):
             self._fire_threat({
                 'signature_id': 'AS001',
-                'name':         'Port scan — horizontal',
+                'name':         'Device is probing your network',
                 'src_ip':       src_ip,
-                'detail':       f"{src_ip} scanned {unique_dsts} unique IPs in 60s",
+                'detail':       f"{src_ip} tried to reach {unique_dsts} different devices on your network in under a minute — a common first step when something is searching for a way in.",
                 'risk':         'high',
                 'response':     'block_and_alert',
             })
@@ -374,9 +374,9 @@ class IntrusionDetector:
         if unique_ports >= 15 and not self._already_alerted(src_ip, 'AS002'):
             self._fire_threat({
                 'signature_id': 'AS002',
-                'name':         'Port scan — vertical',
+                'name':         'Device is checking for open doors',
                 'src_ip':       src_ip,
-                'detail':       f"{src_ip} hit {unique_ports} unique ports in 60s",
+                'detail':       f"{src_ip} tried {unique_ports} different types of connections to the same device in under a minute — often means something is looking for a way in.",
                 'risk':         'high',
                 'response':     'block_and_alert',
             })
@@ -391,9 +391,9 @@ class IntrusionDetector:
         if hits >= 5 and not self._already_alerted(src_ip, sig_id):
             self._fire_threat({
                 'signature_id': sig_id,
-                'name':         f'Brute force — {proto}',
+                'name':         f'Someone is trying to guess a {proto} password',
                 'src_ip':       src_ip,
-                'detail':       f"{src_ip} made {hits} {proto} attempts in 60s",
+                'detail':       f"{src_ip} tried to log in {hits} times over {proto} in under a minute — a strong sign someone (or something automated) is trying to break in by guessing passwords.",
                 'risk':         'critical',
                 'response':     'block_and_alert',
             })
@@ -408,9 +408,9 @@ class IntrusionDetector:
         if len(targets) >= 3 and not self._already_alerted(src_ip, 'AS005'):
             self._fire_threat({
                 'signature_id': 'AS005',
-                'name':         'Lateral movement — internal SSH',
+                'name':         'A device is spreading to others on your network',
                 'src_ip':       src_ip,
-                'detail':       f"{src_ip} SSH'd to {len(targets)} internal machines: {', '.join(list(targets)[:5])}",
+                'detail':       f"{src_ip} connected to {len(targets)} other devices on your network in the last 5 minutes: {', '.join(list(targets)[:5])} — this is how malware typically spreads from one infected computer to the rest of an office.",
                 'risk':         'critical',
                 'response':     'isolate_and_alert',
             })
@@ -422,10 +422,10 @@ class IntrusionDetector:
         if is_beacon and not self._already_alerted(src_ip, f'AS006_{dst_ip}'):
             self._fire_threat({
                 'signature_id': 'AS006',
-                'name':         'C2 beacon detected',
+                'name':         'A device is quietly checking in with a suspicious server',
                 'src_ip':       src_ip,
                 'dst_ip':       dst_ip,
-                'detail':       f"{src_ip} beaconing to {dst_ip} every ~{interval}s — possible C2",
+                'detail':       f"{src_ip} has been contacting {dst_ip} every ~{interval}s like clockwork — that steady, repeating pattern is a common sign of malware reporting back to whoever's controlling it.",
                 'risk':         'critical',
                 'response':     'isolate_and_alert',
             })
@@ -458,9 +458,9 @@ class IntrusionDetector:
             if query_count >= 40 and avg_len >= 45 and not self._already_alerted(src_ip, f'AS007_{base}'):
                 self._fire_threat({
                     'signature_id': 'AS007',
-                    'name':         'DNS tunneling detected',
+                    'name':         'Device may be sneaking data out through lookups',
                     'src_ip':       src_ip,
-                    'detail':       f"{src_ip} made {query_count} DNS queries to {base} in 60s (avg length {avg_len:.0f} chars)",
+                    'detail':       f"{src_ip} made {query_count} unusually long, unusual-looking name lookups to {base} in under a minute (averaging {avg_len:.0f} characters each) — a technique sometimes used to quietly move data out of a network without it looking like a normal file transfer.",
                     'risk':         'high',
                     'response':     'block_and_alert',
                 })
@@ -469,9 +469,9 @@ class IntrusionDetector:
         if 4000 <= dst_port <= 9999 and not self._already_alerted(src_ip, f'AS008_{dst_port}'):
             self._fire_threat({
                 'signature_id': 'AS008',
-                'name':         'Possible reverse shell',
+                'name':         'Possible remote-control connection',
                 'src_ip':       src_ip,
-                'detail':       f"{src_ip} connected to high port {dst_port} — possible reverse shell",
+                'detail':       f"{src_ip} opened a connection on port {dst_port} — a port pattern sometimes used to give someone outside your network remote control of a hacked device.",
                 'risk':         'critical',
                 'response':     'isolate_and_alert',
             })
@@ -481,9 +481,9 @@ class IntrusionDetector:
         if bytes_out >= 5242880 and not self._already_alerted(src_ip, 'AS009'):
             self._fire_threat({
                 'signature_id': 'AS009',
-                'name':         'Bulk outbound data exfiltration',
+                'name':         'Large amount of data leaving your network',
                 'src_ip':       src_ip,
-                'detail':       f"{src_ip} sent {bytes_out/1024/1024:.1f}MB outbound in 60s",
+                'detail':       f"{src_ip} sent {bytes_out/1024/1024:.1f}MB out in under a minute — worth checking this was expected, since a large sudden upload is a common sign of data being copied out.",
                 'risk':         'high',
                 'response':     'alert',
             })

@@ -39,6 +39,34 @@ def build_incident(verdict, risk_level, config):
         if session['first_seen'] != session['last_seen'] else 1
     )
 
+    is_intrusion = verdict.get('monitor_type') == 'intrusion'
+
+    if is_intrusion:
+        # Real network signature (port scan, brute force, etc.) — show the
+        # actual plain-English detail, not a KB/data-volume metric that
+        # doesn't apply here (session.bytes is always 0 for these).
+        detections = [
+            {
+                'type':        'NETWORK_INTRUSION',
+                'label':       tool['name'],
+                'entity_type': 'NETWORK',
+                'isCode':      False,
+                'value':       verdict.get('reason', ''),
+                'domain':      verdict.get('domain', ''),
+            }
+        ]
+    else:
+        detections = [
+            {
+                'type':        'NETWORK_DATA_VOLUME',
+                'label':       f"{total_kb:.1f}KB to {tool['name']}",
+                'entity_type': 'NETWORK',
+                'isCode':      False,
+                'value':       f"{total_kb:.1f}KB in {duration:.0f}s",
+                'domain':      verdict['domain'],
+            }
+        ]
+
     return {
         # Core fields — must match what POST /log-incident on the live API expects.
         # API auth is a single 'key' field (org_key or emp_key), NOT separate
@@ -56,16 +84,7 @@ def build_incident(verdict, risk_level, config):
         'resolved':     False,
 
         # Detection detail
-        'detections': [
-            {
-                'type':        'NETWORK_DATA_VOLUME',
-                'label':       f"{total_kb:.1f}KB to {tool['name']}",
-                'entity_type': 'NETWORK',
-                'isCode':      False,
-                'value':       f"{total_kb:.1f}KB in {duration:.0f}s",
-                'domain':      verdict['domain'],
-            }
-        ],
+        'detections': detections,
 
         # Shield-specific metadata
         'shield_meta': {
@@ -79,6 +98,7 @@ def build_incident(verdict, risk_level, config):
             'device_name':   config.get('device_name', 'Syphir Shield'),
             'device_key':    config.get('device_key'),
             'firmware':      config.get('firmware_version', '1.0.0'),
+            'signature_id':  verdict.get('signature_id', ''),
         }
     }
 

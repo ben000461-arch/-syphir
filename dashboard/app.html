@@ -1082,7 +1082,7 @@ function nav(page, el) {
   if (page === 'policies') loadPolicies();
   if (page === 'gateway') renderProviders();
   if (page === 'intel') intelCheckSavedDevice();
-  if (page === 'network' && !window._nsSeeded) { window._nsSeeded=true; setTimeout(networkSeedDemo,300); }
+  if (page === 'network') networkLoadReal();
 }
 
 function setFilter(f, el) {
@@ -2076,13 +2076,83 @@ async function intelSend() {
 
 // ── NETWORK SECURITY ──────────────────────────────────────────────────────────
 
-const NS_THREAT_FEED  = [];   // live threat events
+const NS_THREAT_FEED  = [];   // real network incidents, loaded from GET /incidents
 const NS_TIMELINES    = {};   // ip -> [{time, name, sig, risk, response, score}]
-const NS_ISOLATED     = {};   // ip -> {reason, sig, case_id, time}
-const NS_BLOCKED      = {};   // ip -> {reason, sig, time}
+const NS_ISOLATED     = {};   // ip -> {reason, sig, time} — from real GET /shield/status
+const NS_BLOCKED      = {};   // ip -> {reason, sig, time} — from real GET /shield/status
 let   nsSelectedDevice = null;
+let   nsShieldOnline   = false;
 
 function networkRefresh() {
+  networkLoadReal();
+}
+
+// Shared by any button that dispatches a real command and needs to know
+// the outcome — release/unblock buttons here, plus reused by Intel.
+async function shieldCommandPoll(commandId, maxWaitMs = 20000) {
+  const pollEveryMs = 1500;
+  let waited = 0;
+  while (waited < maxWaitMs) {
+    await new Promise(r => setTimeout(r, pollEveryMs));
+    waited += pollEveryMs;
+    try {
+      const res  = await fetch(`${API}/shield/command/${commandId}`);
+      const data = await res.json();
+      if (data.status === 'done') return data.result;
+    } catch (e) { /* keep polling until timeout */ }
+  }
+  return null; // timed out — caller decides how to present that
+}
+
+// Real data load — replaces the old fake-seeded demo entirely. Pulls real
+// isolated/blocked state from the heartbeat-carried firewall status, and
+// real network incidents (already flowing from intrusion_detector.py through
+// reporter.py) filtered to this org.
+async function networkLoadReal() {
+  try {
+    const res  = await fetch(`${API}/shield/status?key=${encodeURIComponent(ORG_KEY)}`);
+    const data = await res.json();
+    nsShieldOnline = !!data.online;
+
+    Object.keys(NS_ISOLATED).forEach(k => delete NS_ISOLATED[k]);
+    Object.keys(NS_BLOCKED).forEach(k => delete NS_BLOCKED[k]);
+
+    Object.entries(data.isolated_devices || {}).forEach(([ip, info]) => {
+      NS_ISOLATED[ip] = { reason: info.reason || 'Security threat detected', sig: info.signature_id || '', time: info.isolated_at };
+    });
+    Object.entries(data.blocked_ips || {}).forEach(([ip, info]) => {
+      NS_BLOCKED[ip] = { reason: info.reason || '', sig: info.signature_id || '', time: info.blocked_at };
+    });
+
+    const badge = document.getElementById('badge-network');
+    const isolatedCount = Object.keys(NS_ISOLATED).length;
+    if (badge) { badge.textContent = isolatedCount; badge.style.display = isolatedCount ? '' : 'none'; }
+  } catch (e) {
+    nsShieldOnline = false;
+  }
+
+  try {
+    const res  = await fetch(`${API}/incidents/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`);
+    const data = await res.json();
+    const networkIncidents = (data.incidents || []).filter(i => i.source === 'network');
+
+    NS_THREAT_FEED.length = 0;
+    for (const inc of networkIncidents.slice(0, 50)) {
+      NS_THREAT_FEED.push({
+        id:        inc.id,
+        time:      new Date(inc.timestamp),
+        name:      (inc.ai_tool || '').replace(/^Network — /, ''), // strip the internal prefix, dashboard already labels this section "Network"
+        sig:       inc.shield_meta?.signature_id || '',
+        risk:      inc.risk_level || 'medium',
+        src_ip:    inc.ip_address || '',
+        detail:    inc.message || '',
+        resolved:  !!inc.resolved,
+      });
+      if (!NS_TIMELINES[inc.ip_address]) NS_TIMELINES[inc.ip_address] = [];
+      NS_TIMELINES[inc.ip_address].push({ time: new Date(inc.timestamp), name: (inc.ai_tool||'').replace(/^Network — /,''), sig: inc.shield_meta?.signature_id||'', risk: inc.risk_level, detail: inc.message });
+    }
+  } catch (e) { /* keep whatever was already loaded rather than blanking the page on a transient error */ }
+
   renderNetworkStats();
   renderIsolated();
   renderBlocked();
@@ -2090,74 +2160,58 @@ function networkRefresh() {
   if (nsSelectedDevice) renderTimeline(nsSelectedDevice);
 }
 
-function networkClearAll() {
-  NS_THREAT_FEED.length = 0;
-  renderThreatFeed();
-  showToast('Resolved threats cleared');
+async function networkReleaseDevice(ip) {
+  showToast(`Releasing ${ip}...`);
+  try {
+    const res  = await fetch(`${API}/shield/command`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, action: 'release', target_ip: ip, reason: 'Released from Network Security' }),
+    });
+    const data = await res.json();
+    if (!data.success) { showToast(`Could not release ${ip}: ${data.message || 'error'}`); return; }
+    const result = await shieldCommandPoll(data.command_id);
+    showToast(result ? result.message : `${ip} — no response from your Block yet, it may take a moment`);
+    networkLoadReal();
+  } catch (e) {
+    showToast(`Error releasing ${ip}: ${e.message}`);
+  }
 }
 
-// Called by the live feed / simulation to inject threat events
-function networkIngestThreat(threat) {
-  const entry = {
-    id:       Date.now() + Math.random(),
-    time:     new Date(),
-    name:     threat.name     || 'Unknown Threat',
-    sig:      threat.sig      || 'AS000',
-    risk:     threat.risk     || 'medium',
-    src_ip:   threat.src_ip   || '0.0.0.0',
-    detail:   threat.detail   || '',
-    response: threat.response || 'watch',
-    score:    threat.score    || 0,
-  };
-
-  NS_THREAT_FEED.unshift(entry);
-  if (NS_THREAT_FEED.length > 100) NS_THREAT_FEED.pop();
-
-  // Build timeline per device
-  if (!NS_TIMELINES[entry.src_ip]) NS_TIMELINES[entry.src_ip] = [];
-  NS_TIMELINES[entry.src_ip].push(entry);
-
-  // Track isolated / blocked
-  if (entry.response === 'isolate_and_alert') {
-    NS_ISOLATED[entry.src_ip] = {
-      reason:  entry.detail,
-      sig:     entry.sig,
-      case_id: `CASE-${new Date().toISOString().replace(/[-T:.Z]/g,'').slice(0,14)}-${entry.src_ip.replace(/\./g,'')}`,
-      time:    entry.time,
-    };
-    // Update badge
-    const badge = document.getElementById('badge-network');
-    if (badge) { badge.textContent = Object.keys(NS_ISOLATED).length; badge.style.display = ''; }
+async function networkUnblockIP(ip) {
+  showToast(`Unblocking ${ip}...`);
+  try {
+    const res  = await fetch(`${API}/shield/command`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, action: 'unblock', target_ip: ip, reason: 'Unblocked from Network Security' }),
+    });
+    const data = await res.json();
+    if (!data.success) { showToast(`Could not unblock ${ip}: ${data.message || 'error'}`); return; }
+    const result = await shieldCommandPoll(data.command_id);
+    showToast(result ? result.message : `${ip} — no response from your Block yet, it may take a moment`);
+    networkLoadReal();
+  } catch (e) {
+    showToast(`Error unblocking ${ip}: ${e.message}`);
   }
-  if (entry.response === 'block_and_alert' && !_isLAN(entry.src_ip)) {
-    NS_BLOCKED[entry.src_ip] = {
-      reason: entry.detail,
-      sig:    entry.sig,
-      time:   entry.time,
-    };
-  }
-
-  // Re-render if on network page
-  if (document.getElementById('page-network').style.display !== 'none') {
-    networkRefresh();
-  }
-  // Live update workbench if open
-  const wb = document.getElementById('ns-tool-workbench');
-  if (wb && wb.style.display !== 'none') setTimeout(wbPaint, 50);
 }
 
-function _isLAN(ip) {
-  return ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.');
+async function networkClearAll() {
+  const unresolved = NS_THREAT_FEED.filter(e => !e.resolved);
+  if (!unresolved.length) { showToast('Nothing to clear — no active threats.'); return; }
+  showToast(`Clearing ${unresolved.length} resolved threat${unresolved.length===1?'':'s'}...`);
+  await Promise.all(unresolved.map(e =>
+    fetch(`${API}/incidents/${e.id}/resolve`, { method: 'PATCH' }).catch(() => {})
+  ));
+  networkLoadReal();
 }
 
 function renderNetworkStats() {
   const isolated = Object.keys(NS_ISOLATED).length;
   const blocked  = Object.keys(NS_BLOCKED).length;
-  const cases    = Object.values(NS_ISOLATED).filter(v => v.case_id).length;
+  const active   = NS_THREAT_FEED.filter(e => !e.resolved).length; // real open-threat count, not a fake case_id tally
   const threats  = NS_THREAT_FEED.length;
   document.getElementById('ns-isolated-count').textContent = isolated;
   document.getElementById('ns-blocked-count').textContent  = blocked;
-  document.getElementById('ns-cases-count').textContent    = cases;
+  document.getElementById('ns-cases-count').textContent    = active;
   document.getElementById('ns-threats-count').textContent  = threats;
 }
 
@@ -2171,7 +2225,7 @@ function renderIsolated() {
       <div class="device-ip">${ip}</div>
       <div class="device-info">
         <div class="device-reason">${info.reason || 'Security threat detected'}</div>
-        <div class="device-case">${info.case_id || ''} · ${_relTime(info.time)}</div>
+        <div class="device-case">${_relTime(info.time)}</div>
       </div>
       <div class="device-actions">
         <button class="btn-investigate" onclick="networkViewCase('${ip}')">Investigate</button>
@@ -2191,7 +2245,7 @@ function renderBlocked() {
       <div class="device-ip">${ip}</div>
       <div class="device-info">
         <div class="device-reason">${info.reason || ''}</div>
-        <div class="device-case">${info.sig} · ${_relTime(info.time)} · expires 60min</div>
+        <div class="device-case">${_relTime(info.time)}</div>
       </div>
       <div class="device-actions">
         <button class="btn-release" onclick="networkUnblockIP('${ip}')">Unblock</button>
@@ -2202,32 +2256,27 @@ function renderBlocked() {
 
 function renderThreatFeed() {
   const el = document.getElementById('ns-threat-feed');
-  if (!NS_THREAT_FEED.length) { el.innerHTML = '<div class="threat-empty">Monitoring network — no threats detected yet</div>'; return; }
-  el.innerHTML = NS_THREAT_FEED.slice(0, 30).map(e => {
+  if (!nsShieldOnline) {
+    el.innerHTML = '<div class="threat-empty">Your Block hasn\'t checked in recently — showing the last data we have. Make sure it\'s powered on and connected.</div>';
+  }
+  if (!NS_THREAT_FEED.length) { el.innerHTML += '<div class="threat-empty">No threats detected — your network looks clean.</div>'; return; }
+  el.innerHTML = (nsShieldOnline ? '' : el.innerHTML) + NS_THREAT_FEED.slice(0, 30).map(e => {
     const rClass = e.risk === 'critical' ? 'critical' : e.risk === 'high' ? 'high' : 'medium';
-    const respClass = e.response === 'isolate_and_alert' ? 'isolate' :
-                      e.response === 'block_and_alert'   ? 'block'   :
-                      e.response === 'alert'             ? 'warn'    : 'watch';
-    const respLabel = e.response === 'isolate_and_alert' ? 'ISOLATED' :
-                      e.response === 'block_and_alert'   ? 'BLOCKED'  :
-                      e.response === 'alert'             ? 'WARNED'   : 'WATCH';
-    const confColor = e.score >= 80 ? '#f44336' : e.score >= 65 ? '#ff6d2e' : e.score >= 40 ? '#ffc107' : '#8b949e';
+    const statusClass = e.resolved ? 'watch' : (e.risk === 'critical' || e.risk === 'high' ? 'block' : 'warn');
+    const statusLabel = e.resolved ? 'RESOLVED' : 'ACTIVE';
+    const riskLabel = (e.risk || 'medium').toUpperCase();
     return `
       <div class="threat-feed-row" onclick="networkViewDevice('${e.src_ip}')">
-        <div class="threat-sig-badge ${rClass}">${e.sig}</div>
+        <div class="threat-sig-badge ${rClass}">${riskLabel}</div>
         <div class="threat-feed-body">
           <div style="display:flex;align-items:center;gap:8px;">
             <div class="threat-feed-name">${e.name}</div>
-            <div class="threat-response-pill ${respClass}">${respLabel}</div>
+            <div class="threat-response-pill ${statusClass}">${statusLabel}</div>
           </div>
           <div class="threat-feed-detail">${e.detail}</div>
           <div class="threat-feed-meta">
             <div class="threat-feed-ip">${e.src_ip}</div>
             <div class="threat-feed-time">${_relTime(e.time)}</div>
-            <div class="conf-meter" style="flex:1;max-width:120px;">
-              <div class="conf-bar-wrap"><div class="conf-bar" style="width:${e.score}%;background:${confColor};"></div></div>
-              <div class="conf-val" style="color:${confColor};">${e.score}</div>
-            </div>
           </div>
         </div>
       </div>
@@ -3580,39 +3629,6 @@ function wbTooltip(e, ip) {
   tip.style.display='';
 }
 
-// Live update workbench when new threats come in — handled inside networkIngestThreat
-function networkReleaseDevice(ip) {
-  delete NS_ISOLATED[ip];
-  const badge = document.getElementById('badge-network');
-  const count = Object.keys(NS_ISOLATED).length;
-  if (badge) { badge.textContent = count; if (!count) badge.style.display = 'none'; }
-  networkRefresh();
-  showToast(`${ip} released from isolation`);
-}
-
-function networkUnblockIP(ip) {
-  delete NS_BLOCKED[ip];
-  networkRefresh();
-  showToast(`${ip} unblocked`);
-}
-
-// Seed with demo data when on network page
-function networkSeedDemo() {
-  const demo = [
-    { sig:'AS012', name:'C2 domain connection',      risk:'critical', src_ip:'192.168.1.42', detail:'Connected to ngrok.io — known C2 tunnel', response:'isolate_and_alert', score:100 },
-    { sig:'AS012', name:'Connection to known C2',    risk:'medium',   src_ip:'192.168.1.71', detail:'Connected to pastebin.com — C2 config hosting', response:'isolate_and_alert', score:100 },
-    { sig:'AS003', name:'Brute force — SSH',         risk:'critical', src_ip:'203.0.113.5',  detail:'8 SSH attempts in 60s', response:'block_and_alert', score:75 },
-    { sig:'AS001', name:'Port scan — horizontal',    risk:'high',     src_ip:'192.168.1.63', detail:'Scanned 10 unique IPs in 60s', response:'alert', score:50 },
-    { sig:'AS009', name:'Bulk outbound exfiltration',risk:'high',     src_ip:'192.168.1.42', detail:'7.4MB sent outbound in 60s', response:'alert', score:35 },
-    { sig:'AS001', name:'Port scan — horizontal',    risk:'high',     src_ip:'192.168.1.55', detail:'Scanned 10 unique IPs in 60s', response:'alert', score:50 },
-  ];
-  let delay = 0;
-  demo.forEach(d => {
-    setTimeout(() => networkIngestThreat(d), delay);
-    delay += 200;
-  });
-}
-
 function _relTime(d) {
   if (!d) return '';
   const s = Math.floor((Date.now() - new Date(d)) / 1000);
@@ -3626,8 +3642,6 @@ function _timeStr(d) {
   return new Date(d).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 
-// Network security demo seeding handled in nav() directly
-window._nsSeeded = false;
 </script>
 </body>
 </html>

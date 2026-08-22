@@ -82,19 +82,19 @@ class CommandPoller:
             if action == 'isolate':
                 success = self.firewall.isolate_device(target_ip, reason)
                 message = f"{target_ip} isolated — cut off from network, Shield connection preserved." if success \
-                    else f"Could not isolate {target_ip} — iptables rule did not apply. Check the device is reachable and iptables is installed."
+                    else f"Couldn't isolate {target_ip} — your Block may need a quick check to make sure it's set up correctly."
             elif action == 'release':
                 success = self.firewall.release_device(target_ip, released_by='intel')
                 message = f"{target_ip} released back onto the network." if success \
-                    else f"Could not release {target_ip} — iptables rule may not have cleared."
+                    else f"Couldn't release {target_ip} — try again in a moment."
             elif action == 'block':
                 success = self.firewall.block_ip(target_ip, reason)
                 message = f"{target_ip} blocked." if success \
-                    else f"Could not block {target_ip} — iptables rule did not apply."
+                    else f"Couldn't block {target_ip} — your Block may need a quick check to make sure it's set up correctly."
             elif action == 'unblock':
                 success = self.firewall.unblock_ip(target_ip)
                 message = f"{target_ip} unblocked." if success \
-                    else f"Could not unblock {target_ip} — iptables rule may not have cleared."
+                    else f"Couldn't unblock {target_ip} — try again in a moment."
             elif action == 'status':
                 status  = self.firewall.get_status()
                 success = True

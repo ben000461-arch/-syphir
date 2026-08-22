@@ -22,10 +22,11 @@ BASE_DIR = Path(__file__).parent
 
 class Heartbeat:
 
-    def __init__(self, config, interval_seconds=60):
+    def __init__(self, config, interval_seconds=60, firewall=None):
         self.config   = config
         self.interval = interval_seconds
         self.api_url  = config['api_url']
+        self.firewall = firewall  # optional — lets heartbeat carry real isolated/blocked counts
 
         self._running      = False
         self._thread       = None
@@ -61,14 +62,28 @@ class Heartbeat:
             self._ping()
 
     def _ping(self):
-        payload = json.dumps({
+        payload_dict = {
             'device_key':       self.config['device_key'],
             'org_key':          self.config['org_key'],
             'status':           'active',
             'firmware_version': self.config.get('firmware_version', '1.0.0'),
             'device_name':      self.config.get('device_name', 'Syphir Shield'),
             'timestamp':        datetime.utcnow().isoformat() + 'Z',
-        }).encode()
+        }
+
+        # Piggyback real firewall state on the heartbeat that's already
+        # running every 60s — cheaper than a whole separate poller, and
+        # means the dashboard's Network Security page can show real
+        # isolated/blocked counts instead of the old placeholder.
+        if self.firewall:
+            try:
+                status = self.firewall.get_status()
+                payload_dict['isolated_devices'] = status.get('isolated_devices', {})
+                payload_dict['blocked_ips']      = status.get('blocked_ips', {})
+            except Exception as e:
+                log.debug(f"Could not attach firewall status to heartbeat: {e}")
+
+        payload = json.dumps(payload_dict).encode()
 
         try:
             req = urllib.request.Request(

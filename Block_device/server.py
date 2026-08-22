@@ -446,11 +446,14 @@ def main():
     # Boot support modules
     reporter = Reporter(config)
     runner   = AgentRunner(config)
-    hb       = Heartbeat(config)
 
     # Boot Layer 2 — Firewall + Blocker (before containment so we can wire)
     firewall = Firewall(config)
     blocker  = Blocker(config, firewall, reporter, notify_push, runner)
+
+    # Heartbeat carries real firewall status (isolated/blocked counts) so the
+    # dashboard's Network Security page can show real numbers, not a mock.
+    hb = Heartbeat(config, firewall=firewall)
 
     # Real network-level commands from Intel (isolate/release/block/unblock/status)
     from command_poller import CommandPoller
