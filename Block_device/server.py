@@ -452,6 +452,10 @@ def main():
     firewall = Firewall(config)
     blocker  = Blocker(config, firewall, reporter, notify_push, runner)
 
+    # Real network-level commands from Intel (isolate/release/block/unblock/status)
+    from command_poller import CommandPoller
+    commands = CommandPoller(config, firewall)
+
     # Boot Layer 3 — Containment (scores before blocker acts)
     containment = Containment(config, blocker, threat_intel)
     blocker.set_containment(containment)
@@ -484,6 +488,7 @@ def main():
     blocker.start()
     ids.start()
     monitor.start()
+    commands.start()
 
     log.info("=" * 56)
     log.info("  Shield active — all systems running")
@@ -510,6 +515,7 @@ def main():
         blocker.stop()
         firewall.stop()
         hb.stop()
+        commands.stop()
         log.info("Goodbye.")
 
 

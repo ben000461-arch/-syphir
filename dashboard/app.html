@@ -268,7 +268,7 @@ select option{background:var(--bg3);color:var(--text);}
 .intel-connect-sub{font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:20px;}
 .intel-connect-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 13px;border-radius:6px;font-size:13px;font-family:'JetBrains Mono',monospace;text-align:center;outline:none;margin-bottom:10px;}
 .intel-connect-input:focus{border-color:var(--blue);}
-.intel-connect-btn{width:100%;background:var(--blue);color:#fff;border:none;padding:9px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.intel-connect-btn{width:100%;background:var(--blue);color:#000;border:none;padding:9px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
 .intel-connect-err{font-size:11px;color:var(--red);margin-top:8px;min-height:16px;}
 .intel-connect-demo{font-size:11px;color:var(--text3);margin-top:12px;}
 .intel-connect-demo span{color:var(--blue-l);cursor:pointer;}
@@ -291,7 +291,7 @@ select option{background:var(--bg3);color:var(--text);}
 .intel-input-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);}
 .intel-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:5px;font-size:12px;font-family:'Inter',sans-serif;outline:none;}
 .intel-input:focus{border-color:var(--blue);}
-.intel-send{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.12s;}
+.intel-send{background:var(--blue);color:#000;border:none;border-radius:5px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.12s;}
 .intel-send:hover{background:var(--blue-d);}
 .intel-send:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;}
 
@@ -525,10 +525,9 @@ select option{background:var(--bg3);color:var(--text);}
         <div class="intel-connect" id="intel-connect-screen">
           <div class="intel-connect-card">
             <div class="intel-connect-icon">○</div>
-            <div class="intel-connect-title">Connect your Block device</div>
-            <div class="intel-connect-sub">Enter your Block device setup code to enable Intel commands. You'll find it on the sticker on the bottom of your co|op Block box.</div>
-            <input class="intel-connect-input" id="intel-device-input" placeholder="SYP-NET-XXXX-XXXX" maxlength="19" oninput="intelFormatKey(this)" onkeydown="if(event.key==='Enter')intelConnect()">
-            <button class="intel-connect-btn" onclick="intelConnect()">Connect Device</button>
+            <div class="intel-connect-title">Connect to your Block</div>
+            <div class="intel-connect-sub">We'll check that your Block is online and ready for commands.</div>
+            <button class="intel-connect-btn" onclick="intelConnect()" id="intel-connect-btn">Connect</button>
             <div class="intel-connect-err" id="intel-connect-err"></div>
             <div class="intel-connect-demo">No device yet? <span onclick="intelConnectDemo()">Use demo device</span></div>
           </div>
@@ -1569,6 +1568,10 @@ const INTEL_COMMANDS = [
   { pattern: /scan\s+(\w+)/i,      type: 'diagnostic', label: (m) => `Scan ${m[1]}'s machine` },
   { pattern: /status/i,            type: 'status',     label: () => 'Block status' },
   { pattern: /ping\s+([\d.]+)/i,   type: 'ping',       label: (m) => `Ping ${m[1]}` },
+  { pattern: /isolate\s+([\d.]+)/i,type: 'isolate',    label: (m) => `Isolate ${m[1]}` },
+  { pattern: /release\s+([\d.]+)/i,type: 'release',    label: (m) => `Release ${m[1]}` },
+  { pattern: /block\s+([\d.]+)/i,  type: 'block',       label: (m) => `Block ${m[1]}` },
+  { pattern: /unblock\s+([\d.]+)/i,type: 'unblock',     label: (m) => `Unblock ${m[1]}` },
   { pattern: /^stop$/i,            type: 'stop',       label: () => 'Stop' },
   { pattern: /^continue$/i,        type: 'continue',   label: () => 'Continue' },
   { pattern: /^cancel$/i,          type: 'cancel',     label: () => 'Cancel' },
@@ -1583,14 +1586,50 @@ function intelFormatKey(inp) {
   inp.value = v;
 }
 
-function intelConnect() {
-  const key = document.getElementById('intel-device-input').value.trim().toUpperCase();
+async function intelConnect() {
   const err = document.getElementById('intel-connect-err');
-  if (!key) { err.textContent = 'Enter a device key.'; return; }
-  if (!key.startsWith('SYP-NET-')) { err.textContent = 'Invalid key format. Should start with SYP-NET-'; return; }
+  const btn = document.getElementById('intel-connect-btn');
   err.textContent = '';
-  localStorage.setItem(INTEL_STORAGE_KEY, key);
-  intelActivate(key);
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+
+  try {
+    const res  = await fetch(`${API}/shield/command`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, action: 'status', reason: 'Connect check' }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      err.textContent = data.message || 'Could not reach your Block.';
+      btn.disabled = false; btn.textContent = 'Connect';
+      return;
+    }
+
+    // Poll for the result — same pattern as a normal command
+    const maxWaitMs = 15000, pollEveryMs = 1500;
+    let waited = 0;
+    while (waited < maxWaitMs) {
+      await new Promise(r => setTimeout(r, pollEveryMs));
+      waited += pollEveryMs;
+      const r2 = await fetch(`${API}/shield/command/${data.command_id}`);
+      const d2 = await r2.json();
+      if (d2.status === 'done') {
+        if (d2.result && d2.result.success) {
+          localStorage.setItem(INTEL_STORAGE_KEY, ORG_KEY);
+          intelActivate(ORG_KEY);
+        } else {
+          err.textContent = 'Your Block responded but reported an error — check it\'s running correctly.';
+          btn.disabled = false; btn.textContent = 'Connect';
+        }
+        return;
+      }
+    }
+    err.textContent = 'Your Block didn\'t respond — check that it\'s powered on and connected.';
+    btn.disabled = false; btn.textContent = 'Connect';
+  } catch (e) {
+    err.textContent = 'Could not reach the co|op API.';
+    btn.disabled = false; btn.textContent = 'Connect';
+  }
 }
 
 function intelConnectDemo() {
@@ -1607,7 +1646,7 @@ function intelActivate(key) {
   const msgs = document.getElementById('intel-messages');
   msgs.innerHTML = '';
   intelAddMsg('system', `Block device connected. Ready for commands.`);
-  intelAddMsg('system', `Try: "Fix John's computer", "Diagnose Sarah's machine", "Status", or "Help"`);
+  intelAddMsg('system', `Try: "Status", "Isolate 192.168.1.42", "Ping 192.168.1.1", or "Help"`);
 }
 
 function intelDisconnect() {
@@ -1815,58 +1854,91 @@ async function intelPollJob(id, job_id) {
   intelCurrentJob = null;
 }
 
-async function intelRunStatus(id) {
-  const live = await intelCheckLocalServer();
-  if (!live) {
-    intelTermLine(id, 'Local server not running.', '#f87171');
-    intelTermLine(id, 'Start it with: python3 local_server.py', '#fbbf24');
-    intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Block server.');
+// ── Real network commands to Block — isolate/release/block/unblock/status/ping ──
+// Replaces the old localhost:7474 stub, which only ever ran things on
+// whatever machine had local_server.py open, never the Block itself.
+// Dashboard posts a command, Block's command_poller.py picks it up next
+// poll cycle (every 5s), runs the real firewall/ping action, reports back.
+async function intelRunNetworkCommand(id, action, targetIp, verb) {
+  intelTermLine(id, `Sending "${action}${targetIp ? ' ' + targetIp : ''}" to your Block...`, '#e0e0e0');
+  intelProgress(id, 15, 'Sending command...');
+
+  let commandId;
+  try {
+    const res = await fetch(`${API}/shield/command`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, action, target_ip: targetIp, reason: `Intel: ${verb}` }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      intelTermLine(id, `Could not send command: ${data.message || 'unknown error'}`, '#f87171');
+      intelProgress(id, 100, 'Error');
+      intelDone(id, 'Command was not accepted.');
+      return;
+    }
+    commandId = data.command_id;
+  } catch (e) {
+    intelTermLine(id, `Error: ${e.message}`, '#f87171');
+    intelProgress(id, 100, 'Error');
+    intelDone(id, 'Could not reach the co|op API.');
     return;
   }
 
-  intelTermLine(id, 'Querying Block device...', '#e0e0e0');
-  intelProgress(id, 30, 'Querying...');
+  intelTermLine(id, 'Waiting for your Block to pick this up...', '#e0e0e0');
+  intelProgress(id, 35, 'Waiting for Block...');
 
-  try {
-    const res  = await fetch(`${INTEL_LOCAL}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    const data = await res.json();
+  // Poll for the result — Block checks in every 5s, so give it real time,
+  // but don't hang forever if the Block is offline.
+  const maxWaitMs = 30000;
+  const pollEveryMs = 1500;
+  let waited = 0;
 
-    intelProgress(id, 70, 'Reading response...');
-    await new Promise(r => setTimeout(r, 300));
-
-    intelTermLine(id, `Block: Online`, '#a3e635');
-    intelTermLine(id, `Machine: ${data.machine}`, '#e6edf3');
-    intelTermLine(id, `OS: ${data.os}`, '#e6edf3');
-    intelTermLine(id, `Agent: ${data.agent_ready ? 'Ready' : 'Not found'}`, data.agent_ready ? '#a3e635' : '#f87171');
-    intelProgress(id, 100, 'Complete');
-    intelDone(id, `Block is online on ${data.machine} (${data.os}). Agent is ${data.agent_ready ? 'ready to deploy' : 'not found — check Block_device folder'}.`);
-  } catch(e) {
-    intelTermLine(id, `Error: ${e.message}`, '#f87171');
-    intelProgress(id, 100, 'Error');
-    intelDone(id, 'Status check failed.');
+  while (waited < maxWaitMs) {
+    await new Promise(r => setTimeout(r, pollEveryMs));
+    waited += pollEveryMs;
+    try {
+      const res  = await fetch(`${API}/shield/command/${commandId}`);
+      const data = await res.json();
+      if (data.status === 'done') {
+        const ok = data.result && data.result.success;
+        intelProgress(id, 100, ok ? 'Complete' : 'Failed');
+        intelTermLine(id, data.result.message, ok ? '#a3e635' : '#f87171');
+        intelDone(id, data.result.message);
+        return;
+      }
+      intelProgress(id, Math.min(35 + Math.floor(waited / maxWaitMs * 55), 90), 'Waiting for Block...');
+    } catch (e) {
+      // transient — keep polling until timeout
+    }
   }
+
+  intelTermLine(id, 'No response from your Block after 30s — it may be offline.', '#f87171');
+  intelProgress(id, 100, 'Timed out');
+  intelDone(id, 'Your Block did not respond in time. Check that it\'s powered on and connected.');
+}
+
+async function intelRunStatus(id) {
+  await intelRunNetworkCommand(id, 'status', null, 'Block status');
 }
 
 async function intelRunPing(id, ip) {
-  const live = await intelCheckLocalServer();
-  if (!live) {
-    intelTermLine(id, 'Local server not running.', '#f87171');
-    intelProgress(id, 100, 'Server offline');
-    intelDone(id, 'Could not connect to local Block server.');
-    return;
-  }
-  // Ping is simulated for now — real version goes via Pi on LAN
-  intelTermLine(id, `Pinging ${ip}...`, '#e0e0e0');
-  intelProgress(id, 40, 'Pinging...');
-  await new Promise(r => setTimeout(r, 800));
-  intelTermLine(id, `Reply from ${ip}: time=4ms`, '#a3e635');
-  intelProgress(id, 100, 'Complete');
-  intelDone(id, `${ip} is reachable. (Note: real LAN ping requires Pi hardware on network)`);
+  await intelRunNetworkCommand(id, 'ping', ip, `Ping ${ip}`);
+}
+
+async function intelRunIsolate(id, ip) {
+  await intelRunNetworkCommand(id, 'isolate', ip, `Isolate ${ip}`);
+}
+
+async function intelRunRelease(id, ip) {
+  await intelRunNetworkCommand(id, 'release', ip, `Release ${ip}`);
+}
+
+async function intelRunBlock(id, ip) {
+  await intelRunNetworkCommand(id, 'block', ip, `Block ${ip}`);
+}
+
+async function intelRunUnblock(id, ip) {
+  await intelRunNetworkCommand(id, 'unblock', ip, `Unblock ${ip}`);
 }
 
 async function intelCheckLocalServer() {
@@ -1881,10 +1953,14 @@ async function intelCheckLocalServer() {
 function intelHelp() {
   intelAddMsg('system',
     `Available commands:<br>
+    <strong>Status</strong> — show Block device status<br>
+    <strong>Ping [ip]</strong> — check if a device is reachable<br>
+    <strong>Isolate [ip]</strong> — cut a device off from the network<br>
+    <strong>Release [ip]</strong> — restore a device's network access<br>
+    <strong>Block [ip]</strong> — block an external IP<br>
+    <strong>Unblock [ip]</strong> — unblock an external IP<br>
     <strong>Fix [name]</strong> — run diagnostic scan on an employee's machine<br>
     <strong>Diagnose [name]</strong> — same as Fix<br>
-    <strong>Status</strong> — show Block device status<br>
-    <strong>Ping [ip]</strong> — check if a machine is reachable<br>
     <strong>Stop</strong> — pause the running agent<br>
     <strong>Continue</strong> — resume after stop<br>
     <strong>Cancel</strong> — cancel the agent entirely`
@@ -1921,6 +1997,38 @@ async function intelSend() {
         document.getElementById('intel-input').disabled    = true;
         intelAddMsg('system', `Pinging ${m[1]}...`, id);
         await intelRunPing(id, m[1]);
+        break;
+      }
+      if (cmd.type === 'isolate') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', `Isolating ${m[1]}...`, id);
+        await intelRunIsolate(id, m[1]);
+        break;
+      }
+      if (cmd.type === 'release') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', `Releasing ${m[1]}...`, id);
+        await intelRunRelease(id, m[1]);
+        break;
+      }
+      if (cmd.type === 'block') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', `Blocking ${m[1]}...`, id);
+        await intelRunBlock(id, m[1]);
+        break;
+      }
+      if (cmd.type === 'unblock') {
+        intelRunning = true;
+        document.getElementById('intel-send-btn').disabled = true;
+        document.getElementById('intel-input').disabled    = true;
+        intelAddMsg('system', `Unblocking ${m[1]}...`, id);
+        await intelRunUnblock(id, m[1]);
         break;
       }
       if (cmd.type === 'repair') {

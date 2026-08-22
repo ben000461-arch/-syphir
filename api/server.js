@@ -2601,4 +2601,72 @@ setInterval(async () => {
   }
 }, 60 * 60 * 1000); // check every hour
 
+// ── SHIELD: Command dispatch ────────────────────────────────────────────────
+// Real network-level commands to a Block device — isolate/release/block/
+// unblock/status. Admin creates a command from the dashboard, Pi polls for
+// pending ones, executes the real firewall action, reports back what
+// actually happened. In-memory (same tradeoff as shieldDeviceStore — resets
+// on a Render restart, acceptable for now).
+const shieldCommandStore = {}; // command_id -> { org_id, action, target_ip, reason, status, result, created_at }
+const VALID_COMMAND_ACTIONS = new Set(['isolate', 'release', 'block', 'unblock', 'status', 'ping']);
+
+app.post('/shield/command', async (c) => {
+  const { key, action, target_ip, reason } = await c.req.json().catch(() => ({}));
+  if (!key) return c.json({ success: false, message: 'key is required' }, 400);
+  if (!VALID_COMMAND_ACTIONS.has(action)) return c.json({ success: false, message: `action must be one of: ${[...VALID_COMMAND_ACTIONS].join(', ')}` }, 400);
+  if (action !== 'status' && !target_ip) return c.json({ success: false, message: 'target_ip is required for this action' }, 400);
+
+  let org_id;
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=org_id`);
+    if (!rows || rows.length === 0) return c.json({ success: false, message: 'Invalid key' }, 401);
+    org_id = rows[0].org_id;
+  } catch (err) {
+    return c.json({ success: false, message: 'Auth failed' }, 500);
+  }
+
+  const command_id = `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+  shieldCommandStore[command_id] = {
+    id: command_id, org_id, action, target_ip: target_ip || null, reason: reason || '',
+    status: 'pending', result: null, created_at: new Date().toISOString(),
+  };
+  return c.json({ success: true, command_id });
+});
+
+// Pi polls this — only ever sees commands for its own org, only pending ones
+app.get('/shield/command/pending', async (c) => {
+  const key = c.req.query('key');
+  if (!key) return c.json({ commands: [] });
+  let org_id;
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=org_id`);
+    if (!rows || rows.length === 0) return c.json({ commands: [] });
+    org_id = rows[0].org_id;
+  } catch (err) {
+    return c.json({ commands: [] });
+  }
+  const pending = Object.values(shieldCommandStore).filter(cmd => cmd.org_id === org_id && cmd.status === 'pending');
+  return c.json({ commands: pending });
+});
+
+// Pi reports back what actually happened
+app.post('/shield/command/:id/result', async (c) => {
+  const { id } = c.req.param();
+  const { success, message } = await c.req.json().catch(() => ({}));
+  const cmd = shieldCommandStore[id];
+  if (!cmd) return c.json({ success: false, message: 'Unknown command_id' }, 404);
+  cmd.status = 'done';
+  cmd.result = { success: !!success, message: message || '' };
+  cmd.completed_at = new Date().toISOString();
+  return c.json({ success: true });
+});
+
+// Dashboard polls this to see if/when a command finished
+app.get('/shield/command/:id', async (c) => {
+  const { id } = c.req.param();
+  const cmd = shieldCommandStore[id];
+  if (!cmd) return c.json({ error: 'Unknown command_id' }, 404);
+  return c.json(cmd);
+});
+
 export default { port: 3000, fetch: app.fetch };
