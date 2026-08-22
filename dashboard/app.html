@@ -351,6 +351,9 @@ select option{background:var(--bg3);color:var(--text);}
 .ns-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:11.5px;font-weight:500;font-family:'Inter',sans-serif;padding:12px 16px;cursor:pointer;transition:all 0.12s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
 .ns-tab:hover{color:var(--text2);}
 .ns-tab.active{color:var(--text);border-bottom-color:var(--blue);}
+.ns-tab{display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;transition:color 0.15s;}
+.ns-tab:hover{color:var(--text);}
+.ns-tab.active{color:var(--blue-l);border-bottom-color:var(--blue);}
 .pt-filter-btn{background:transparent;border:1px solid var(--border);color:var(--text3);font-size:10px;font-weight:500;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.12s;}
 .pt-filter-btn:hover{color:var(--text2);border-color:var(--border2);}
 .active-filter{background:var(--blue-g)!important;border-color:rgba(255,255,255,0.3)!important;color:var(--blue-l)!important;}
@@ -372,6 +375,9 @@ select option{background:var(--bg3);color:var(--text);}
 .billing-banner.warn{border-color:rgba(234,179,8,0.3);background:rgba(234,179,8,0.05);}
 .billing-banner.danger{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);}
 .billing-banner.info{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
+</style>
+<style>
+.cs-cover { display: none !important; }
 </style>
 </head>
 <body>
@@ -574,14 +580,12 @@ select option{background:var(--bg3);color:var(--text);}
       </div>
       <!-- Top toolbar -->
       <div style="display:flex;align-items:center;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);margin:-20px -22px 20px;padding:0 22px;height:42px;">
-        <div style="font-size:12px;font-weight:700;color:var(--blue-l);padding:0 14px 0 0;border-right:1px solid var(--border);margin-right:14px;">Network Security</div>
-        <button onclick="nsOpenTool('ptree')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
-          ⬡ Process Tree
-        </button>
-        <button onclick="nsOpenTool('devices')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:42px;cursor:pointer;font-family:'Inter',sans-serif;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
-          ⊞ Devices
-        </button>
+        <button id="ns-tab-main" onclick="nsShowMain()" class="ns-tab active">Network Security</button>
+        <button id="ns-tab-ptree" onclick="nsOpenTool('ptree')" class="ns-tab">⬡ Process Tree</button>
+        <button id="ns-tab-devices" onclick="nsOpenTool('devices')" class="ns-tab">⊞ Devices</button>
       </div>
+
+      <div id="ns-main-content">
       <div class="section-hdr">
         <div><div class="section-title">Network Security</div><div class="section-sub">Active threats, isolated devices, and attack timelines</div></div>
         <div style="display:flex;gap:8px;">
@@ -649,19 +653,11 @@ select option{background:var(--bg3);color:var(--text);}
         </div>
         <div id="ns-threat-feed"><div class="threat-empty">Monitoring network — no threats detected yet</div></div>
       </div>
+      </div>
 
-    </div>
-
-    <!-- PROCESS TREE — full page overlay -->
-    <div id="ns-tool-ptree" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;flex-direction:column;">
-      <!-- Toolbar — z-index 300 ensures it's above sidebar -->
-      <div style="display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);height:42px;flex-shrink:0;z-index:301;position:relative;">
-        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 16px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
-          ← Network Security
-        </button>
-        <div style="font-size:11px;font-weight:700;color:var(--blue-l);padding:0 16px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;border-bottom:2px solid var(--blue);">Process Tree</div>
-        <button onclick="nsToolSwitch('workbench')" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">Workbench</button>        <div style="flex:1;"></div>
-        <div style="display:flex;align-items:center;gap:8px;padding:0 16px;">
+      <!-- PROCESS TREE — in-page panel, same content area as Network Security -->
+      <div id="ns-tool-ptree" style="display:none;background:var(--bg);flex-direction:column;height:calc(100vh - var(--top) - 126px);">
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 0 12px;">
           <!-- Filters -->
           <div style="display:flex;gap:4px;" id="pt-filter-bar">
             <button onclick="ptSetFilter('all',this)" class="pt-filter-btn active-filter">All</button>
@@ -673,119 +669,61 @@ select option{background:var(--bg3);color:var(--text);}
           </div>
           <button onclick="ptReset()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:10px;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;">Reset View</button>
         </div>
-      </div>
-      <!-- Body: left incident list + center canvas + right detail -->
-      <div style="display:flex;flex:1;overflow:hidden;">
-        <!-- LEFT — Incident list -->
-        <div style="width:260px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;">
-          <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
-            <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;">Incidents</div>
-            <div style="font-size:10px;color:var(--text3);" id="pt-incident-count">Select an incident to view its process tree</div>
+        <!-- Body: left incident list + center canvas + right detail -->
+        <div style="display:flex;flex:1;overflow:hidden;border:1px solid var(--border);border-radius:10px;">
+          <!-- LEFT — Incident list -->
+          <div style="width:260px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;">
+            <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+              <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;">Incidents</div>
+              <div style="font-size:10px;color:var(--text3);" id="pt-incident-count">Select an incident to view its process tree</div>
+            </div>
+            <div id="pt-incident-list" style="flex:1;overflow-y:auto;"></div>
           </div>
-          <div id="pt-incident-list" style="flex:1;overflow-y:auto;"></div>
-        </div>
-        <!-- CENTER — Process tree canvas -->
-        <div style="flex:1;overflow:auto;position:relative;" id="pt-canvas-wrap">
-          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;" id="pt-empty-msg">← Select an incident to view its process tree</div>
-          <svg id="pt-svg" style="display:none;position:absolute;top:0;left:0;" height="600"></svg>
-        </div>
-        <!-- RIGHT — Node detail panel -->
-        <div id="pt-detail-panel" style="display:none;width:320px;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);">
-            <div id="pt-detail-title" style="font-size:13px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;"></div>
-            <button onclick="document.getElementById('pt-detail-panel').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
+          <!-- CENTER — Process tree canvas -->
+          <div style="flex:1;overflow:auto;position:relative;" id="pt-canvas-wrap">
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;" id="pt-empty-msg">← Select an incident to view its process tree</div>
+            <svg id="pt-svg" style="display:none;position:absolute;top:0;left:0;" height="600"></svg>
           </div>
-          <div id="pt-detail-body" style="padding:16px;"></div>
+          <!-- RIGHT — Node detail panel -->
+          <div id="pt-detail-panel" style="display:none;width:320px;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);">
+              <div id="pt-detail-title" style="font-size:13px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;"></div>
+              <button onclick="document.getElementById('pt-detail-panel').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
+            </div>
+            <div id="pt-detail-body" style="padding:16px;"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- DEVICES — full page overlay -->
-    <div id="ns-tool-devices" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;flex-direction:column;">
-      <!-- Toolbar -->
-      <div style="display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);height:42px;flex-shrink:0;z-index:301;position:relative;">
-        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-size:11px;font-weight:600;padding:0 16px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
-          ← Network Security
-        </button>
-        <div style="font-size:11px;font-weight:700;color:var(--blue-l);padding:0 16px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;border-bottom:2px solid var(--blue);">Devices</div>
-        <div style="flex:1;"></div>
-        <div id="ns-devices-freshness" style="font-size:10px;color:var(--text3);padding:0 16px;font-family:'JetBrains Mono',monospace;"></div>
-        <button onclick="nsDevicesLoad()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:10px;padding:3px 10px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;margin-right:12px;">Refresh</button>
-      </div>
-      <!-- Body: left device list + right detail panel -->
-      <div style="display:flex;flex:1;overflow:hidden;">
-        <!-- LEFT — Device list -->
-        <div style="width:320px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;">
-          <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
-            <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;">Live Network Devices</div>
-            <div style="font-size:10px;color:var(--text3);" id="ns-devices-count">Loading…</div>
-          </div>
-          <div id="ns-devices-list" style="flex:1;overflow-y:auto;"></div>
+      <!-- DEVICES — in-page panel, same content area as Network Security -->
+      <div id="ns-tool-devices" style="display:none;background:var(--bg);flex-direction:column;height:calc(100vh - var(--top) - 126px);">
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 0 12px;">
+          <div id="ns-devices-freshness" style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;"></div>
+          <button onclick="nsDevicesLoad()" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:10px;padding:3px 10px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;">Refresh</button>
         </div>
-        <!-- CENTER — empty state when nothing selected -->
-        <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;" id="ns-devices-empty">← Select a device to view details</div>
-        <!-- RIGHT — Device detail panel -->
-        <div id="ns-device-detail-panel" style="display:none;width:320px;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);">
-            <div id="ns-device-detail-title" style="font-size:13px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;"></div>
-            <button onclick="document.getElementById('ns-device-detail-panel').style.display='none';document.getElementById('ns-devices-empty').style.display='flex';" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
+        <!-- Body: left device list + right detail panel -->
+        <div style="display:flex;flex:1;overflow:hidden;border:1px solid var(--border);border-radius:10px;">
+          <!-- LEFT — Device list -->
+          <div style="width:320px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;">
+            <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+              <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;">Live Network Devices</div>
+              <div style="font-size:10px;color:var(--text3);" id="ns-devices-count">Loading…</div>
+            </div>
+            <div id="ns-devices-list" style="flex:1;overflow-y:auto;"></div>
           </div>
-          <div id="ns-device-detail-body" style="padding:16px;"></div>
+          <!-- CENTER — empty state when nothing selected -->
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;" id="ns-devices-empty">← Select a device to view details</div>
+          <!-- RIGHT — Device detail panel -->
+          <div id="ns-device-detail-panel" style="display:none;width:320px;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);">
+              <div id="ns-device-detail-title" style="font-size:13px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;"></div>
+              <button onclick="document.getElementById('ns-device-detail-panel').style.display='none';document.getElementById('ns-devices-empty').style.display='flex';" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;">×</button>
+            </div>
+            <div id="ns-device-detail-body" style="padding:16px;"></div>
+          </div>
         </div>
       </div>
-    </div>
-    <div id="ns-tool-workbench" style="display:none;position:fixed;inset:0;background:#0a0f1a;z-index:300;flex-direction:column;">
-      <!-- Toolbar -->
-      <div style="display:flex;align-items:center;background:#0f1623;border-bottom:1px solid #1e2a3a;height:42px;flex-shrink:0;position:relative;z-index:301;">
-        <button onclick="nsCloseTool()" style="display:flex;align-items:center;gap:6px;background:none;border:none;border-right:1px solid #1e2a3a;color:#4a5568;font-size:11px;font-weight:600;padding:0 14px;height:100%;cursor:pointer;font-family:'Inter',sans-serif;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">
-          ← Network Security
-        </button>
-        <div style="display:flex;align-items:center;gap:0;height:100%;">
-          <div style="font-size:11px;font-weight:700;color:#e6edf3;padding:0 16px;border-right:1px solid #1e2a3a;border-bottom:2px solid #2196d3;height:100%;display:flex;align-items:center;">Workbench</div>
-          <div onclick="nsToolSwitch('ptree')" style="font-size:11px;font-weight:600;color:#4a5568;padding:0 14px;border-right:1px solid #1e2a3a;height:100%;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">Process Tree</div>
-        </div>
-        <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding:0 16px;gap:12px;">
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4a5568;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676;"></div>Clean
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4a5568;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#ffc107;"></div>Warning
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4a5568;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#f44336;box-shadow:0 0 6px #f44336;"></div>Threat
-          </div>
-          <button onclick="wbCenter()" style="background:none;border:1px solid #1e2a3a;color:#4a5568;font-size:10px;padding:3px 10px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#4a5568'">
-            ⬡ Center
-          </button>
-        </div>
-      </div>
-      <!-- Canvas + legend left + right panel -->
-      <div style="display:flex;flex:1;overflow:hidden;">
 
-        <!-- LEFT — Legend panel -->
-        <div id="wb-legend-panel" style="width:210px;background:#13161c;border-right:1px solid #1e2230;overflow-y:auto;flex-shrink:0;">
-          <div style="padding:11px 14px;border-bottom:1px solid #1e2230;display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;">Legend</div>
-            <div style="font-size:10px;color:#334155;" id="wb-entity-total">0 entities</div>
-          </div>
-          <div id="wb-legend-list" style="padding:4px 0;"></div>
-        </div>
-
-        <!-- CENTER — Canvas -->
-        <div style="flex:1;position:relative;overflow:hidden;background:#13161c;" id="wb-canvas-wrap">
-          <svg id="wb-svg" style="position:absolute;inset:0;width:100%;height:100%;"></svg>
-          <div id="wb-tooltip" style="display:none;position:absolute;background:#1c1f27;border:1px solid #1e2230;border-radius:6px;padding:9px 12px;font-size:11.5px;pointer-events:none;z-index:20;max-width:220px;color:#f1f5f9;box-shadow:0 4px 16px rgba(0,0,0,0.5);"></div>
-        </div>
-
-        <!-- RIGHT — Device detail panel -->
-        <div id="wb-detail-panel" style="display:none;width:300px;background:#13161c;border-left:1px solid #1e2230;overflow-y:auto;flex-shrink:0;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1e2230;">
-            <div id="wb-detail-title" style="font-size:12.5px;font-weight:600;color:#f1f5f9;font-family:'JetBrains Mono',monospace;"></div>
-            <button onclick="document.getElementById('wb-detail-panel').style.display='none'" style="background:none;border:none;color:#475569;cursor:pointer;font-size:17px;line-height:1;">×</button>
-          </div>
-          <div id="wb-detail-body" style="padding:14px;"></div>
-        </div>
-      </div>
     </div>
 
     <!-- POLICIES -->
@@ -1065,7 +1003,7 @@ async function refreshSettingsBilling() {
 const TITLES = {overview:'Overview',incidents:'Incidents',live:'Live Feed',gateway:'API Gateway',policies:'Policies',settings:'Settings',intel:'Intel'};
 function nav(page, el) {
   // Close any full-page tool overlays first
-  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench','ns-tool-devices'].forEach(id => {
+  ['ns-tool-ptree','ns-tool-timeline','ns-tool-devices'].forEach(id => {
     const el2 = document.getElementById(id);
     if (el2) el2.style.display = 'none';
   });
@@ -2295,28 +2233,42 @@ function networkViewCase(ip) {
 }
 
 // ── TOOL OPEN/CLOSE ───────────────────────────────────────────────────────────
-function nsOpenTool(which) {
-  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench','ns-tool-devices'].forEach(id => {
+function nsSetActiveTab(id) {
+  ['ns-tab-main','ns-tab-ptree','ns-tab-devices'].forEach(t => {
+    const el = document.getElementById(t);
+    if (el) el.classList.toggle('active', t === id);
+  });
+}
+
+function nsShowMain() {
+  const main = document.getElementById('ns-main-content');
+  if (main) main.style.display = '';
+  ['ns-tool-ptree','ns-tool-devices'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  const toolId = which==='ptree' ? 'ns-tool-ptree' : which==='timeline' ? 'ns-tool-timeline' : which==='devices' ? 'ns-tool-devices' : 'ns-tool-workbench';
+  nsSetActiveTab('ns-tab-main');
+}
+
+function nsOpenTool(which) {
+  const main = document.getElementById('ns-main-content');
+  if (main) main.style.display = 'none';
+  ['ns-tool-ptree','ns-tool-devices'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const toolId = which==='ptree' ? 'ns-tool-ptree' : 'ns-tool-devices';
   document.getElementById(toolId).style.display = 'flex';
+  nsSetActiveTab(which==='ptree' ? 'ns-tab-ptree' : 'ns-tab-devices');
   if (which==='ptree')     { _ptFilter='all'; ptBuildIncidentList(); ptPaintEmpty(); }
-  if (which==='timeline')  { tlUpdateDeviceTabs(); tlPaint(); }
-  if (which==='workbench') { wbStartPolling(); setTimeout(wbPaint, 100); }
   if (which==='devices')   { nsDevicesLoad(); }
 }
 
-function nsCloseTool() {
-  ['ns-tool-ptree','ns-tool-timeline','ns-tool-workbench','ns-tool-devices'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-  wbStopPolling();
-}
+// Kept as an alias — same effect as nsShowMain(), a couple of older call
+// sites still say "close" rather than "show main."
+function nsCloseTool() { nsShowMain(); }
 
-function nsToolSwitch(which) { nsCloseTool(); nsOpenTool(which); }
+function nsToolSwitch(which) { nsOpenTool(which); }
 
 // ── DEVICES ────────────────────────────────────────────────────────────────
 let _nsDevices = [];
@@ -2686,11 +2638,11 @@ function ptShowSummaryPanel(incident, ip, chain) {
       <!-- Actions -->
       <div style="padding:14px 0;display:grid;gap:7px;">
         ${NS_ISOLATED[ip]?`<button class="btn-release" style="width:100%;padding:8px;font-size:11.5px;" onclick="networkReleaseDevice('${ip}')">Release Device from Isolation</button>`:''}
-        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('workbench'),50)"
+        <button onclick="nsToolSwitch('devices')"
           style="width:100%;padding:8px;border-radius:5px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;background:transparent;border:1px solid var(--border);color:var(--text3);transition:all 0.12s;"
           onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
-          View in Workbench
+          View in Devices
         </button>
       </div>
     </div>`;
@@ -2972,663 +2924,6 @@ function nsPaintTimeline(){}
 function nsPTreeNodeClick(){}
 function tlTooltipHide(){const t=document.getElementById('ns-timeline-tooltip');if(t)t.style.display='none';}
 function tlDragStart(){}
-// ── WORKBENCH ─────────────────────────────────────────────────────────────────
-let _wb = { pan:{x:0,y:0}, drag:null, ox:0, oy:0, devices:{} };
-
-// ── Live device data from Block ──────────────────────────────────────────────
-let _wbLiveDevices = null;   // null = not fetched yet, [] = fetched but empty
-let _wbPollTimer   = null;
-
-async function wbFetchLiveDevices() {
-  try {
-    const r = await fetch(`${API}/shield/devices?key=${ORG_KEY}`);
-    if (!r.ok) return;
-    const data = await r.json();
-    if (data.devices && data.devices.length) {
-      _wbLiveDevices = data.devices;
-      // Repaint if workbench is open
-      const wb = document.getElementById('ns-tool-workbench');
-      if (wb && wb.style.display !== 'none') wbPaint();
-    }
-  } catch(_) {}
-}
-
-function wbStartPolling() {
-  if (_wbPollTimer) clearInterval(_wbPollTimer);
-  wbFetchLiveDevices();
-  _wbPollTimer = setInterval(wbFetchLiveDevices, 15000); // every 15s
-}
-
-function wbStopPolling() {
-  if (_wbPollTimer) { clearInterval(_wbPollTimer); _wbPollTimer = null; }
-}
-
-function wbPaint() {
-  const wrap = document.getElementById('wb-canvas-wrap');
-  const svg  = document.getElementById('wb-svg');
-  if (!wrap||!svg) return;
-  const W = wrap.offsetWidth||1200, H = wrap.offsetHeight||600;
-  const CX = W/2, CY = H/2;
-
-  // Known devices from timelines + any new ones from incidents
-  const deviceMap = {};
-
-  // If we have live data from the Block scanner, use it
-  if (_wbLiveDevices && _wbLiveDevices.length) {
-    _wbLiveDevices.forEach(d => {
-      const ip     = d.ip;
-      const events = NS_TIMELINES[ip] || [];
-      const worst  = events.reduce((acc,e) => {
-        const s = e.risk==='critical'?4:e.risk==='high'?3:e.risk==='medium'?2:1;
-        return s>acc.score?{risk:e.risk,score:s,sig:e.sig}:acc;
-      },{score:0,risk:d.status==='up'?'clean':'away',sig:''});
-      deviceMap[ip] = {
-        ip,
-        name:        d.hostname || d.device_type || ip,
-        vendor:      d.vendor,
-        device_type: d.device_type,
-        location:    d.location,
-        events,
-        risk:        worst.risk,
-        sig:         worst.sig,
-        isolated:    !!NS_ISOLATED[ip],
-        status:      d.status,
-        last_seen:   d.last_seen,
-      };
-    });
-  } else {
-    // Fallback: use simulation data from NS_TIMELINES + demo devices
-    Object.keys(NS_TIMELINES).forEach(ip => {
-      const events = NS_TIMELINES[ip]||[];
-      const worst  = events.reduce((acc,e) => {
-        const s = e.risk==='critical'?4:e.risk==='high'?3:e.risk==='medium'?2:1;
-        return s>acc.score?{risk:e.risk,score:s,sig:e.sig}:acc;
-      },{score:0,risk:'clean',sig:''});
-      deviceMap[ip] = { ip, events, risk:worst.risk, sig:worst.sig, isolated:!!NS_ISOLATED[ip], status:'up' };
-    });
-    [{ip:'192.168.1.10',name:'Reception-PC',risk:'clean'},{ip:'192.168.1.20',name:'Server-01',risk:'clean'},{ip:'192.168.1.30',name:'Printer',risk:'clean'}]
-      .forEach(d => { if (!deviceMap[d.ip]) deviceMap[d.ip]={...d,events:[],isolated:false,status:'up'}; });
-  }
-
-  const devices = Object.values(deviceMap);
-  const N = devices.length;
-
-  // Position devices in a ring around the center Block box
-  const RING_R = Math.min(W,H) * 0.32;
-  devices.forEach((d,i) => {
-    const angle = (2*Math.PI/N)*i - Math.PI/2;
-    d.x = CX + RING_R*Math.cos(angle);
-    d.y = CY + RING_R*Math.sin(angle);
-  });
-
-  const rc = r => r==='critical'?'#ef4444':r==='high'?'#f97316':r==='medium'?'#eab308':r==='away'?'#334155':'#22c55e';
-
-  // Icon renderer — just the SVG paths, no circle. Centered at 0,0.
-  const icon = (type, col, sz=14) => {
-    const h = sz/2;
-    switch(type) {
-      case 'phone':
-        return `<rect x="${-sz*0.3}" y="${-h}" width="${sz*0.6}" height="${sz}" rx="${sz*0.12}" fill="none" stroke="${col}" stroke-width="1.6"/>
-                <circle cx="0" cy="${h*0.6}" r="${sz*0.07}" fill="${col}"/>`;
-      case 'printer':
-        return `<rect x="${-h*0.7}" y="${-sz*0.15}" width="${sz*0.7}" height="${sz*0.5}" rx="2" fill="none" stroke="${col}" stroke-width="1.5"/>
-                <rect x="${-h*0.5}" y="${-sz*0.45}" width="${sz*0.5}" height="${sz*0.3}" rx="1.5" fill="none" stroke="${col}" stroke-width="1.3"/>
-                <rect x="${-h*0.45}" y="${sz*0.15}" width="${sz*0.45}" height="${sz*0.3}" rx="1" fill="none" stroke="${col}" stroke-width="1.2"/>`;
-      case 'server':
-        return `<rect x="${-h}" y="${-h}" width="${sz}" height="${sz*0.3}" rx="1.5" fill="none" stroke="${col}" stroke-width="1.4"/>
-                <rect x="${-h}" y="${-sz*0.1}" width="${sz}" height="${sz*0.3}" rx="1.5" fill="none" stroke="${col}" stroke-width="1.4"/>
-                <rect x="${-h}" y="${sz*0.2}" width="${sz}" height="${sz*0.3}" rx="1.5" fill="none" stroke="${col}" stroke-width="1.4"/>
-                <circle cx="${h*0.6}" cy="${-sz*0.22}" r="${sz*0.08}" fill="${col}"/>
-                <circle cx="${h*0.6}" cy="${sz*0.05}" r="${sz*0.08}" fill="${col}"/>`;
-      case 'laptop':
-        return `<rect x="${-h*0.9}" y="${-h*0.7}" width="${sz*0.9}" height="${sz*0.65}" rx="2" fill="none" stroke="${col}" stroke-width="1.5"/>
-                <line x1="${-h}" y1="${h*0.35}" x2="${h}" y2="${h*0.35}" stroke="${col}" stroke-width="1.6" stroke-linecap="round"/>`;
-      case 'router':
-        return `<rect x="${-h*0.9}" y="${-sz*0.12}" width="${sz*0.9}" height="${sz*0.35}" rx="3" fill="none" stroke="${col}" stroke-width="1.5"/>
-                <line x1="${-sz*0.25}" y1="${-sz*0.12}" x2="${-sz*0.35}" y2="${-h*0.7}" stroke="${col}" stroke-width="1.3"/>
-                <line x1="0" y1="${-sz*0.12}" x2="0" y2="${-h*0.8}" stroke="${col}" stroke-width="1.3"/>
-                <line x1="${sz*0.25}" y1="${-sz*0.12}" x2="${sz*0.35}" y2="${-h*0.7}" stroke="${col}" stroke-width="1.3"/>`;
-      default: // monitor
-        return `<rect x="${-h*0.9}" y="${-h*0.75}" width="${sz*0.9}" height="${sz*0.65}" rx="2" fill="none" stroke="${col}" stroke-width="1.5"/>
-                <line x1="${-sz*0.15}" y1="${sz*0.15}" x2="${-sz*0.15}" y2="${sz*0.38}" stroke="${col}" stroke-width="1.4"/>
-                <line x1="${sz*0.15}" y1="${sz*0.15}" x2="${sz*0.15}" y2="${sz*0.38}" stroke="${col}" stroke-width="1.4"/>
-                <line x1="${-sz*0.3}" y1="${sz*0.38}" x2="${sz*0.3}" y2="${sz*0.38}" stroke="${col}" stroke-width="1.4"/>`;
-    }
-  };
-
-  const devType = d => {
-    const t=(d.device_type||'').toLowerCase(), v=(d.vendor||'').toLowerCase();
-    if(t.includes('phone')||t.includes('iphone')||t.includes('android')) return 'phone';
-    if(t.includes('print')) return 'printer';
-    if(t.includes('server')||t.includes('linux')) return 'server';
-    if(t.includes('router')||t.includes('gateway')) return 'router';
-    if(t.includes('mac')||t.includes('laptop')||v.includes('apple')) return 'laptop';
-    return 'monitor';
-  };
-
-  let html = `<defs>
-    <marker id="wb-a" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
-      <polygon points="0 0,6 2.5,0 5" fill="#2d3748"/>
-    </marker>
-    <marker id="wb-ar" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
-      <polygon points="0 0,6 2.5,0 5" fill="#ef4444"/>
-    </marker>
-    <marker id="wb-ao" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
-      <polygon points="0 0,6 2.5,0 5" fill="#f97316"/>
-    </marker>
-    <marker id="wb-ay" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
-      <polygon points="0 0,6 2.5,0 5" fill="#eab308"/>
-    </marker>
-  </defs>`;
-
-  // Connection lines — always gray, one consistent look
-  devices.forEach(d => {
-    const hasThreat = d.risk!=='clean' && d.risk!=='away' || d.isolated;
-    const dx=d.x-CX, dy=d.y-CY, dist=Math.sqrt(dx*dx+dy*dy);
-    const ux=dx/dist, uy=dy/dist;
-    const x1=CX+ux*28, y1=CY+uy*28;
-    const x2=d.x-ux*20, y2=d.y-uy*20;
-    html+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-      stroke="#3d4758" stroke-width="${hasThreat?1.5:1}"
-      opacity="${hasThreat?0.7:0.45}"
-      marker-end="url(#wb-a)"/>`;
-    // Sig label only for threat devices
-    if(d.sig && hasThreat){
-      const mx=(x1+x2)/2, my=(y1+y2)/2;
-      html+=`<text x="${mx}" y="${my-6}" text-anchor="middle"
-        font-size="8.5" fill="#475569" font-family="JetBrains Mono,monospace"
-        opacity="0.7">${d.sig}</text>`;
-    }
-  });
-
-  // Center — Block icon (no bubble, just the icon + label)
-  html+=`<g onclick="wbClickBlock()" style="cursor:pointer;">
-    <path d="M${CX} ${CY-18} L${CX+13} ${CY-12} L${CX+13} ${CY-2}
-      C${CX+13} ${CY+9} ${CX+7} ${CY+16} ${CX} ${CY+20}
-      C${CX-7} ${CY+16} ${CX-13} ${CY+9} ${CX-13} ${CY-2}
-      L${CX-13} ${CY-12} Z"
-      fill="rgba(255,255,255,0.12)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
-    <!-- Circle highlight ring around block to distinguish center -->
-    <circle cx="${CX}" cy="${CY}" r="26" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.25" stroke-dasharray="3,4"/>
-    <text x="${CX}" y="${CY+36}" text-anchor="middle" font-size="10" font-weight="600"
-      fill="#ffffff" font-family="Inter,sans-serif">BLOCK</text>
-    <text x="${CX}" y="${CY+47}" text-anchor="middle" font-size="8.5"
-      fill="#334155" font-family="Inter,sans-serif">co|op Box</text>
-  </g>`;
-
-  // Device nodes — icon only, color = severity, no circle bubble
-  devices.forEach(d => {
-    const col = d.isolated ? '#ef4444' :
-                d.risk==='critical' ? '#ef4444' :
-                d.risk==='high'     ? '#f97316' :
-                d.risk==='medium'   ? '#eab308' : '#334155'; // clean/away = neutral gray
-    const isClean = (d.risk==='clean'||d.risk==='away') && !d.isolated;
-    const isAway  = d.status==='away';
-    const isThreat= d.risk==='critical'||d.isolated;
-    const type    = devType(d);
-    const name    = (() => {
-      const n = d.name&&d.name!==d.ip&&d.name!=='Device'?d.name:(d.device_type||'Device');
-      return n.length>16?n.slice(0,15)+'…':n;
-    })();
-
-    html+=`<g onclick="wbClickDevice('${d.ip}')"
-      onmouseenter="wbTooltip(event,'${d.ip}')"
-      onmouseleave="document.getElementById('wb-tooltip').style.display='none'"
-      style="cursor:pointer;" opacity="${isAway?0.35:1}">
-
-      <!-- Icon only — no background circle -->
-      <g transform="translate(${d.x},${d.y})">
-        ${icon(type, col, 22)}
-        ${isThreat?`<text x="10" y="-10" font-size="9" font-family="sans-serif" opacity="0.85">☠</text>`:''}
-      </g>
-
-      <!-- Name -->
-      <text x="${d.x}" y="${d.y+21}" text-anchor="middle"
-        font-size="10.5" font-weight="500"
-        fill="${isClean?'#475569':col}"
-        font-family="Inter,sans-serif">${name}</text>
-
-      <!-- IP -->
-      <text x="${d.x}" y="${d.y+31}" text-anchor="middle"
-        font-size="8.5" fill="#334155"
-        font-family="JetBrains Mono,monospace">${d.ip}</text>
-
-      ${d.events&&d.events.length?`
-        <text x="${d.x}" y="${d.y+42}" text-anchor="middle"
-          font-size="8.5" fill="${col}" font-family="Inter,sans-serif"
-          opacity="0.7">${d.events.length} incident${d.events.length>1?'s':''}</text>
-      `:''}
-    </g>`;
-  });
-
-  svg.innerHTML = html;
-  _wb.devices = deviceMap;
-
-  // Build legend panel
-  wbBuildLegend(devices);
-  wbAnimatePulse();
-}
-
-function wbBuildLegend(devices) {
-  const list = document.getElementById('wb-legend-list');
-  const total = document.getElementById('wb-entity-total');
-  if (!list) return;
-
-  const counts = { monitor:0, laptop:0, phone:0, printer:0, server:0, router:0, shield:1 };
-  const severities = { clean:0, medium:0, high:0, critical:0, away:0 };
-
-  const devType = d => {
-    const t=(d.device_type||'').toLowerCase(), v=(d.vendor||'').toLowerCase();
-    if(t.includes('phone')||t.includes('iphone')||t.includes('android')) return 'phone';
-    if(t.includes('print')) return 'printer';
-    if(t.includes('server')||t.includes('linux')) return 'server';
-    if(t.includes('router')||t.includes('gateway')) return 'router';
-    if(t.includes('mac')||t.includes('laptop')||v.includes('apple')) return 'laptop';
-    return 'monitor';
-  };
-
-  devices.forEach(d => {
-    counts[devType(d)]++;
-    const sev = d.isolated?'critical':(d.status==='away'?'away':d.risk||'clean');
-    severities[sev] = (severities[sev]||0) + 1;
-  });
-
-  total.textContent = `${devices.length + 1} entities`;
-
-  const entityTypes = [
-    { key:'shield',  label:'Block',   col:'#ffffff', iconType:'shield'  },
-    { key:'monitor', label:'Workstation',  col:'#94a3b8', iconType:'monitor' },
-    { key:'laptop',  label:'Laptop / Mac', col:'#94a3b8', iconType:'laptop'  },
-    { key:'phone',   label:'Mobile',       col:'#94a3b8', iconType:'phone'   },
-    { key:'server',  label:'Server',       col:'#94a3b8', iconType:'server'  },
-    { key:'printer', label:'Printer',      col:'#94a3b8', iconType:'printer' },
-    { key:'router',  label:'Router',       col:'#94a3b8', iconType:'router'  },
-  ].filter(e => counts[e.key] > 0);
-
-  const statusTypes = [
-    { key:'clean',    label:'No incidents', col:'#334155' },
-    { key:'medium',   label:'Warning',      col:'#eab308' },
-    { key:'high',     label:'High risk',    col:'#f97316' },
-    { key:'critical', label:'Threat',       col:'#ef4444' },
-    { key:'away',     label:'Away',         col:'#2d3748' },
-  ].filter(s => severities[s.key] > 0);
-
-  const miniIcon = (type, col) => {
-    const sz=12, h=sz/2;
-    switch(type){
-      case 'shield': return `<path d="M${h} 0 L${sz} ${sz*0.3} L${sz} ${sz*0.6} C${sz} ${sz*0.85} ${sz*0.75} ${sz} ${h} ${sz*1.1} C${sz*0.25} ${sz} 0 ${sz*0.85} 0 ${sz*0.6} L0 ${sz*0.3} Z" fill="none" stroke="${col}" stroke-width="1.3" transform="translate(2,0)"/>`;
-      case 'laptop': return `<rect x="0" y="1" width="${sz}" height="${sz*0.65}" rx="1.5" fill="none" stroke="${col}" stroke-width="1.3"/><line x1="-1" y1="${sz*0.72}" x2="${sz+1}" y2="${sz*0.72}" stroke="${col}" stroke-width="1.3"/>`;
-      case 'phone':  return `<rect x="${sz*0.2}" y="0" width="${sz*0.6}" height="${sz}" rx="${sz*0.12}" fill="none" stroke="${col}" stroke-width="1.3"/>`;
-      case 'server': return `<rect x="0" y="1" width="${sz}" height="${sz*0.28}" rx="1" fill="none" stroke="${col}" stroke-width="1.2"/><rect x="0" y="${sz*0.38}" width="${sz}" height="${sz*0.28}" rx="1" fill="none" stroke="${col}" stroke-width="1.2"/><rect x="0" y="${sz*0.72}" width="${sz}" height="${sz*0.28}" rx="1" fill="none" stroke="${col}" stroke-width="1.2"/>`;
-      case 'printer':return `<rect x="1" y="${sz*0.35}" width="${sz-2}" height="${sz*0.5}" rx="1" fill="none" stroke="${col}" stroke-width="1.2"/><rect x="${sz*0.2}" y="0" width="${sz*0.6}" height="${sz*0.38}" rx="1" fill="none" stroke="${col}" stroke-width="1.1"/>`;
-      case 'router': return `<rect x="0" y="${sz*0.3}" width="${sz}" height="${sz*0.4}" rx="2" fill="none" stroke="${col}" stroke-width="1.3"/><line x1="${sz*0.3}" y1="${sz*0.3}" x2="${sz*0.15}" y2="0" stroke="${col}" stroke-width="1.2"/><line x1="${sz*0.5}" y1="${sz*0.3}" x2="${sz*0.5}" y2="0" stroke="${col}" stroke-width="1.2"/><line x1="${sz*0.7}" y1="${sz*0.3}" x2="${sz*0.85}" y2="0" stroke="${col}" stroke-width="1.2"/>`;
-      default:       return `<rect x="0" y="1" width="${sz}" height="${sz*0.7}" rx="1.5" fill="none" stroke="${col}" stroke-width="1.3"/><line x1="${sz*0.35}" y1="${sz*0.71}" x2="${sz*0.35}" y2="${sz}" stroke="${col}" stroke-width="1.2"/><line x1="${sz*0.65}" y1="${sz*0.71}" x2="${sz*0.65}" y2="${sz}" stroke="${col}" stroke-width="1.2"/><line x1="${sz*0.15}" y1="${sz}" x2="${sz*0.85}" y2="${sz}" stroke="${col}" stroke-width="1.2"/>`;
-    }
-  };
-
-  list.innerHTML = `
-    <div style="padding:8px 14px 4px;font-size:9.5px;font-weight:700;color:#2d3748;text-transform:uppercase;letter-spacing:1px;">Device Types</div>
-    ${entityTypes.map(e => `
-      <div onclick="wbLegendClick('${e.key}')" style="display:flex;align-items:center;gap:9px;padding:7px 14px;cursor:pointer;transition:background 0.1s;"
-        onmouseover="this.style.background='#1c1f27'" onmouseout="this.style.background='transparent'">
-        <svg width="16" height="14" viewBox="0 0 16 14" style="flex-shrink:0;">${miniIcon(e.iconType, e.col)}</svg>
-        <div style="flex:1;font-size:11.5px;color:#94a3b8;">${e.label}</div>
-        <div style="font-size:11px;font-weight:600;color:#475569;">${counts[e.key]}</div>
-      </div>`).join('')}
-    <div style="padding:10px 14px 4px;font-size:9.5px;font-weight:700;color:#2d3748;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #1e2230;margin-top:4px;">Status</div>
-    ${statusTypes.map(s => `
-      <div style="display:flex;align-items:center;gap:9px;padding:6px 14px;">
-        <div style="width:7px;height:7px;border-radius:50%;background:${s.col};flex-shrink:0;"></div>
-        <div style="flex:1;font-size:11.5px;color:#64748b;">${s.label}</div>
-        <div style="font-size:11px;font-weight:600;color:#475569;">${severities[s.key]}</div>
-      </div>`).join('')}
-  `;
-}
-
-function wbLegendClick(type) {
-  // Filter/highlight devices of this type on canvas
-  const svg = document.getElementById('wb-svg');
-  if (!svg) return;
-  // Just repaint for now — could add highlight logic
-  wbPaint();
-}
-
-function wbAnimatePulse() {
-  // Pulse the threat connection lines
-  const svg = document.getElementById('wb-svg');
-  if (!svg) return;
-  let opacity = 0.6;
-  let dir = -1;
-  const interval = setInterval(() => {
-    if (!document.getElementById('ns-tool-workbench') ||
-        document.getElementById('ns-tool-workbench').style.display==='none') {
-      clearInterval(interval); return;
-    }
-    opacity += dir * 0.05;
-    if (opacity <= 0.2) dir = 1;
-    if (opacity >= 0.8) dir = -1;
-    svg.querySelectorAll('line[stroke="#f44336"],line[stroke="#ff6d2e"]').forEach(l => {
-      l.setAttribute('opacity', opacity);
-    });
-  }, 80);
-}
-
-function wbDetDesc(e) {
-  const short = {
-    'AS001': 'Device scanned multiple hosts — likely reconnaissance.',
-    'AS002': 'Many ports probed on one target — looking for vulnerabilities.',
-    'AS003': 'Repeated login failures — brute-force attempt detected.',
-    'AS004': 'Failed logins across accounts — possible password spray.',
-    'AS005': 'Accessing internal machines — lateral movement detected.',
-    'AS006': 'Connecting to known attacker infrastructure.',
-    'AS007': 'Long DNS query — data may be hidden inside DNS traffic.',
-    'AS008': 'Attacker opened a reverse connection into your network.',
-    'AS009': 'Large data transfer outbound — possible data theft.',
-    'AS010': 'Slow data leak detected — evading threshold-based alerts.',
-    'AS011': 'Unknown device joined the network.',
-    'AS012': 'Traffic to a known C2 server used by malware.',
-  };
-  return short[e.sig] || e.detail || 'Suspicious activity detected on this device.';
-}
-
-function wbToggleDetection(header) {
-  const body = header.nextElementSibling;
-  const arrow = header.querySelector('div:last-child');
-  if (!body) return;
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : '';
-  if (arrow) arrow.textContent = open ? '▾' : '▴';
-}
-
-function wbCenter() { wbPaint(); }
-
-function wbClickBlock() {
-  const panel = document.getElementById('wb-detail-panel');
-  document.getElementById('wb-detail-title').textContent = 'co|op Block';
-  document.getElementById('wb-detail-title').style.color = '#2196d3';
-  document.getElementById('wb-detail-body').innerHTML = `
-    <div style="display:grid;gap:14px;color:#e6edf3;">
-      <div style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);border-radius:8px;padding:12px;">
-        <div style="font-size:12px;font-weight:700;color:#4db8f0;">Block</div>
-        <div style="font-size:11px;color:#8b949e;margin-top:3px;">Network security appliance</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-          <div style="width:6px;height:6px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676;"></div>
-          <div style="font-size:11px;color:#00e676;font-weight:600;">Online — monitoring active</div>
-        </div>
-      </div>
-      <div><div style="font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Network Status</div>
-        <div style="font-size:12px;color:#e6edf3;">Devices monitored: <span style="color:#4db8f0;font-weight:700;">${Object.keys(_wb.devices).length}</span></div>
-        <div style="font-size:12px;color:#e6edf3;margin-top:4px;">Active threats: <span style="color:#f44336;font-weight:700;">${Object.values(NS_ISOLATED).length}</span></div>
-        <div style="font-size:12px;color:#e6edf3;margin-top:4px;">Total incidents: <span style="color:#ffc107;font-weight:700;">${Object.values(NS_TIMELINES).flat().length}</span></div>
-      </div>
-    </div>`;
-  panel.style.display = '';
-}
-
-function wbClickDevice(ip) {
-  const d   = _wb.devices[ip]; if (!d) return;
-  const col = d.risk==='critical'?'#f44336':d.risk==='high'?'#ff6d2e':d.risk==='medium'?'#ffc107':'#00e676';
-  document.getElementById('wb-detail-title').textContent = ip;
-  document.getElementById('wb-detail-title').style.color = col;
-  document.getElementById('wb-detail-body').innerHTML = `
-    <div style="display:grid;gap:14px;color:#e6edf3;">
-      <div style="background:rgba(255,255,255,0.03);border:1px solid #1e2a3a;border-radius:8px;padding:12px;">
-        <div style="font-size:12px;font-weight:700;color:${col};">${d.name||ip}</div>
-        <div style="font-size:11px;color:#8b949e;margin-top:3px;">Network device · ${ip}</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-          <div style="width:6px;height:6px;border-radius:50%;background:${col};box-shadow:0 0 6px ${col};"></div>
-          <div style="font-size:11px;font-weight:600;color:${col};" id="wb-device-status-${ip.replace(/\./g,'_')}">${d.isolated?'ISOLATED':d.risk==='clean'?'Clean':'Risk: '+d.risk.toUpperCase()}</div>
-        </div>
-      </div>
-
-      <!-- Send Agent button -->
-      <button onclick="wbOpenAgentModal('${ip}')" style="background:linear-gradient(135deg,rgba(33,150,211,0.2),rgba(33,150,211,0.1));border:1px solid rgba(33,150,211,0.4);color:#4db8f0;font-size:12px;font-weight:700;padding:10px;border-radius:8px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='rgba(33,150,211,0.25)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(33,150,211,0.2),rgba(33,150,211,0.1))'">
-        <span style="font-size:14px;">⚡</span> Send Agent
-      </button>
-
-      ${d.events.length?`
-        <div>
-          <div style="font-size:9.5px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Detections (${d.events.length})</div>
-          ${d.events.slice(0,6).map((e,ei)=>`
-            <div style="border:1px solid #1e2230;border-radius:5px;margin-bottom:4px;overflow:hidden;">
-              <div onclick="wbToggleDetection(this)" style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;background:#111318;"
-                onmouseover="this.style.background='#16191f'" onmouseout="this.style.background='#111318'">
-                <div style="width:5px;height:5px;border-radius:50%;background:${e.risk==='critical'?'#ef4444':e.risk==='high'?'#f97316':'#eab308'};flex-shrink:0;"></div>
-                <div style="flex:1;font-size:11px;font-weight:500;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.sig} — ${e.name}</div>
-                <div style="font-size:9px;color:#334155;flex-shrink:0;">▾</div>
-              </div>
-              <div class="wb-det-body" style="display:none;padding:8px 10px;background:#0b0e14;border-top:1px solid #1e2230;">
-                <div style="font-size:11px;color:#64748b;line-height:1.55;margin-bottom:8px;">${wbDetDesc(e)}</div>
-                <div style="display:flex;gap:12px;">
-                  <div><div style="font-size:9px;color:#334155;margin-bottom:2px;">RISK</div><div style="font-size:10.5px;font-weight:600;color:${e.risk==='critical'?'#ef4444':e.risk==='high'?'#f97316':'#eab308'};">${(e.risk||'').toUpperCase()}</div></div>
-                  ${e.score!==undefined?`<div><div style="font-size:9px;color:#334155;margin-bottom:2px;">SCORE</div><div style="font-size:10.5px;font-weight:600;color:#94a3b8;">${e.score}/100</div></div>`:''}
-                  ${e.time?`<div><div style="font-size:9px;color:#334155;margin-bottom:2px;">TIME</div><div style="font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;">${_timeStr(e.time)}</div></div>`:''}
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-        <button onclick="nsSelectedDevice='${ip}';nsCloseTool();setTimeout(()=>nsOpenTool('ptree'),50)"
-          style="background:transparent;border:1px solid #1e2230;color:#475569;font-size:11px;font-weight:500;padding:7px;border-radius:5px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;transition:all 0.12s;"
-          onmouseover="this.style.borderColor='#2d3748';this.style.color='#94a3b8'"
-          onmouseout="this.style.borderColor='#1e2230';this.style.color='#475569'">
-          View Process Tree →
-        </button>
-      `:'<div style="font-size:11px;color:#334155;text-align:center;padding:12px 0;">No incidents detected</div>'}
-
-      <!-- Agent run log — shown after dispatch -->
-      <div id="wb-agent-log-${ip.replace(/\./g,'_')}" style="display:none;background:#060a10;border:1px solid #1e2a3a;border-radius:8px;overflow:hidden;">
-        <div style="padding:8px 12px;border-bottom:1px solid #1e2a3a;display:flex;align-items:center;gap:8px;">
-          <div style="width:6px;height:6px;border-radius:50%;background:#2196d3;animation:pulse 1.2s infinite;" id="wb-agent-dot-${ip.replace(/\./g,'_')}"></div>
-          <div style="font-size:10px;font-weight:700;color:#4db8f0;font-family:'JetBrains Mono',monospace;" id="wb-agent-status-${ip.replace(/\./g,'_')}">Agent running...</div>
-        </div>
-        <div style="padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.7;max-height:200px;overflow-y:auto;color:#8b949e;" id="wb-agent-output-${ip.replace(/\./g,'_')}"></div>
-      </div>
-
-      ${d.isolated?`<button class="btn-release" style="width:100%;padding:8px;font-size:12px;" onclick="networkReleaseDevice('${ip}');setTimeout(wbPaint,100)">Release Device</button>`:''}
-    </div>`;
-  document.getElementById('wb-detail-panel').style.display = '';
-}
-
-// ── Agent modal ───────────────────────────────────────────────────────────────
-function wbOpenAgentModal(ip) {
-  const existing = document.getElementById('wb-agent-modal');
-  if (existing) existing.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'wb-agent-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-  modal.innerHTML = `
-    <div style="background:#0f1623;border:1px solid #1e2a3a;border-radius:14px;padding:28px;width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
-        <div style="width:36px;height:36px;background:rgba(33,150,211,0.15);border:1px solid rgba(33,150,211,0.3);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;">⚡</div>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:#e6edf3;">Send Agent</div>
-          <div style="font-size:11px;color:#4a5568;font-family:'JetBrains Mono',monospace;">${ip}</div>
-        </div>
-      </div>
-      <div style="font-size:12px;color:#8b949e;margin-bottom:20px;padding-top:10px;border-top:1px solid #1e2a3a;">
-        The agent will deploy to this machine, run the selected task, report back, then self-delete. Nothing is left behind.
-      </div>
-      <div style="font-size:10px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">What should the agent do?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
-        <button onclick="wbAgentSelectMode(this,'diagnostic')" class="wb-mode-btn" style="background:rgba(33,150,211,0.08);border:1px solid rgba(33,150,211,0.2);color:#4db8f0;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
-          <div style="font-size:13px;margin-bottom:4px;">🔍</div>
-          <div style="font-size:12px;font-weight:700;">Diagnose</div>
-          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Scan processes, connections, files</div>
-        </button>
-        <button onclick="wbAgentSelectMode(this,'repair')" class="wb-mode-btn" style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);color:#00e676;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
-          <div style="font-size:13px;margin-bottom:4px;">🔧</div>
-          <div style="font-size:12px;font-weight:700;">Fix</div>
-          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Clear cache, flush DNS, free memory</div>
-        </button>
-        <button onclick="wbAgentSelectMode(this,'defend')" class="wb-mode-btn" style="background:rgba(244,67,54,0.08);border:1px solid rgba(244,67,54,0.2);color:#f44336;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
-          <div style="font-size:13px;margin-bottom:4px;">○</div>
-          <div style="font-size:12px;font-weight:700;">Defend</div>
-          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Kill threats, close backdoors (stealth)</div>
-        </button>
-        <button onclick="wbAgentSelectMode(this,'diagnostic')" class="wb-mode-btn" style="background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.15);color:#ffc107;padding:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;">
-          <div style="font-size:13px;margin-bottom:4px;">📊</div>
-          <div style="font-size:12px;font-weight:700;">Full Scan</div>
-          <div style="font-size:10px;color:#4a5568;margin-top:2px;">Deep scan — processes + network + files</div>
-        </button>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="document.getElementById('wb-agent-modal').remove()" style="flex:1;background:transparent;border:1px solid #1e2a3a;color:#4a5568;padding:10px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;">Cancel</button>
-        <button id="wb-modal-confirm" onclick="wbDispatchAgent('${ip}')" disabled style="flex:2;background:rgba(33,150,211,0.15);border:1px solid rgba(33,150,211,0.3);color:#4a5568;padding:10px;border-radius:8px;cursor:not-allowed;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;">Select a task above</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  // Click outside to close
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-}
-
-let _wbAgentMode = 'diagnostic';
-function wbAgentSelectMode(btn, mode) {
-  _wbAgentMode = mode;
-  document.querySelectorAll('.wb-mode-btn').forEach(b => {
-    b.style.transform = 'scale(1)';
-    b.style.boxShadow = 'none';
-  });
-  btn.style.transform = 'scale(1.03)';
-  btn.style.boxShadow = '0 0 0 2px rgba(33,150,211,0.5)';
-  const confirm = document.getElementById('wb-modal-confirm');
-  if (confirm) {
-    confirm.disabled = false;
-    confirm.style.color = '#4db8f0';
-    confirm.style.cursor = 'pointer';
-    confirm.style.background = 'rgba(33,150,211,0.2)';
-    confirm.textContent = `Deploy ${mode.charAt(0).toUpperCase()+mode.slice(1)} Agent →`;
-  }
-}
-
-async function wbDispatchAgent(ip) {
-  const modal = document.getElementById('wb-agent-modal');
-  if (modal) modal.remove();
-
-  const safeIp  = ip.replace(/\./g,'_');
-  const logEl   = document.getElementById(`wb-agent-log-${safeIp}`);
-  const outEl   = document.getElementById(`wb-agent-output-${safeIp}`);
-  const dotEl   = document.getElementById(`wb-agent-dot-${safeIp}`);
-  const statEl  = document.getElementById(`wb-agent-status-${safeIp}`);
-  const devStat = document.getElementById(`wb-device-status-${safeIp}`);
-
-  if (!logEl||!outEl) return;
-  logEl.style.display = '';
-  outEl.innerHTML = '';
-
-  const addLine = (text, color='#8b949e') => {
-    outEl.innerHTML += `<div style="color:${color};">${text}</div>`;
-    outEl.scrollTop = outEl.scrollHeight;
-  };
-
-  addLine(`Connecting to ${ip}...`, '#4db8f0');
-  addLine(`Mode: ${_wbAgentMode.toUpperCase()}`, '#4a5568');
-
-  // Try local server
-  const live = await wbCheckLocalServer();
-  if (!live) {
-    addLine('⚠ Local server not running', '#f44336');
-    addLine('Start with: python3 local_server.py', '#ffc107');
-    if (statEl) { statEl.textContent = 'Server offline'; dotEl.style.background='#f44336'; }
-    return;
-  }
-
-  addLine('Agent dispatched — terminal opening...', '#a3e635');
-  if (statEl) statEl.textContent = 'Agent running...';
-
-  try {
-    const res  = await fetch('http://localhost:7474/run-agent', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        mode:   _wbAgentMode,
-        reason: `Workbench dispatch to ${ip} — ${_wbAgentMode}`,
-      })
-    });
-    const data = await res.json();
-
-    if (data.status === 'dispatched') {
-      const jobId = data.job_id;
-      addLine('Terminal opened on target machine', '#a3e635');
-      addLine('Running live scan...', '#8b949e');
-
-      // Poll for completion
-      let polls = 0;
-      const poll = setInterval(async () => {
-        polls++;
-        try {
-          const r2   = await fetch('http://localhost:7474/job-status', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({job_id: jobId})
-          });
-          const d2 = await r2.json();
-          if (d2.status === 'done') {
-            clearInterval(poll);
-            addLine('', '#4a5568');
-            addLine('✓ Agent completed', '#a3e635');
-            addLine(d2.summary||'Scan complete.', '#e6edf3');
-            addLine('', '#4a5568');
-            addLine('✓ Agent self-deleted — nothing left behind', '#4a5568');
-            if (statEl) { statEl.textContent = 'Done'; dotEl.style.background='#00e676'; dotEl.style.animation='none'; }
-            // Update device status to green if diagnostic came back clean
-            if (devStat && _wbAgentMode==='diagnostic') {
-              devStat.textContent = 'Scanned — see report';
-              devStat.style.color = '#00e676';
-            }
-            // Log this run
-            wbLogAgentRun(ip, _wbAgentMode, d2.summary||'Complete');
-            // Repaint workbench to potentially update color
-            setTimeout(wbPaint, 500);
-          } else if (d2.status === 'error') {
-            clearInterval(poll);
-            addLine('✗ Agent error', '#f44336');
-            if (statEl) { statEl.textContent = 'Error'; dotEl.style.background='#f44336'; dotEl.style.animation='none'; }
-          }
-        } catch(_){}
-        if (polls > 90) clearInterval(poll); // 3 min timeout
-      }, 2000);
-    } else {
-      addLine(`Error: ${data.error||'Unknown'}`, '#f44336');
-      if (statEl) { statEl.textContent = 'Failed'; dotEl.style.background='#f44336'; dotEl.style.animation='none'; }
-    }
-  } catch(e) {
-    addLine(`Connection error: ${e.message}`, '#f44336');
-    if (statEl) { statEl.textContent = 'Error'; dotEl.style.background='#f44336'; dotEl.style.animation='none'; }
-  }
-}
-
-async function wbCheckLocalServer() {
-  try {
-    const r = await fetch('http://localhost:7474/ping');
-    return r.ok;
-  } catch(_) { return false; }
-}
-
-const _wbAgentLog = []; // session run log
-function wbLogAgentRun(ip, mode, summary) {
-  _wbAgentLog.unshift({ ip, mode, summary, time: new Date() });
-}
-
-function wbTooltip(e, ip) {
-  const d   = _wb.devices[ip]; if (!d) return;
-  const col = d.risk==='critical'?'#f44336':d.risk==='high'?'#ff6d2e':d.risk==='medium'?'#ffc107':'#00e676';
-  const tip = document.getElementById('wb-tooltip');
-  tip.innerHTML = `
-    <div style="font-weight:700;color:#e6edf3;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">${ip}</div>
-    <div style="font-size:11px;color:#8b949e;margin-bottom:2px;">${d.device_type||d.name||'Network device'} · ${d.vendor||''}</div>
-    ${d.location&&d.location!=='Network'?`<div style="font-size:11px;color:#4a5568;margin-bottom:4px;">📍 ${d.location}</div>`:''}
-    <div style="font-size:11px;font-weight:700;color:${col};">${d.isolated?'🔴 ISOLATED':d.risk==='clean'?'🟢 Clean':'⚠ '+d.risk.toUpperCase()}</div>
-    ${d.events&&d.events.length?`<div style="font-size:10px;color:#8b949e;margin-top:4px;">${d.events.length} incident${d.events.length>1?'s':''} detected</div>`:''}
-    ${d.last_seen?`<div style="font-size:10px;color:#2d3a50;margin-top:3px;">Last seen: ${_relTime(new Date(d.last_seen))}</div>`:''}
-    ${d.sig?`<div style="font-size:10px;color:${col};margin-top:2px;">Last sig: ${d.sig}</div>`:''}
-  `;
-  const r = document.getElementById('wb-canvas-wrap').getBoundingClientRect();
-  tip.style.left=`${e.clientX-r.left+14}px`;
-  tip.style.top=`${e.clientY-r.top+14}px`;
-  tip.style.display='';
-}
-
 function _relTime(d) {
   if (!d) return '';
   const s = Math.floor((Date.now() - new Date(d)) / 1000);
