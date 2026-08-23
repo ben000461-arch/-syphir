@@ -2301,14 +2301,16 @@ async function nsDevicesLoad() {
     }
 
     list.innerHTML = _nsDevices.map((d, i) => {
-      const isNamed  = d.hostname && d.hostname !== d.ip;
-      const label    = isNamed ? d.hostname : 'Unknown Device';
+      const isNamed   = d.hostname && d.hostname !== d.ip;
+      const hasVendor = d.vendor && d.vendor !== 'Unknown' && d.vendor !== '(Unknown)';
+      const label     = isNamed ? d.hostname : (hasVendor ? d.vendor : 'Unknown Device');
+      const identified = isNamed || hasVendor;
       const isSel    = _nsSelectedDeviceObj && _nsSelectedDeviceObj.ip === d.ip;
       const dotColor = d.status === 'up' ? '#00e676' : '#4a5568';
       return `<div onclick="nsDeviceSelect(${i})" style="padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;background:${isSel ? 'rgba(33,150,211,0.08)' : 'transparent'};border-left:2px solid ${isSel ? 'var(--blue)' : 'transparent'};">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
           <div style="width:6px;height:6px;border-radius:50%;background:${dotColor};flex-shrink:0;${d.status==='up' ? 'box-shadow:0 0 5px '+dotColor+';' : ''}"></div>
-          <div style="font-size:12px;font-weight:700;color:${isNamed ? 'var(--text)' : 'var(--text3)'};${isNamed ? '' : 'font-style:italic;'}">${label}</div>
+          <div style="font-size:12px;font-weight:700;color:${identified ? 'var(--text)' : 'var(--text3)'};${identified ? '' : 'font-style:italic;'}">${label}</div>
         </div>
         <div style="font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;padding-left:13px;">${d.ip} · ${d.device_type || 'unknown type'}</div>
       </div>`;
@@ -2329,8 +2331,9 @@ function nsDeviceSelect(i) {
   const panel = document.getElementById('ns-device-detail-panel');
   panel.style.display = 'block';
 
-  const isNamed = d.hostname && d.hostname !== d.ip;
-  document.getElementById('ns-device-detail-title').textContent = isNamed ? d.hostname : 'Unknown Device';
+  const isNamed   = d.hostname && d.hostname !== d.ip;
+  const hasVendor = d.vendor && d.vendor !== 'Unknown' && d.vendor !== '(Unknown)';
+  document.getElementById('ns-device-detail-title').textContent = isNamed ? d.hostname : (hasVendor ? d.vendor : 'Unknown Device');
 
   const rows = [
     ['IP address',    d.ip || '—'],
