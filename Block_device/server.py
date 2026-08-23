@@ -32,6 +32,7 @@ from notifier          import push as notify_push
 # Data collection
 from dns_monitor       import DNSMonitor       as RealDNSMonitor
 from packet_inspector  import PacketInspector
+from device_scanner    import DeviceScanner
 
 # Detection
 from intrusion_detector import IntrusionDetector
@@ -459,6 +460,13 @@ def main():
     from command_poller import CommandPoller
     commands = CommandPoller(config, firewall)
 
+    # Device scanner — was only ever run manually as a standalone script
+    # before; now runs continuously as part of the main process, so the
+    # dashboard's Devices tab has real data without anyone remembering to
+    # start it separately. Blocking run() loop, needs its own thread.
+    scanner = DeviceScanner(config)
+    scanner_thread = threading.Thread(target=scanner.run, daemon=True, name='device_scanner')
+
     # Boot Layer 3 — Containment (scores before blocker acts)
     containment = Containment(config, blocker, threat_intel)
     blocker.set_containment(containment)
@@ -492,6 +500,7 @@ def main():
     ids.start()
     monitor.start()
     commands.start()
+    scanner_thread.start()
 
     log.info("=" * 56)
     log.info("  Shield active — all systems running")
@@ -519,6 +528,7 @@ def main():
         firewall.stop()
         hb.stop()
         commands.stop()
+        scanner.stop()
         log.info("Goodbye.")
 
 

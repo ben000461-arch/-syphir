@@ -311,7 +311,16 @@ def push_to_api(devices: list, subnet: str):
 
 # ── Main scanner loop ─────────────────────────────────────────────────────────
 class DeviceScanner:
-    def __init__(self):
+    def __init__(self, config=None):
+        # When run standalone, ORG_KEY/API_URL come from env vars (module
+        # constants above). When wired into server.py, config.json's real
+        # values take precedence — same pattern as Heartbeat/CommandPoller,
+        # so this doesn't silently push devices under the wrong org.
+        if config:
+            global ORG_KEY, API_URL
+            ORG_KEY  = config.get('org_key', ORG_KEY)
+            API_URL  = config.get('api_url', API_URL)
+
         self.subnet      = get_subnet()
         self.known       : Dict[str, dict] = {}  # ip → device
         self.running     = True
