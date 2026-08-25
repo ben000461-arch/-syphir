@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>co|op — terms</title>
+<title>co|op — Programs</title>
+<meta name="description" content="Free AI safety training for your team, plus real ways to prove it — starting with a certificate your customers can actually verify.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -90,18 +91,6 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
 .foot-links a:hover { color: #fff; }
 .foot-copy { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--grey-dim); }
 
-.page-hero { padding:88px 0 24px; }
-.page-hero h1 { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:clamp(2.2rem,4.5vw,3.4rem); letter-spacing:-0.03em; margin-bottom:14px; }
-.page-hero .updated { font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--grey-dim); }
-.legal { max-width:760px; }
-.legal h2 { font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:600; margin:40px 0 12px; letter-spacing:-0.01em; }
-.legal p { font-size:0.98rem; color:var(--grey); line-height:1.7; margin-bottom:14px; }
-.legal ul { margin:0 0 14px 0; padding-left:22px; }
-.legal li { font-size:0.98rem; color:var(--grey); line-height:1.7; margin-bottom:6px; }
-.legal a { color:#fff; }
-.legal strong { color:#fff; }
-
-
 /* ── auth.js injected UI (login modal + profile menu) — co|op styling ── */
 .modal-overlay { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.78); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:24px; }
 .modal-overlay.active { display:flex; }
@@ -133,7 +122,21 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
 .profile-dropdown a:hover, .profile-dropdown button:hover { background:rgba(255,255,255,0.06); }
 .profile-dropdown svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; flex-shrink:0; }
 .profile-dropdown button.danger { color:#ff6b6b; }
+
+.node-badge { display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:0.7rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--grey); border:1px solid var(--line); padding:5px 12px; border-radius:100px; margin-bottom:20px; }
+.node-badge .dot { width:6px; height:6px; border-radius:50%; background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.5); }
+.program-block { border:1px solid var(--line-soft); border-radius:16px; padding:44px; margin-bottom:24px; }
+.program-block.soon { opacity:0.88; }
+.program-eyebrow { font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey-dim); margin-bottom:10px; }
+.program-title { font-family:'Space Grotesk',sans-serif; font-size:1.9rem; font-weight:700; letter-spacing:-0.02em; margin-bottom:14px; }
+.program-desc { color:var(--grey); font-size:1.02rem; line-height:1.65; max-width:640px; margin-bottom:24px; }
+.program-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:24px; }
+.program-step { border:1px solid var(--line-soft); border-radius:12px; padding:20px; }
+.program-step-n { font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--grey-dim); margin-bottom:8px; }
+.program-step h4 { font-size:0.95rem; font-weight:600; margin-bottom:6px; }
+.program-step p { font-size:0.85rem; color:var(--grey); line-height:1.5; }
 </style>
+
 </head>
 <body>
 
@@ -147,7 +150,7 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
       <a href="features.html">Features</a>
       <a href="pricing.html">Pricing</a>
       <a href="block.html">Block</a>
-      <a href="programs.html">Programs</a>
+      <a href="programs.html" class="active">Programs</a>
       <a href="contact.html">Contact</a>
     </div>
     <div id="navAuthSlot">
@@ -156,37 +159,89 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
   </div>
 </div>
 
-<div class="page-hero">
+<div class="hero" style="padding-bottom:20px;">
   <div class="wrap">
-    <div class="section-eyebrow">Legal</div>
-    <h1>Terms of Service</h1>
-    <div class="updated">Last updated — January 2025</div>
+    <div class="node-badge"><span class="dot"></span>Programs</div>
+    <h1 style="font-family:'Space Grotesk',sans-serif;font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;letter-spacing:-0.02em;line-height:1.05;max-width:820px;margin-bottom:20px;">More ways to build real trust — with your team, and with your customers.</h1>
+    <p style="color:var(--grey);font-size:1.1rem;max-width:600px;line-height:1.6;">Protecting your data is the core of what co|op does. These are the extra ways we help you actually show it.</p>
   </div>
 </div>
 
-<div class="section" style="padding-top:32px;border-top:none;">
+<div class="section">
   <div class="wrap">
-    <div class="legal">
-      <h2>1. Agreement to terms</h2>
-<p>By accessing or using co|op ("the Service"), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service. co|op provides AI data-loss-prevention software for businesses.</p>
-<h2>2. Description of service</h2>
-<p>co|op is a browser-based AI security tool that detects sensitive information — such as personal identifiers, financial data, and credentials — before it is submitted to third-party AI tools. The Service includes a browser extension called Trace, a management dashboard, and related features.</p>
-<h2>3. Accounts and keys</h2>
-<p>Each organization receives a unique license key that gates access to its dashboard and scopes its data. You are responsible for keeping your key confidential and for all activity under your account. Employee keys may be distributed to your team members for the sole purpose of using the Service within your organization.</p>
-<h2>4. Acceptable use</h2>
-<p>You agree not to misuse the Service, including attempting to gain unauthorized access, reverse-engineer the software, resell access without authorization, or use the Service to violate any law. co|op reserves the right to suspend accounts that violate these terms.</p>
-<h2>5. Subscriptions and billing</h2>
-<p>Paid plans are billed monthly. You may cancel at any time; access continues through the end of your billing period. Free pilots are provided at our discretion and may be time-limited. Prices are subject to change with notice.</p>
-<h2>6. Data and privacy</h2>
-<p>co|op is designed so that sensitive text detected by Trace never leaves your browser. We store only metadata about incidents. See our <a href="privacy.html">Privacy Policy</a> for details on what we collect and how it is handled.</p>
-<h2>7. Disclaimers</h2>
-<p>The Service is provided "as is" without warranties of any kind. co|op is a risk-reduction tool and does not guarantee that all sensitive data will be detected. You remain responsible for your organization's compliance obligations.</p>
-<h2>8. Limitation of liability</h2>
-<p>To the maximum extent permitted by law, co|op shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service.</p>
-<h2>9. Changes to terms</h2>
-<p>We may update these terms from time to time. Continued use of the Service after changes constitutes acceptance of the revised terms.</p>
-      <h2>Questions?</h2>
-      <p>If you have any questions about this document, contact us at <a href="mailto:cooptech126@gmail.com">cooptech126@gmail.com</a>.</p>
+
+    <!-- PROGRAM 1 — AI Safety Teaching (real, live) -->
+    <div class="program-block">
+      <div class="program-eyebrow">// Program 01 — Free, live today</div>
+      <div class="program-title">AI Safety Teaching</div>
+      <p class="program-desc">A 20-minute session for your team, in person or on a call. No pitch, no obligation — just what your team actually needs to know before the next risky paste happens. Recent industry research found 77% of employees paste company data into AI tools, and over half of those pastes contain real sensitive information.</p>
+      <div class="program-steps">
+        <div class="program-step">
+          <div class="program-step-n">01</div>
+          <h4>The real risk, in plain terms</h4>
+          <p>What's actually happening when someone pastes something into an AI tool, and why it matters more than it feels like in the moment.</p>
+        </div>
+        <div class="program-step">
+          <div class="program-step-n">02</div>
+          <h4>Rules your team can actually use</h4>
+          <p>Simple, memorable habits — what never to paste, and how to describe a situation without the sensitive specifics.</p>
+        </div>
+        <div class="program-step">
+          <div class="program-step-n">03</div>
+          <h4>What catches the moment training isn't enough</h4>
+          <p>Even the best-trained team forgets sometimes. A short live look at what backs the training up.</p>
+        </div>
+      </div>
+      <div style="margin-top:28px;">
+        <button class="btn-solid" onclick="openTrainingModal()">Request a Free Training Session →</button>
+      </div>
+    </div>
+
+    <!-- PROGRAM 2 — Certificate (coming soon) -->
+    <div class="program-block soon">
+      <div class="program-eyebrow">// Program 02 — Coming soon</div>
+      <div class="program-title">AI Data Safety Certificate</div>
+      <p class="program-desc">Complete the AI Safety Teaching session as a team, and we'll be able to give you a real certificate — plus a badge for your own website, and a page where your customers can actually verify it's real, not just a graphic anyone could screenshot. The next time someone walks into your office, "we're certified for AI safety" becomes something you can actually show, not just say.</p>
+      <div class="program-steps">
+        <div class="program-step">
+          <div class="program-step-n">01</div>
+          <h4>Complete the training</h4>
+          <p>Your whole team goes through the AI Safety Teaching session together.</p>
+        </div>
+        <div class="program-step">
+          <div class="program-step-n">02</div>
+          <h4>Get a real certificate</h4>
+          <p>Your business name, the date, and a certificate ID — plus a badge you can put on your own site.</p>
+        </div>
+        <div class="program-step">
+          <div class="program-step-n">03</div>
+          <h4>Anyone can verify it</h4>
+          <p>A real page where your own customers can check the certificate is genuine — not just an image.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="trainingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeTrainingModal()">✕</button>
+    <div id="training-form-view">
+      <h2>Request free AI safety training</h2>
+      <p class="modal-sub">A 20-minute session for your team, in person or on a call. We'll reach out within 24 hours to find a time.</p>
+      <div class="field"><label>Name *</label><input type="text" id="training-name" placeholder="Jane Smith" autocomplete="name"></div>
+      <div class="field"><label>Work Email *</label><input type="email" id="training-email" placeholder="jane@company.com" autocomplete="email"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="training-phone" placeholder="(951) 555-0123" autocomplete="tel"></div>
+      <div class="field"><label>Company</label><input type="text" id="training-company" placeholder="Acme Dental Group" autocomplete="organization"></div>
+      <div class="err-msg" id="training-err"></div>
+      <button class="modal-btn" id="training-submit-btn" onclick="submitTraining()">Request Free Session →</button>
+    </div>
+    <div id="training-success-view" style="display:none;text-align:center;padding:8px 0;">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;">✓</div>
+      <h2>Request sent</h2>
+      <p class="modal-sub">Thanks — we'll reply to <strong id="training-success-email" style="color:#fff;"></strong> within 24 hours to find a time.</p>
+      <button class="modal-btn" onclick="closeTrainingModal()" style="margin-top:8px;">Done</button>
     </div>
   </div>
 </div>
@@ -207,6 +262,45 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
   </div>
 </footer>
 
+<script>
+const TRAINING_API = 'https://syphir-api.onrender.com';
+
+function openTrainingModal() {
+  document.getElementById('training-form-view').style.display = '';
+  document.getElementById('training-success-view').style.display = 'none';
+  document.getElementById('training-err').textContent = '';
+  document.getElementById('trainingModal').classList.add('active');
+  setTimeout(() => document.getElementById('training-name').focus(), 100);
+}
+function closeTrainingModal() { document.getElementById('trainingModal').classList.remove('active'); }
+async function submitTraining() {
+  const name    = document.getElementById('training-name').value.trim();
+  const email   = document.getElementById('training-email').value.trim();
+  const phone   = document.getElementById('training-phone').value.trim();
+  const company = document.getElementById('training-company').value.trim();
+  const errEl   = document.getElementById('training-err');
+  const btn     = document.getElementById('training-submit-btn');
+  errEl.textContent = '';
+  if (!name || !email) { errEl.textContent = 'Name and email are required.'; return; }
+  if (!email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try {
+    const phoneLine = phone ? ` Phone: ${phone}.` : '';
+    const res = await fetch(`${TRAINING_API}/contact`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, company, message: `Requesting a free 20-minute AI Safety Training session for their team.${phoneLine}` })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to send');
+    document.getElementById('training-success-email').textContent = email;
+    document.getElementById('training-form-view').style.display = 'none';
+    document.getElementById('training-success-view').style.display = 'block';
+  } catch(e) {
+    errEl.textContent = 'Could not send: ' + e.message;
+    btn.textContent = 'Request Free Session →'; btn.disabled = false;
+  }
+}
+</script>
 <script src="auth.js"></script>
 </body>
 </html>
