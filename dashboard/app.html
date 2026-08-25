@@ -273,27 +273,61 @@ select option{background:var(--bg3);color:var(--text);}
 .intel-connect-demo{font-size:11px;color:var(--text3);margin-top:12px;}
 .intel-connect-demo span{color:var(--blue-l);cursor:pointer;}
 .intel-connect-demo span:hover{text-decoration:underline;}
-.intel-chat{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.intel-chat{display:flex;flex-direction:row;flex:1;overflow:hidden;}
+.intel-main{display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0;border-right:1px solid var(--border);}
 .intel-device-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg3);border-bottom:1px solid var(--border);}
 .intel-device-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
 .intel-device-name{font-size:11.5px;font-weight:600;color:var(--text);}
 .intel-device-key{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
 .intel-disconnect{margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--text3);padding:3px 8px;border-radius:4px;font-size:10.5px;cursor:pointer;font-family:'Inter',sans-serif;}
-.intel-messages{flex:1;overflow-y:auto;padding:14px;}
-.intel-msg{display:flex;gap:9px;margin-bottom:12px;}
-.intel-msg-icon{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px;}
-.msg-user .intel-msg-icon{background:var(--blue-g);color:var(--blue-l);}
-.msg-system .intel-msg-icon{background:var(--bg3);color:var(--text3);}
-.msg-agent .intel-msg-icon{background:rgba(34,197,94,0.1);color:var(--green);}
-.intel-msg-body{flex:1;}
-.intel-msg-label{font-size:9.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;}
-.intel-msg-text{font-size:12px;color:var(--text2);line-height:1.55;font-family:'JetBrains Mono',monospace;white-space:pre-wrap;word-break:break-word;}
+
+/* Chat transcript — real bubbles, user right / system left */
+.intel-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;}
+.intel-msg{display:flex;margin-bottom:14px;}
+.intel-msg.user{justify-content:flex-end;}
+.intel-msg.system{justify-content:flex-start;}
+.intel-msg-col{display:flex;flex-direction:column;max-width:75%;}
+.intel-msg.user .intel-msg-col{align-items:flex-end;}
+.intel-msg.system .intel-msg-col{align-items:flex-start;}
+.intel-bubble{padding:10px 14px;border-radius:14px;font-size:12.5px;line-height:1.6;word-break:break-word;}
+.intel-msg.user .intel-bubble{background:var(--blue);color:#000;border-radius:14px 14px 3px 14px;font-family:'Inter',sans-serif;font-weight:500;}
+.intel-msg.system .intel-bubble{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px 14px 14px 3px;font-family:'JetBrains Mono',monospace;white-space:pre-wrap;}
+.intel-msg-time{font-size:9.5px;color:var(--text3);margin-top:4px;padding:0 4px;}
+
+/* Interactive help options, rendered inside a system bubble */
+.intel-help-options{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.intel-help-opt{text-align:left;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.12s;}
+.intel-help-opt:hover{border-color:var(--blue);background:var(--blue-g);}
+.intel-help-opt b{display:block;font-size:12px;margin-bottom:2px;}
+.intel-help-opt span{display:block;font-size:11px;color:var(--text3);font-weight:400;}
+
+/* Quick command chips */
+.intel-chip-row{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid var(--border);}
+.intel-chip{background:var(--bg2);border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:14px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.12s;}
+.intel-chip:hover{border-color:var(--blue);color:var(--text);}
+.intel-chip-help{color:var(--blue-l);border-color:rgba(33,150,211,0.3);}
+
 .intel-input-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);}
 .intel-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:5px;font-size:12px;font-family:'Inter',sans-serif;outline:none;}
 .intel-input:focus{border-color:var(--blue);}
 .intel-send{background:var(--blue);color:#000;border:none;border-radius:5px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.12s;}
 .intel-send:hover{background:var(--blue-d);}
 .intel-send:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;}
+
+/* Live activity side panel */
+.intel-activity-panel{width:270px;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg2);overflow:hidden;}
+.intel-activity-hdr{padding:14px 16px;border-bottom:1px solid var(--border);}
+.intel-activity-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.intel-activity-sub{font-size:10.5px;color:var(--text3);line-height:1.4;}
+.intel-activity-list{flex:1;overflow-y:auto;padding:10px;}
+.intel-activity-empty{padding:16px 6px;text-align:center;color:var(--text3);font-size:11.5px;line-height:1.6;}
+.intel-activity-item{padding:9px 10px;border-radius:8px;margin-bottom:6px;background:var(--bg3);border:1px solid var(--border);}
+.intel-activity-item-title{font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.4;}
+.intel-activity-item-detail{font-size:10.5px;color:var(--text3);line-height:1.45;}
+.intel-activity-item-time{font-size:9.5px;color:var(--text3);margin-top:5px;opacity:0.7;}
+.intel-activity-item.risk-critical{border-left:2px solid #f44336;}
+.intel-activity-item.risk-high{border-left:2px solid #ff6d2e;}
+.intel-activity-item.risk-medium{border-left:2px solid #ffc107;}
 
 /* ── Network Security ─────────────────────────────────────────────── */
 .ns-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
@@ -541,16 +575,36 @@ select option{background:var(--bg3);color:var(--text);}
 
         <!-- CONNECTED STATE -->
         <div class="intel-chat" id="intel-chat-screen" style="display:none;">
-          <div class="intel-device-bar">
-            <div class="intel-device-dot"></div>
-            <div class="intel-device-name">co|op Block</div>
-            <div class="intel-device-key" id="intel-connected-key">SYP-NET-XXXX-XXXX</div>
-            <button class="intel-disconnect" onclick="intelDisconnect()">Disconnect</button>
+          <div class="intel-main">
+            <div class="intel-device-bar">
+              <div class="intel-device-dot"></div>
+              <div class="intel-device-name">co|op Block</div>
+              <div class="intel-device-key" id="intel-connected-key">SYP-NET-XXXX-XXXX</div>
+              <button class="intel-disconnect" onclick="intelDisconnect()">Disconnect</button>
+            </div>
+            <div class="intel-messages" id="intel-messages"></div>
+            <div class="intel-chip-row">
+              <button class="intel-chip" onclick="intelQuickCmd('status')">Status</button>
+              <button class="intel-chip" onclick="intelQuickCmd('ping')">Ping a device</button>
+              <button class="intel-chip" onclick="intelQuickCmd('isolate')">Isolate a device</button>
+              <button class="intel-chip" onclick="intelQuickCmd('release')">Release a device</button>
+              <button class="intel-chip" onclick="intelQuickCmd('block')">Block an IP</button>
+              <button class="intel-chip" onclick="intelQuickCmd('unblock')">Unblock an IP</button>
+              <button class="intel-chip intel-chip-help" onclick="intelQuickCmd('help')">Help</button>
+            </div>
+            <div class="intel-input-row">
+              <input class="intel-input" id="intel-input" placeholder="Type a command, or use the buttons above" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();intelSend();}">
+              <button class="intel-send" id="intel-send-btn" onclick="intelSend()">Send</button>
+            </div>
           </div>
-          <div class="intel-messages" id="intel-messages"></div>
-          <div class="intel-input-row">
-            <input class="intel-input" id="intel-input" placeholder="Type a command... e.g. Fix John's computer" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();intelSend();}">
-            <button class="intel-send" id="intel-send-btn" onclick="intelSend()">Send</button>
+          <div class="intel-activity-panel">
+            <div class="intel-activity-hdr">
+              <div class="intel-activity-title">Live Activity</div>
+              <div class="intel-activity-sub">What your Block has actually caught recently</div>
+            </div>
+            <div class="intel-activity-list" id="intel-activity-list">
+              <div class="intel-activity-empty">Nothing to show yet.</div>
+            </div>
           </div>
         </div>
 
@@ -1584,7 +1638,10 @@ function intelActivate(key) {
   const msgs = document.getElementById('intel-messages');
   msgs.innerHTML = '';
   intelAddMsg('system', `Block device connected. Ready for commands.`);
-  intelAddMsg('system', `Try: "Status", "Isolate 192.168.1.42", "Ping 192.168.1.1", or "Help"`);
+  intelAddMsg('system', `Try: "Status", "Isolate 192.168.1.42", "Ping 192.168.1.1", or tap Help below`);
+  intelActivityLoad();
+  if (_intelActivityTimer) clearInterval(_intelActivityTimer);
+  _intelActivityTimer = setInterval(intelActivityLoad, 20000);
 }
 
 function intelDisconnect() {
@@ -1593,6 +1650,40 @@ function intelDisconnect() {
   document.getElementById('intel-chat-screen').style.display    = 'none';
   document.getElementById('intel-shield-pill').style.display    = 'none';
   document.getElementById('intel-device-input').value           = '';
+  if (_intelActivityTimer) { clearInterval(_intelActivityTimer); _intelActivityTimer = null; }
+}
+
+// ── Live Activity panel — real recent network threats, same data source ──
+// Network Security already uses. Message text is already plain English
+// (rewritten at the source in intrusion_detector.py), so it's shown as-is.
+let _intelActivityTimer = null;
+
+async function intelActivityLoad() {
+  const list = document.getElementById('intel-activity-list');
+  if (!ORG_ID) { return; } // org info still resolving — try again next tick
+  try {
+    const res  = await fetch(`${API}/incidents/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`);
+    const data = await res.json();
+    const recent = (data.incidents || []).filter(i => i.source === 'network').slice(0, 15);
+
+    if (!recent.length) {
+      list.innerHTML = '<div class="intel-activity-empty">Nothing to show yet.<br>This fills in as your Block catches real activity.</div>';
+      return;
+    }
+
+    list.innerHTML = recent.map(inc => {
+      const risk  = inc.risk_level || 'medium';
+      const name  = (inc.ai_tool || '').replace(/^Network — /, '');
+      return `<div class="intel-activity-item risk-${risk}">
+        <div class="intel-activity-item-title">${name}</div>
+        <div class="intel-activity-item-detail">${inc.message || ''}</div>
+        <div class="intel-activity-item-time">${_relTime(inc.timestamp)}${inc.ip_address ? ' · ' + inc.ip_address : ''}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    // Transient error — leave whatever was already showing rather than
+    // blanking the panel over one failed refresh.
+  }
 }
 
 function intelAddMsg(role, text, withTerminal) {
@@ -1600,10 +1691,10 @@ function intelAddMsg(role, text, withTerminal) {
   const now     = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   const msgEl   = document.createElement('div');
   msgEl.className = `intel-msg ${role}`;
-  let inner = `<div class="intel-bubble">${text}</div><div class="intel-msg-time">${now}</div>`;
+  let inner;
   if (withTerminal) {
-    inner = `<div style="max-width:90%;width:100%;">
-      <div class="intel-bubble" style="border-radius:10px 10px 3px 10px;max-width:100%;">${text}</div>
+    inner = `<div class="intel-msg-col" style="max-width:90%;width:100%;">
+      <div class="intel-bubble" style="border-radius:14px 14px 3px 14px;width:100%;">${text}</div>
       <div class="intel-terminal" id="intel-term-${withTerminal}">
         <div class="intel-terminal-inner" id="intel-term-inner-${withTerminal}"></div>
       </div>
@@ -1612,8 +1703,13 @@ function intelAddMsg(role, text, withTerminal) {
         <div class="intel-progress-lbl" id="intel-prog-lbl-${withTerminal}">Starting...</div>
       </div>
       <div id="intel-summary-${withTerminal}" style="display:none;" class="intel-done-summary"></div>
-    </div>
-    <div class="intel-msg-time">${now}</div>`;
+      <div class="intel-msg-time">${now}</div>
+    </div>`;
+  } else {
+    inner = `<div class="intel-msg-col">
+      <div class="intel-bubble">${text}</div>
+      <div class="intel-msg-time">${now}</div>
+    </div>`;
   }
   msgEl.innerHTML = inner;
   msgs.appendChild(msgEl);
@@ -1889,20 +1985,36 @@ async function intelCheckLocalServer() {
 }
 
 function intelHelp() {
-  intelAddMsg('system',
-    `Available commands:<br>
-    <strong>Status</strong> — show Block device status<br>
-    <strong>Ping [ip]</strong> — check if a device is reachable<br>
-    <strong>Isolate [ip]</strong> — cut a device off from the network<br>
-    <strong>Release [ip]</strong> — restore a device's network access<br>
-    <strong>Block [ip]</strong> — block an external IP<br>
-    <strong>Unblock [ip]</strong> — unblock an external IP<br>
-    <strong>Fix [name]</strong> — run diagnostic scan on an employee's machine<br>
-    <strong>Diagnose [name]</strong> — same as Fix<br>
-    <strong>Stop</strong> — pause the running agent<br>
-    <strong>Continue</strong> — resume after stop<br>
-    <strong>Cancel</strong> — cancel the agent entirely`
-  );
+  const options = [
+    { title: 'Check if your Block is online',        desc: 'Runs right away',                          action: "intelQuickCmd('status')" },
+    { title: 'Check if a device is reachable',        desc: "You'll pick which one",                    action: "intelPrefill('ping ')" },
+    { title: 'Cut a device off your network',         desc: 'Stops it from talking to anything',        action: "intelPrefill('isolate ')" },
+    { title: 'Let a device back onto the network',    desc: 'Undoes an isolation',                      action: "intelPrefill('release ')" },
+    { title: 'Block an outside address',              desc: 'Stops it from reaching into your network', action: "intelPrefill('block ')" },
+    { title: 'Undo a block',                          desc: '',                                         action: "intelPrefill('unblock ')" },
+  ];
+  const optsHtml = options.map(o => `<button class="intel-help-opt" onclick="${o.action}"><b>${o.title}</b>${o.desc ? `<span>${o.desc}</span>` : ''}</button>`).join('');
+  intelAddMsg('system', `What do you need help with?<div class="intel-help-options">${optsHtml}</div>`);
+}
+
+// Chip row below the input — Status runs immediately since it needs no
+// target; everything else needs a device or IP, so it fills the input and
+// lets the person finish typing rather than guessing at one for them.
+function intelQuickCmd(cmd) {
+  if (cmd === 'status') {
+    document.getElementById('intel-input').value = 'status';
+    intelSend();
+  } else if (cmd === 'help') {
+    intelHelp();
+  } else {
+    intelPrefill(cmd + ' ');
+  }
+}
+
+function intelPrefill(text) {
+  const input = document.getElementById('intel-input');
+  input.value = text;
+  input.focus();
 }
 
 async function intelSend() {
