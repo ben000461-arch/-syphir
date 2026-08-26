@@ -2131,6 +2131,45 @@ function intelPrefill(text) {
   input.focus();
 }
 
+// ── AI fallback — only runs when nothing matched an exact command pattern.
+// It never does anything new: it just figures out which of the same 6 real
+// commands was meant in plain English, then runs the exact same function
+// the exact-match path already uses. If the AI isn't confident, or isn't
+// configured, this falls back to the same "not recognized" message as
+// before — nothing about the exact-match path changes.
+async function intelTryAIInterpret(text) {
+  let result;
+  try {
+    const res = await fetch(`${API}/intel/interpret`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ORG_KEY, text }),
+    });
+    result = await res.json();
+  } catch (e) {
+    result = { action: 'unknown' };
+  }
+
+  const { action, target_ip } = result || {};
+  const needsTarget = ['ping', 'isolate', 'release', 'block', 'unblock'].includes(action);
+
+  if (!action || action === 'unknown' || (needsTarget && !target_ip)) {
+    intelAddMsg('system', `Command not recognized. Type "Help" to see available commands.`);
+    return;
+  }
+
+  intelRunning = true;
+  document.getElementById('intel-send-btn').disabled = true;
+  document.getElementById('intel-input').disabled    = true;
+  const id = Date.now().toString();
+
+  if (action === 'status') { intelAddMsg('system', 'Checking Block status...', id); await intelRunStatus(id); }
+  else if (action === 'ping')     { intelAddMsg('system', `Pinging ${target_ip}...`, id); await intelRunPing(id, target_ip); }
+  else if (action === 'isolate')  { intelAddMsg('system', `Isolating ${target_ip}...`, id); await intelRunIsolate(id, target_ip); }
+  else if (action === 'release')  { intelAddMsg('system', `Releasing ${target_ip}...`, id); await intelRunRelease(id, target_ip); }
+  else if (action === 'block')    { intelAddMsg('system', `Blocking ${target_ip}...`, id); await intelRunBlock(id, target_ip); }
+  else if (action === 'unblock')  { intelAddMsg('system', `Unblocking ${target_ip}...`, id); await intelRunUnblock(id, target_ip); }
+}
+
 async function intelSend() {
   if (intelRunning) return;
   const input = document.getElementById('intel-input');
@@ -2215,7 +2254,7 @@ async function intelSend() {
   }
 
   if (!matched) {
-    intelAddMsg('system', `Command not recognized. Type "Help" to see available commands.`);
+    await intelTryAIInterpret(text);
   }
 
   // Stop / continue / cancel — work even while agent is running

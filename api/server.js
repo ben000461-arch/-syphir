@@ -14,6 +14,7 @@ const SUPABASE_URL = "https://pfrojobhrmfnoxavlrmm.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
 const resend = new Resend(process.env.RESEND_API_KEY || '');
 const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 if (!ADMIN_SECRET) console.warn('WARNING: ADMIN_SECRET env var is not set — admin endpoints will reject all requests');
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
@@ -2667,6 +2668,96 @@ app.get('/shield/command/:id', async (c) => {
   const cmd = shieldCommandStore[id];
   if (!cmd) return c.json({ error: 'Unknown command_id' }, 404);
   return c.json(cmd);
+});
+
+// ── Intel: natural-language command understanding ──────────────────────────
+// Doesn't do anything new or risky — it only maps plain English onto the
+// exact same 6 real commands /shield/command already runs. The AI's whole
+// job is figuring out which one was meant and pulling out an IP if there
+// is one; the actual isolate/block/etc. action is identical either way.
+const INTEL_INTERPRET_PROMPT = `You translate a person's plain-English request into one of six exact security commands. Respond with ONLY a JSON object, no other text, no markdown formatting.
+
+Valid actions: "status", "ping", "isolate", "release", "block", "unblock", "unknown"
+
+- "status": asking whether the security device itself is online or working. No target needed.
+- "ping": checking whether a specific device/IP is reachable. Needs an IP address.
+- "isolate": cutting a specific device off from the network entirely. Needs an IP address.
+- "release": restoring a previously isolated device's network access. Needs an IP address.
+- "block": blocking an external IP address from reaching in. Needs an IP address.
+- "unblock": undoing a block on an external IP address. Needs an IP address.
+- "unknown": use this if the request doesn't clearly match one of the above, or if it needs an IP address but none was given.
+
+Only extract target_ip if a real IPv4 address (like 192.168.1.42) actually appears in the text. Never invent one.
+
+Respond with exactly this shape: {"action": "...", "target_ip": "..." or null, "confidence": "high" or "low"}
+
+Examples:
+"kick that laptop off my network 192.168.1.55" -> {"action":"isolate","target_ip":"192.168.1.55","confidence":"high"}
+"is my block even on right now" -> {"action":"status","target_ip":null,"confidence":"high"}
+"let 192.168.1.20 back on the network" -> {"action":"release","target_ip":"192.168.1.20","confidence":"high"}
+"can you check if 10.0.0.5 is up" -> {"action":"ping","target_ip":"10.0.0.5","confidence":"high"}
+"stop letting 203.0.113.9 in" -> {"action":"block","target_ip":"203.0.113.9","confidence":"high"}
+"what's the weather like" -> {"action":"unknown","target_ip":null,"confidence":"high"}
+"isolate that device" -> {"action":"unknown","target_ip":null,"confidence":"low"}`;
+
+app.post('/intel/interpret', async (c) => {
+  const { key, text } = await c.req.json().catch(() => ({}));
+  if (!key || !text) return c.json({ action: 'unknown', target_ip: null }, 400);
+
+  // Same auth check already used by /shield/command — just confirming
+  // this is a real, active key, not tied to a specific org id here.
+  try {
+    const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=org_id`);
+    if (!rows || rows.length === 0) return c.json({ action: 'unknown', target_ip: null }, 401);
+  } catch (err) {
+    return c.json({ action: 'unknown', target_ip: null }, 500);
+  }
+
+  if (!GROQ_API_KEY) {
+    // Not configured yet — fail quietly to "unknown" rather than error,
+    // so Intel just falls back to its normal "command not recognized"
+    // message instead of breaking.
+    return c.json({ action: 'unknown', target_ip: null, reason: 'AI not configured' });
+  }
+
+  try {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: INTEL_INTERPRET_PROMPT },
+          { role: 'user', content: String(text).slice(0, 300) }, // cap input length, this never needs to be long
+        ],
+        temperature: 0,
+        max_tokens: 100,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!groqRes.ok) {
+      console.error('Groq API error:', groqRes.status, await groqRes.text().catch(() => ''));
+      return c.json({ action: 'unknown', target_ip: null });
+    }
+
+    const data = await groqRes.json();
+    const raw = data.choices?.[0]?.message?.content || '{}';
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
+
+    const VALID_ACTIONS = new Set(['status', 'ping', 'isolate', 'release', 'block', 'unblock', 'unknown']);
+    const action = VALID_ACTIONS.has(parsed.action) ? parsed.action : 'unknown';
+    // Only trust an IP that actually looks like one — don't pass through
+    // anything malformed the model might have hallucinated.
+    const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+    const target_ip = (typeof parsed.target_ip === 'string' && ipPattern.test(parsed.target_ip)) ? parsed.target_ip : null;
+
+    return c.json({ action, target_ip, confidence: parsed.confidence || 'low' });
+  } catch (err) {
+    console.error('Intel interpret failed:', err.message);
+    return c.json({ action: 'unknown', target_ip: null });
+  }
 });
 
 export default { port: 3000, fetch: app.fetch };
