@@ -2725,7 +2725,7 @@ app.post('/intel/interpret', async (c) => {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: INTEL_INTERPRET_PROMPT },
           { role: 'user', content: String(text).slice(0, 300) }, // cap input length, this never needs to be long
@@ -2737,8 +2737,9 @@ app.post('/intel/interpret', async (c) => {
     });
 
     if (!groqRes.ok) {
-      console.error('Groq API error:', groqRes.status, await groqRes.text().catch(() => ''));
-      return c.json({ action: 'unknown', target_ip: null });
+      const errBody = await groqRes.text().catch(() => '');
+      console.error('Groq API error:', groqRes.status, errBody);
+      return c.json({ action: 'unknown', target_ip: null, reason: `Groq API error ${groqRes.status}` });
     }
 
     const data = await groqRes.json();
@@ -2756,7 +2757,7 @@ app.post('/intel/interpret', async (c) => {
     return c.json({ action, target_ip, confidence: parsed.confidence || 'low' });
   } catch (err) {
     console.error('Intel interpret failed:', err.message);
-    return c.json({ action: 'unknown', target_ip: null });
+    return c.json({ action: 'unknown', target_ip: null, reason: err.message });
   }
 });
 

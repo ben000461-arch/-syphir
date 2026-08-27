@@ -2153,6 +2153,7 @@ async function intelTryAIInterpret(text) {
   const needsTarget = ['ping', 'isolate', 'release', 'block', 'unblock'].includes(action);
 
   if (!action || action === 'unknown' || (needsTarget && !target_ip)) {
+    if (result && result.reason) console.warn('[Intel AI] fell back to "not recognized":', result.reason);
     intelAddMsg('system', `Command not recognized. Type "Help" to see available commands.`);
     return;
   }
