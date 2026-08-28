@@ -2240,14 +2240,13 @@ async function intelSend() {
 
   // If we're waiting on an IP to complete a real command, and this message
   // looks like just an IP, finish that task directly — no need to re-run
-  // the AI for something this simple. If they said something else instead,
-  // drop the pending state and treat it as a fresh message rather than
-  // forcing them to answer the old question first.
+  // the AI for something this simple.
   if (_intelPendingAction) {
     const ipMatch = text.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/);
     const pending = _intelPendingAction;
-    _intelPendingAction = null;
+
     if (ipMatch) {
+      _intelPendingAction = null;
       const ip = ipMatch[1];
       intelRunning = true;
       document.getElementById('intel-send-btn').disabled = true;
@@ -2259,7 +2258,20 @@ async function intelSend() {
       else if (pending === 'unblock') { intelAddMsg('system', `Unblocking ${ip}...`, id); await intelRunUnblock(id, ip); }
       return;
     }
-    // Not an IP — fall through and handle this as a normal new message.
+
+    // Genuinely doesn't know the IP — point them somewhere real they can
+    // actually find it, rather than silently dropping the question and
+    // making it look like Intel forgot what it was doing.
+    if (/\b(not sure|dont know|don't know|no idea|idk|not certain)\b/i.test(text)) {
+      _intelPendingAction = null;
+      intelAddMsg('system', `No worries — you can find device IPs under Network Security → Devices. Come back and ask again whenever you're ready.`);
+      return;
+    }
+
+    // Said something else entirely — drop the pending state and treat it
+    // as a fresh message rather than forcing them to answer the old
+    // question first.
+    _intelPendingAction = null;
   }
 
   // Parse command
