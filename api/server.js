@@ -2677,26 +2677,36 @@ app.get('/shield/command/:id', async (c) => {
 // is one; the actual isolate/block/etc. action is identical either way.
 const INTEL_INTERPRET_PROMPT = `You translate a person's plain-English request into one of six exact security commands. Respond with ONLY a JSON object, no other text, no markdown formatting.
 
+People type quickly and casually — missing words, no question marks, typos, shorthand. Judge intent generously rather than requiring clean grammar. If the underlying meaning clearly matches one of the six actions, use it even if the phrasing is rough or informal.
+
 Valid actions: "status", "ping", "isolate", "release", "block", "unblock", "unknown"
 
-- "status": asking whether the security device itself is online or working. No target needed.
+- "status": asking whether the security device itself is online, working, or how it's doing. No target needed.
 - "ping": checking whether a specific device/IP is reachable. Needs an IP address.
 - "isolate": cutting a specific device off from the network entirely. Needs an IP address.
 - "release": restoring a previously isolated device's network access. Needs an IP address.
 - "block": blocking an external IP address from reaching in. Needs an IP address.
 - "unblock": undoing a block on an external IP address. Needs an IP address.
-- "unknown": use this if the request doesn't clearly match one of the above, or if it needs an IP address but none was given.
+- "unknown": use this only if the request genuinely doesn't relate to any of the above, or needs an IP address but none was given.
 
 Only extract target_ip if a real IPv4 address (like 192.168.1.42) actually appears in the text. Never invent one.
 
 Respond with exactly this shape: {"action": "...", "target_ip": "..." or null, "confidence": "high" or "low"}
 
-Examples:
+Examples — including rough, casual, real-world phrasing:
 "kick that laptop off my network 192.168.1.55" -> {"action":"isolate","target_ip":"192.168.1.55","confidence":"high"}
 "is my block even on right now" -> {"action":"status","target_ip":null,"confidence":"high"}
+"hows my block" -> {"action":"status","target_ip":null,"confidence":"high"}
+"how's my block doing" -> {"action":"status","target_ip":null,"confidence":"high"}
+"block status" -> {"action":"status","target_ip":null,"confidence":"high"}
+"is everything ok" -> {"action":"status","target_ip":null,"confidence":"high"}
+"we good" -> {"action":"status","target_ip":null,"confidence":"low"}
 "let 192.168.1.20 back on the network" -> {"action":"release","target_ip":"192.168.1.20","confidence":"high"}
+"unisolate 192.168.1.20" -> {"action":"release","target_ip":"192.168.1.20","confidence":"high"}
 "can you check if 10.0.0.5 is up" -> {"action":"ping","target_ip":"10.0.0.5","confidence":"high"}
+"is 10.0.0.5 reachable" -> {"action":"ping","target_ip":"10.0.0.5","confidence":"high"}
 "stop letting 203.0.113.9 in" -> {"action":"block","target_ip":"203.0.113.9","confidence":"high"}
+"cut off 192.168.1.99" -> {"action":"isolate","target_ip":"192.168.1.99","confidence":"high"}
 "what's the weather like" -> {"action":"unknown","target_ip":null,"confidence":"high"}
 "isolate that device" -> {"action":"unknown","target_ip":null,"confidence":"low"}`;
 
