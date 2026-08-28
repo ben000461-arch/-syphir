@@ -2742,7 +2742,11 @@ app.post('/intel/interpret', async (c) => {
         ],
         temperature: 0,
         max_tokens: 100,
-        response_format: { type: 'json_object' },
+        // No response_format here on purpose — Groq's json_object mode is
+        // known to be unreliable specifically with openai/gpt-oss-120b and
+        // was the actual cause of every request failing with a 400. The
+        // prompt's own instructions plus the lenient parsing below are
+        // enough to get real JSON back without depending on that.
       }),
     });
 
@@ -2753,7 +2757,14 @@ app.post('/intel/interpret', async (c) => {
     }
 
     const data = await groqRes.json();
-    const raw = data.choices?.[0]?.message?.content || '{}';
+    let raw = data.choices?.[0]?.message?.content || '{}';
+    // Without strict JSON mode, models sometimes wrap the answer in a
+    // markdown code fence or add a stray sentence around it — strip fences
+    // and pull out just the {...} object rather than failing on anything
+    // that isn't perfectly clean.
+    raw = raw.replace(/```json\s*|```\s*/g, '').trim();
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) raw = jsonMatch[0];
     let parsed;
     try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
 
