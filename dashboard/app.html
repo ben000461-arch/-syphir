@@ -595,14 +595,14 @@ select option{background:var(--bg3);color:var(--text);}
           <div class="intel-main">
             <div class="intel-device-bar">
               <div class="intel-device-dot"></div>
-              <div class="intel-device-name">co|op Block</div>
-              <div class="intel-device-key" id="intel-connected-key">SYP-NET-XXXX-XXXX</div>
+              <div class="intel-device-name">Connected</div>
               <button class="intel-disconnect" onclick="intelDisconnect()">Disconnect</button>
             </div>
             <div class="intel-messages" id="intel-messages"></div>
             <div class="intel-dock">
               <div class="intel-chip-row">
                 <button class="intel-chip" onclick="intelQuickCmd('status')">Status</button>
+                <button class="intel-chip" onclick="intelQuickCmd('incidents')">Check incidents</button>
                 <button class="intel-chip" onclick="intelQuickCmd('ping')">Ping a device</button>
                 <button class="intel-chip" onclick="intelQuickCmd('isolate')">Isolate a device</button>
                 <button class="intel-chip" onclick="intelQuickCmd('release')">Release a device</button>
@@ -1653,7 +1653,6 @@ function intelConnectDemo() {
 function intelActivate(key) {
   document.getElementById('intel-connect-screen').style.display = 'none';
   document.getElementById('intel-chat-screen').style.display    = 'flex';
-  document.getElementById('intel-connected-key').textContent    = key;
   intelRenderHistoryList();
   const sessions = intelLoadSessions();
   if (sessions.length) {
@@ -2127,6 +2126,9 @@ function intelHelp() {
 function intelQuickCmd(cmd) {
   if (cmd === 'status') {
     document.getElementById('intel-input').value = 'status';
+    intelSend();
+  } else if (cmd === 'incidents') {
+    document.getElementById('intel-input').value = 'how many incidents do we have';
     intelSend();
   } else if (cmd === 'help') {
     intelHelp();
