@@ -297,7 +297,8 @@ select option{background:var(--bg3);color:var(--text);}
 /* Command-dispatch terminal card — the log/progress/summary that appears
    below the intro bubble when a real command is running. Reads as one
    continuous card attached to the bubble above it, not a separate bar. */
-.intel-terminal{background:var(--bg);border:1px solid var(--border);border-top:none;padding:9px 14px;max-height:150px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;}
+.intel-cmd-label{font-size:11.5px;color:var(--text3);padding:2px 4px 6px;font-family:'Inter',sans-serif;}
+.intel-terminal{background:var(--bg);border:1px solid var(--border);padding:9px 14px;max-height:150px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;}
 .intel-terminal-inner{display:flex;flex-direction:column;gap:1px;}
 .intel-progress-wrap{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg2);border:1px solid var(--border);border-top:none;}
 .intel-progress-track{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
@@ -442,7 +443,7 @@ select option{background:var(--bg3);color:var(--text);}
     <div class="nav-item" onclick="nav('incidents',this)"><span class="nav-icon">⚠</span>Incidents<span class="nav-badge" id="nav-badge">0</span></div>
     <div class="nav-item" onclick="nav('live',this)"><span class="nav-icon">◉</span>Live Feed</div>
     <div class="nav-item" onclick="nav('network',this)"><span class="nav-icon">⬡</span>Network Security<span id="badge-network" style="margin-left:auto;background:#f44336;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;display:none;">0</span></div>
-    <div class="nav-item" onclick="nav('intel',this)"><span class="nav-icon">⌘</span>Intel<span id="intel-shield-pill" style="margin-left:auto;font-size:9px;font-weight:700;color:var(--blue-l);background:var(--blue-g);border:1px solid rgba(33,150,211,0.2);padding:1px 5px;border-radius:3px;display:none;">BLOCK</span></div>
+    <div class="nav-item" onclick="nav('intel',this)"><span class="nav-icon">⌘</span>Intel</div>
   </div>
   <div class="nav-section">
     <div class="nav-label">Protection</div>
@@ -1653,7 +1654,6 @@ function intelActivate(key) {
   document.getElementById('intel-connect-screen').style.display = 'none';
   document.getElementById('intel-chat-screen').style.display    = 'flex';
   document.getElementById('intel-connected-key').textContent    = key;
-  document.getElementById('intel-shield-pill').style.display    = 'inline-flex';
   intelRenderHistoryList();
   const sessions = intelLoadSessions();
   if (sessions.length) {
@@ -1669,7 +1669,6 @@ function intelDisconnect() {
   localStorage.removeItem(INTEL_STORAGE_KEY);
   document.getElementById('intel-connect-screen').style.display = 'flex';
   document.getElementById('intel-chat-screen').style.display    = 'none';
-  document.getElementById('intel-shield-pill').style.display    = 'none';
   document.getElementById('intel-device-input').value           = '';
 }
 
@@ -1801,7 +1800,7 @@ function intelNewChat() {
   _intelCurrentMessages  = [];
   const msgs = document.getElementById('intel-messages');
   msgs.innerHTML = '';
-  intelAddMsg('system', `Block device connected. Ready for commands.`);
+  intelAddMsg('system', `Welcome! Type a question or a command to get started.`);
   intelAddMsg('system', `Try: "Status", "Isolate 192.168.1.42", "Ping 192.168.1.1", or tap Help below`);
   intelRenderHistoryList();
 }
@@ -1814,8 +1813,8 @@ function intelAddMsg(role, text, withTerminal) {
   let inner;
   if (withTerminal) {
     inner = `<div class="intel-msg-col" style="max-width:520px;width:100%;">
-      <div class="intel-bubble" style="border-radius:14px 14px 3px 14px;width:100%;">${text}</div>
-      <div class="intel-terminal" id="intel-term-${withTerminal}">
+      <div class="intel-cmd-label">${text}</div>
+      <div class="intel-terminal" id="intel-term-${withTerminal}" style="border-radius:10px 10px 0 0;">
         <div class="intel-terminal-inner" id="intel-term-inner-${withTerminal}"></div>
       </div>
       <div class="intel-progress-wrap">
@@ -2160,7 +2159,15 @@ async function intelTryAIInterpret(text) {
     result = { action: 'unknown' };
   }
 
-  const { action, target_ip } = result || {};
+  const { action, target_ip, reply } = result || {};
+
+  // Chat and query answers are just real messages — no command dispatch,
+  // no terminal card, since nothing on the Block needs to run for these.
+  if (action === 'chat' || action === 'query') {
+    intelAddMsg('system', reply || "Not sure how to answer that one.");
+    return;
+  }
+
   const needsTarget = ['ping', 'isolate', 'release', 'block', 'unblock'].includes(action);
 
   if (!action || action === 'unknown' || (needsTarget && !target_ip)) {
@@ -2174,7 +2181,7 @@ async function intelTryAIInterpret(text) {
   document.getElementById('intel-input').disabled    = true;
   const id = Date.now().toString();
 
-  if (action === 'status') { intelAddMsg('system', 'Checking Block status...', id); await intelRunStatus(id); }
+  if (action === 'status') { intelAddMsg('system', 'Checking status...', id); await intelRunStatus(id); }
   else if (action === 'ping')     { intelAddMsg('system', `Pinging ${target_ip}...`, id); await intelRunPing(id, target_ip); }
   else if (action === 'isolate')  { intelAddMsg('system', `Isolating ${target_ip}...`, id); await intelRunIsolate(id, target_ip); }
   else if (action === 'release')  { intelAddMsg('system', `Releasing ${target_ip}...`, id); await intelRunRelease(id, target_ip); }
@@ -2202,7 +2209,7 @@ async function intelSend() {
         intelRunning = true;
         document.getElementById('intel-send-btn').disabled = true;
         document.getElementById('intel-input').disabled    = true;
-        intelAddMsg('system', 'Checking Block status...', id);
+        intelAddMsg('system', 'Checking status...', id);
         await intelRunStatus(id);
         break;
       }

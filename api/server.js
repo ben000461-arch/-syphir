@@ -2675,50 +2675,59 @@ app.get('/shield/command/:id', async (c) => {
 // exact same 6 real commands /shield/command already runs. The AI's whole
 // job is figuring out which one was meant and pulling out an IP if there
 // is one; the actual isolate/block/etc. action is identical either way.
-const INTEL_INTERPRET_PROMPT = `You translate a person's plain-English request into one of six exact security commands. Respond with ONLY a JSON object, no other text, no markdown formatting.
+const INTEL_INTERPRET_PROMPT = `You are Intel, the assistant inside a small business security dashboard called co|op. You handle three kinds of requests. Respond with ONLY a JSON object, no other text, no markdown formatting.
 
-People type quickly and casually — missing words, no question marks, typos, shorthand. Judge intent generously rather than requiring clean grammar. If the underlying meaning clearly matches one of the six actions, use it even if the phrasing is rough or informal.
+People type quickly and casually — missing words, no question marks, typos, shorthand. Judge intent generously rather than requiring clean grammar.
 
-Valid actions: "status", "ping", "isolate", "release", "block", "unblock", "unknown"
-
+CATEGORY 1 — real security commands (needs "action"):
+"status", "ping", "isolate", "release", "block", "unblock"
 - "status": asking whether the security device itself is online, working, or how it's doing. No target needed.
 - "ping": checking whether a specific device/IP is reachable. Needs an IP address.
 - "isolate": cutting a specific device off from the network entirely. Needs an IP address.
 - "release": restoring a previously isolated device's network access. Needs an IP address.
 - "block": blocking an external IP address from reaching in. Needs an IP address.
 - "unblock": undoing a block on an external IP address. Needs an IP address.
-- "unknown": use this only if the request genuinely doesn't relate to any of the above, or needs an IP address but none was given.
-
 Only extract target_ip if a real IPv4 address (like 192.168.1.42) actually appears in the text. Never invent one.
 
-Respond with exactly this shape: {"action": "...", "target_ip": "..." or null, "confidence": "high" or "low"}
+CATEGORY 2 — real data questions about this business (use action: "query"):
+Use this whenever someone asks about their own real incidents, risk level, or a specific person's activity — not a general knowledge question.
+Set "query_type" to one of: "incident_count", "high_risk_count", "unresolved_count", "person_activity"
+If they mention a specific person's name, put it in "person" (just the name as typed, e.g. "John").
 
-Examples — including rough, casual, real-world phrasing:
+CATEGORY 3 — greetings and small talk (use action: "chat"):
+Hellos, thanks, how-are-you, or anything conversational that isn't a command or a real data question. Write a short, warm, natural reply in "reply" — 1 sentence, no corporate tone. You can mention you're able to run security commands or answer questions about their incidents, but don't force it into every reply.
+
+CATEGORY 4 — genuinely unrelated (use action: "unknown"):
+General knowledge questions, unrelated topics, or a command missing a required IP address.
+
+Respond with exactly this shape (include only the fields relevant to the category):
+{"action": "...", "target_ip": "..." or null, "query_type": "..." or null, "person": "..." or null, "reply": "..." or null, "confidence": "high" or "low"}
+
+Examples:
 "kick that laptop off my network 192.168.1.55" -> {"action":"isolate","target_ip":"192.168.1.55","confidence":"high"}
-"is my block even on right now" -> {"action":"status","target_ip":null,"confidence":"high"}
 "hows my block" -> {"action":"status","target_ip":null,"confidence":"high"}
-"how's my block doing" -> {"action":"status","target_ip":null,"confidence":"high"}
-"block status" -> {"action":"status","target_ip":null,"confidence":"high"}
-"is everything ok" -> {"action":"status","target_ip":null,"confidence":"high"}
-"we good" -> {"action":"status","target_ip":null,"confidence":"low"}
-"let 192.168.1.20 back on the network" -> {"action":"release","target_ip":"192.168.1.20","confidence":"high"}
-"unisolate 192.168.1.20" -> {"action":"release","target_ip":"192.168.1.20","confidence":"high"}
-"can you check if 10.0.0.5 is up" -> {"action":"ping","target_ip":"10.0.0.5","confidence":"high"}
-"is 10.0.0.5 reachable" -> {"action":"ping","target_ip":"10.0.0.5","confidence":"high"}
-"stop letting 203.0.113.9 in" -> {"action":"block","target_ip":"203.0.113.9","confidence":"high"}
-"cut off 192.168.1.99" -> {"action":"isolate","target_ip":"192.168.1.99","confidence":"high"}
-"what's the weather like" -> {"action":"unknown","target_ip":null,"confidence":"high"}
-"isolate that device" -> {"action":"unknown","target_ip":null,"confidence":"low"}`;
+"how many incidents do we have" -> {"action":"query","query_type":"incident_count","confidence":"high"}
+"any high risk stuff today" -> {"action":"query","query_type":"high_risk_count","confidence":"high"}
+"whats john been up to" -> {"action":"query","query_type":"person_activity","person":"John","confidence":"high"}
+"anything unresolved" -> {"action":"query","query_type":"unresolved_count","confidence":"high"}
+"hey" -> {"action":"chat","reply":"Hey! I can check your network status or tell you about your incidents — what do you need?","confidence":"high"}
+"how are you" -> {"action":"chat","reply":"Doing well, thanks for asking! What can I help with?","confidence":"high"}
+"thanks" -> {"action":"chat","reply":"Anytime!","confidence":"high"}
+"what's the weather like" -> {"action":"unknown","confidence":"high"}
+"isolate that device" -> {"action":"unknown","confidence":"low"}`;
 
 app.post('/intel/interpret', async (c) => {
   const { key, text } = await c.req.json().catch(() => ({}));
   if (!key || !text) return c.json({ action: 'unknown', target_ip: null }, 400);
 
-  // Same auth check already used by /shield/command — just confirming
-  // this is a real, active key, not tied to a specific org id here.
+  // Same auth check already used by /shield/command — this one also needs
+  // org_id, since real query answers have to be scoped to this org's own
+  // real data, not just confirming the key is valid.
+  let org_id;
   try {
     const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=org_id`);
     if (!rows || rows.length === 0) return c.json({ action: 'unknown', target_ip: null }, 401);
+    org_id = rows[0].org_id;
   } catch (err) {
     return c.json({ action: 'unknown', target_ip: null }, 500);
   }
@@ -2741,7 +2750,7 @@ app.post('/intel/interpret', async (c) => {
           { role: 'user', content: String(text).slice(0, 300) }, // cap input length, this never needs to be long
         ],
         temperature: 0,
-        max_tokens: 100,
+        max_tokens: 150,
         // No response_format here on purpose — Groq's json_object mode is
         // known to be unreliable specifically with openai/gpt-oss-120b and
         // was the actual cause of every request failing with a 400. The
@@ -2768,8 +2777,53 @@ app.post('/intel/interpret', async (c) => {
     let parsed;
     try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
 
-    const VALID_ACTIONS = new Set(['status', 'ping', 'isolate', 'release', 'block', 'unblock', 'unknown']);
+    const VALID_ACTIONS = new Set(['status', 'ping', 'isolate', 'release', 'block', 'unblock', 'query', 'chat', 'unknown']);
     const action = VALID_ACTIONS.has(parsed.action) ? parsed.action : 'unknown';
+
+    // ── Real chat reply — just relay what the model wrote, nothing fetched ──
+    if (action === 'chat') {
+      return c.json({ action: 'chat', reply: typeof parsed.reply === 'string' ? parsed.reply.slice(0, 300) : "Hey! What can I help with?" });
+    }
+
+    // ── Real data query — fetch actual incidents, answer with real numbers ──
+    if (action === 'query') {
+      try {
+        const incidents = await db(`incidents?org_id=eq.${encodeURIComponent(org_id)}&select=risk_level,resolved,user_email`);
+        const list = incidents || [];
+        const queryType = parsed.query_type;
+
+        let reply;
+        if (queryType === 'incident_count') {
+          reply = list.length === 0 ? "No incidents on record — clean so far." : `You have ${list.length} incident${list.length === 1 ? '' : 's'} on record.`;
+        } else if (queryType === 'high_risk_count') {
+          const high = list.filter(i => i.risk_level === 'high' || i.risk_level === 'critical').length;
+          reply = high === 0 ? "No high-risk incidents — you're clear." : `${high} high-risk incident${high === 1 ? '' : 's'} on record.`;
+        } else if (queryType === 'unresolved_count') {
+          const unresolved = list.filter(i => !i.resolved).length;
+          reply = unresolved === 0 ? "Nothing unresolved right now." : `${unresolved} unresolved incident${unresolved === 1 ? '' : 's'} still open.`;
+        } else if (queryType === 'person_activity') {
+          const person = (parsed.person || '').toLowerCase().trim();
+          if (!person) {
+            reply = "Who did you want me to check on?";
+          } else {
+            // Real but honest heuristic: matches the name against the start
+            // of the email on file (e.g. "john" matches john@company.com).
+            // There's no separate name directory to look up against yet.
+            const matches = list.filter(i => i.user_email && i.user_email.toLowerCase().startsWith(person));
+            reply = matches.length === 0
+              ? `No incidents on record for anyone matching "${parsed.person}".`
+              : `${matches.length} incident${matches.length === 1 ? '' : 's'} on record involving ${parsed.person}.`;
+          }
+        } else {
+          reply = "Not sure what you're asking about there — try asking about incident counts, high-risk activity, or a specific person.";
+        }
+
+        return c.json({ action: 'query', reply });
+      } catch (err) {
+        return c.json({ action: 'query', reply: "Couldn't pull that up just now — try again in a moment." });
+      }
+    }
+
     // Only trust an IP that actually looks like one — don't pass through
     // anything malformed the model might have hallucinated.
     const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
