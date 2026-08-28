@@ -429,6 +429,11 @@ select option{background:var(--bg3);color:var(--text);}
 .billing-banner.warn{border-color:rgba(234,179,8,0.3);background:rgba(234,179,8,0.05);}
 .billing-banner.danger{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);}
 .billing-banner.info{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
+/* Coming-soon cover removed on purpose — Network Security and Intel are
+   genuinely ready now. Customers without a physical Block yet will hit a
+   real "Connect to your Block" screen that honestly can't complete, since
+   Block hasn't shipped to anyone yet — that's expected, not a bug. */
+.cs-cover { display: none !important; }
 </style>
 </head>
 <body>
