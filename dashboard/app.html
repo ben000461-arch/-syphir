@@ -2108,32 +2108,56 @@ async function intelCheckLocalServer() {
 }
 
 function intelHelp() {
+  const helpId = 'help-' + Date.now();
   const options = [
-    { title: 'Check if your Block is online',        desc: 'Runs right away',                          action: "intelQuickCmd('status')" },
-    { title: 'Check if a device is reachable',        desc: "You'll pick which one",                    action: "intelPrefill('ping ')" },
-    { title: 'Cut a device off your network',         desc: 'Stops it from talking to anything',        action: "intelPrefill('isolate ')" },
-    { title: 'Let a device back onto the network',    desc: 'Undoes an isolation',                      action: "intelPrefill('release ')" },
-    { title: 'Block an outside address',              desc: 'Stops it from reaching into your network', action: "intelPrefill('block ')" },
-    { title: 'Undo a block',                          desc: '',                                         action: "intelPrefill('unblock ')" },
+    { title: 'Check if your Block is online',        desc: 'Runs right away',                          phrase: "status" },
+    { title: 'Check if a device is reachable',        desc: "You'll pick which one",                    phrase: "ping a device" },
+    { title: 'Cut a device off your network',         desc: 'Stops it from talking to anything',        phrase: "isolate a device" },
+    { title: 'Let a device back onto the network',    desc: 'Undoes an isolation',                      phrase: "release a device" },
+    { title: 'Block an outside address',              desc: 'Stops it from reaching into your network', phrase: "block an ip" },
+    { title: 'Undo a block',                          desc: '',                                         phrase: "unblock an ip" },
   ];
-  const optsHtml = options.map(o => `<button class="intel-help-opt" onclick="${o.action}"><b>${o.title}</b>${o.desc ? `<span>${o.desc}</span>` : ''}</button>`).join('');
-  intelAddMsg('system', `What do you need help with?<div class="intel-help-options">${optsHtml}</div>`);
+  const optsHtml = options.map(o => `<button class="intel-help-opt" onclick="intelHelpOptionClick('${helpId}','${o.phrase}')"><b>${o.title}</b>${o.desc ? `<span>${o.desc}</span>` : ''}</button>`).join('');
+  intelAddMsg('system', `<div id="${helpId}">What do you need help with?<div class="intel-help-options">${optsHtml}</div></div>`);
 }
 
-// Chip row below the input — Status runs immediately since it needs no
-// target; everything else needs a device or IP, so it fills the input and
-// lets the person finish typing rather than guessing at one for them.
+// Clicking a help option closes that panel and sends the matching phrase
+// immediately, same as if it had been typed and Enter pressed.
+function intelHelpOptionClick(helpId, phrase) {
+  const el = document.getElementById(helpId);
+  const msg = el ? el.closest('.intel-msg') : null;
+  if (msg) msg.style.display = 'none'; else if (el) el.style.display = 'none';
+  intelSendPhrase(phrase);
+}
+
+// Sends a phrase through the real send path immediately — used by chips
+// and help options so clicking one behaves exactly like typing it and
+// pressing Enter, rather than just filling the box and waiting.
+function intelSendPhrase(phrase) {
+  document.getElementById('intel-input').value = phrase;
+  intelSend();
+}
+
+// Chip row below the input — every chip now sends immediately. For
+// commands that need a device or IP, Intel asks a natural follow-up
+// question and waits for the reply instead of requiring it up front.
 function intelQuickCmd(cmd) {
   if (cmd === 'status') {
-    document.getElementById('intel-input').value = 'status';
-    intelSend();
+    intelSendPhrase('status');
   } else if (cmd === 'incidents') {
-    document.getElementById('intel-input').value = 'how many incidents do we have';
-    intelSend();
+    intelSendPhrase('how many incidents do we have');
   } else if (cmd === 'help') {
     intelHelp();
-  } else {
-    intelPrefill(cmd + ' ');
+  } else if (cmd === 'ping') {
+    intelSendPhrase('ping a device');
+  } else if (cmd === 'isolate') {
+    intelSendPhrase('isolate a device');
+  } else if (cmd === 'release') {
+    intelSendPhrase('release a device');
+  } else if (cmd === 'block') {
+    intelSendPhrase('block an ip');
+  } else if (cmd === 'unblock') {
+    intelSendPhrase('unblock an ip');
   }
 }
 
@@ -2149,6 +2173,12 @@ function intelPrefill(text) {
 // the exact-match path already uses. If the AI isn't confident, or isn't
 // configured, this falls back to the same "not recognized" message as
 // before — nothing about the exact-match path changes.
+// Set when a real command was recognized but is missing its IP — the very
+// next message gets checked for just an IP before anything else, so a
+// back-and-forth like "isolate a device" -> "which one?" -> "192.168.1.42"
+// actually completes the task instead of dead-ending.
+let _intelPendingAction = null;
+
 async function intelTryAIInterpret(text) {
   let result;
   try {
@@ -2161,7 +2191,7 @@ async function intelTryAIInterpret(text) {
     result = { action: 'unknown' };
   }
 
-  const { action, target_ip, reply } = result || {};
+  const { action, target_ip, reply, needs_target } = result || {};
 
   // Chat and query answers are just real messages — no command dispatch,
   // no terminal card, since nothing on the Block needs to run for these.
@@ -2172,9 +2202,17 @@ async function intelTryAIInterpret(text) {
 
   const needsTarget = ['ping', 'isolate', 'release', 'block', 'unblock'].includes(action);
 
-  if (!action || action === 'unknown' || (needsTarget && !target_ip)) {
+  // Real command, but missing its IP — ask for it and keep the
+  // conversation open instead of failing outright.
+  if (needsTarget && needs_target) {
+    intelAddMsg('system', reply || `Sure — what's the IP address?`);
+    _intelPendingAction = action;
+    return;
+  }
+
+  if (!action || action === 'unknown') {
     if (result && result.reason) console.warn('[Intel AI] fell back to "not recognized":', result.reason);
-    intelAddMsg('system', `Command not recognized. Type "Help" to see available commands.`);
+    intelAddMsg('system', reply || `I didn't quite get that — could you rephrase, or tell me more about what you need?`);
     return;
   }
 
@@ -2199,6 +2237,30 @@ async function intelSend() {
   input.value = '';
   intelAddMsg('user', text);
   const id = Date.now().toString();
+
+  // If we're waiting on an IP to complete a real command, and this message
+  // looks like just an IP, finish that task directly — no need to re-run
+  // the AI for something this simple. If they said something else instead,
+  // drop the pending state and treat it as a fresh message rather than
+  // forcing them to answer the old question first.
+  if (_intelPendingAction) {
+    const ipMatch = text.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/);
+    const pending = _intelPendingAction;
+    _intelPendingAction = null;
+    if (ipMatch) {
+      const ip = ipMatch[1];
+      intelRunning = true;
+      document.getElementById('intel-send-btn').disabled = true;
+      document.getElementById('intel-input').disabled    = true;
+      if (pending === 'ping')         { intelAddMsg('system', `Pinging ${ip}...`, id); await intelRunPing(id, ip); }
+      else if (pending === 'isolate') { intelAddMsg('system', `Isolating ${ip}...`, id); await intelRunIsolate(id, ip); }
+      else if (pending === 'release') { intelAddMsg('system', `Releasing ${ip}...`, id); await intelRunRelease(id, ip); }
+      else if (pending === 'block')   { intelAddMsg('system', `Blocking ${ip}...`, id); await intelRunBlock(id, ip); }
+      else if (pending === 'unblock') { intelAddMsg('system', `Unblocking ${ip}...`, id); await intelRunUnblock(id, ip); }
+      return;
+    }
+    // Not an IP — fall through and handle this as a normal new message.
+  }
 
   // Parse command
   let matched = false;
