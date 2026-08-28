@@ -2697,7 +2697,7 @@ Set "query_type" to one of: "incident_count", "high_risk_count", "unresolved_cou
 If they mention a specific person's name (even attached to "computer" or "machine"), put just the name in "person" (e.g. "check on johns computer" -> person "John") — spelling doesn't need to be perfect.
 
 CATEGORY 3 — anything about co|op, Intel, or how the system works (use action: "chat"):
-Hellos, thanks, how-are-you, "what are you", "what can you do", or ANY question about co|op, Intel, incidents, risk levels, Trace, or Block, however it's phrased — "what's an incident", "how does this work", "how does the system work", "explain Trace", "what's Block", "what does high risk mean", etc. Write a warm, natural, genuinely helpful reply in "reply" — 2-4 sentences is fine if the question needs real explaining, don't force it short at the cost of being unhelpful. You have real knowledge of this product below — use it to actually answer, don't just deflect to "I can check your status."
+Hellos, thanks, how-are-you, "what are you", "what can you do", or ANY question about co|op, Intel, incidents, risk levels, Trace, or Block, however it's phrased — "what's an incident", "how does this work", "how does the system work", "explain Trace", "what's Block", "what does high risk mean", etc. Write a warm, natural, genuinely helpful reply in "reply" — at most 3 sentences, even for a broad question like "how does this work" as a whole. Cover the most important point first in case it runs long — never leave a sentence unfinished. You have real knowledge of this product below — use it to actually answer, don't just deflect to "I can check your status."
 
 REAL KNOWLEDGE OF CO|OP — draw on this for any explanation, never invent beyond it:
 
@@ -2783,6 +2783,7 @@ Write ONE short, natural, conversational reply (1-2 sentences) that actually ans
         model: 'openai/gpt-oss-120b',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
+        reasoning_effort: 'low',
         max_tokens: 120,
       }),
     });
@@ -2830,7 +2831,17 @@ app.post('/intel/interpret', async (c) => {
           { role: 'user', content: String(text).slice(0, 300) }, // cap input length, this never needs to be long
         ],
         temperature: 0,
-        max_tokens: 150,
+        // openai/gpt-oss-120b is a reasoning model — it can spend a real
+        // chunk of the token budget on hidden internal reasoning before
+        // ever producing the visible JSON answer, which was very likely
+        // the actual cause of the truncation (same total budget, much less
+        // left over for what actually gets shown). This is a simple
+        // classification task, not something needing deep reasoning.
+        reasoning_effort: 'low',
+        // Was 150 — nowhere near enough once the prompt started asking for
+        // real 2-4 sentence explanations inside the same JSON response.
+        // Raised as a second safety margin alongside reasoning_effort above.
+        max_tokens: 500,
         // No response_format here on purpose — Groq's json_object mode is
         // known to be unreliable specifically with openai/gpt-oss-120b and
         // was the actual cause of every request failing with a 400. The
