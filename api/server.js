@@ -2723,6 +2723,49 @@ Examples:
 "what's the weather like" -> {"action":"unknown","confidence":"high"}
 "isolate that device" -> {"action":"unknown","confidence":"low"}`;
 
+// ── Phrases a natural answer to a real data question, using only the real ──
+// numbers it's given. This is a second, separate Groq call — the first
+// call (above) only classifies what kind of question was asked; this one
+// actually sees the real fetched stats and writes the reply, so the answer
+// can be as rich as "97 incidents, mostly high risk" instead of one flat
+// templated number, regardless of how the question was originally worded.
+async function intelPhraseQueryReply(originalText, stats) {
+  if (!GROQ_API_KEY) {
+    // Fallback if AI phrasing isn't available — still a real, honest
+    // number, just less natural.
+    return stats.total === 0 ? "No incidents on record — clean so far." : `You have ${stats.total} incident${stats.total === 1 ? '' : 's'} on record.`;
+  }
+
+  const prompt = `You answer a small business owner's question about their real security incident data. You will be given the exact real numbers — use ONLY those numbers. Never invent, estimate, or round a number that wasn't given to you.
+
+Real data for this business:
+${JSON.stringify(stats, null, 2)}
+
+Their question was: "${originalText}"
+
+Write ONE short, natural, conversational reply (1-2 sentences) that actually answers what they asked, using the real numbers above. If it's relevant and adds useful context, you can mention related numbers too (e.g. if they ask the total, it's fine to also mention how many are high risk if that's meaningful) — but every number you say must come directly from the data given. If total is 0, just say things look clean. Respond with plain text only, no JSON, no markdown.`;
+
+  try {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai/gpt-oss-120b',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 120,
+      }),
+    });
+    if (!groqRes.ok) throw new Error(`Groq error ${groqRes.status}`);
+    const data = await groqRes.json();
+    const reply = data.choices?.[0]?.message?.content?.trim();
+    return reply || `You have ${stats.total} incident${stats.total === 1 ? '' : 's'} on record.`;
+  } catch (err) {
+    console.error('intelPhraseQueryReply failed:', err.message);
+    return stats.total === 0 ? "No incidents on record — clean so far." : `You have ${stats.total} incident${stats.total === 1 ? '' : 's'} on record.`;
+  }
+}
+
 app.post('/intel/interpret', async (c) => {
   const { key, text } = await c.req.json().catch(() => ({}));
   if (!key || !text) return c.json({ action: 'unknown', target_ip: null }, 400);
@@ -2797,34 +2840,28 @@ app.post('/intel/interpret', async (c) => {
       try {
         const incidents = await db(`incidents?org_id=eq.${encodeURIComponent(org_id)}&select=risk_level,resolved,user_email`);
         const list = incidents || [];
-        const queryType = parsed.query_type;
 
-        let reply;
-        if (queryType === 'incident_count') {
-          reply = list.length === 0 ? "No incidents on record — clean so far." : `You have ${list.length} incident${list.length === 1 ? '' : 's'} on record.`;
-        } else if (queryType === 'high_risk_count') {
-          const high = list.filter(i => i.risk_level === 'high' || i.risk_level === 'critical').length;
-          reply = high === 0 ? "No high-risk incidents — you're clear." : `${high} high-risk incident${high === 1 ? '' : 's'} on record.`;
-        } else if (queryType === 'unresolved_count') {
-          const unresolved = list.filter(i => !i.resolved).length;
-          reply = unresolved === 0 ? "Nothing unresolved right now." : `${unresolved} unresolved incident${unresolved === 1 ? '' : 's'} still open.`;
-        } else if (queryType === 'person_activity') {
-          const person = (parsed.person || '').toLowerCase().trim();
-          if (!person) {
-            reply = "Who did you want me to check on?";
-          } else {
-            // Real but honest heuristic: matches the name against the start
-            // of the email on file (e.g. "john" matches john@company.com).
-            // There's no separate name directory to look up against yet.
-            const matches = list.filter(i => i.user_email && i.user_email.toLowerCase().startsWith(person));
-            reply = matches.length === 0
-              ? `No incidents on record for anyone matching "${parsed.person}".`
-              : `${matches.length} incident${matches.length === 1 ? '' : 's'} on record involving ${parsed.person}.`;
-          }
-        } else {
-          reply = "Not sure what you're asking about there — try asking about incident counts, high-risk activity, or a specific person.";
+        // Real, complete numbers — computed once regardless of which exact
+        // query_type was guessed, so the AI has full context to draw from
+        // rather than being boxed into one narrow number.
+        const stats = {
+          total: list.length,
+          high_risk: list.filter(i => i.risk_level === 'high' || i.risk_level === 'critical').length,
+          medium_risk: list.filter(i => i.risk_level === 'medium').length,
+          low_risk: list.filter(i => i.risk_level === 'low').length,
+          resolved: list.filter(i => i.resolved).length,
+          unresolved: list.filter(i => !i.resolved).length,
+        };
+
+        if (parsed.query_type === 'person_activity' && parsed.person) {
+          const person = parsed.person.toLowerCase().trim();
+          const matches = list.filter(i => i.user_email && i.user_email.toLowerCase().startsWith(person));
+          stats.person_name = parsed.person;
+          stats.person_incident_count = matches.length;
+          stats.person_high_risk = matches.filter(i => i.risk_level === 'high' || i.risk_level === 'critical').length;
         }
 
+        const reply = await intelPhraseQueryReply(text, stats);
         return c.json({ action: 'query', reply });
       } catch (err) {
         return c.json({ action: 'query', reply: "Couldn't pull that up just now — try again in a moment." });
