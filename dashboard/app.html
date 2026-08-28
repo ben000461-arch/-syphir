@@ -429,11 +429,6 @@ select option{background:var(--bg3);color:var(--text);}
 .billing-banner.warn{border-color:rgba(234,179,8,0.3);background:rgba(234,179,8,0.05);}
 .billing-banner.danger{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);}
 .billing-banner.info{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
-/* Coming-soon cover removed on purpose — Network Security and Intel are
-   genuinely ready now. Customers without a physical Block yet will hit a
-   real "Connect to your Block" screen that honestly can't complete, since
-   Block hasn't shipped to anyone yet — that's expected, not a bug. */
-.cs-cover { display: none !important; }
 </style>
 </head>
 <body>
@@ -570,17 +565,6 @@ select option{background:var(--bg3);color:var(--text);}
     <!-- INTEL -->
     <div class="page" id="page-intel">
 
-      <!-- co|op Block coming-soon cover -->
-      <div class="cs-cover">
-        <div class="cs-card">
-          <div class="cs-badge">Coming Soon</div>
-          <div class="cs-mark">co<span class="p">|</span>op Block</div>
-          <div class="cs-title">Network-level protection</div>
-          <div class="cs-sub">Intel lets you run plain-English security commands — isolate a device, block an IP, fix a computer — straight from your dashboard. It runs on <strong style="color:#fff;">co|op Block</strong> — our dedicated security appliance that plugs into your network and watches what the browser can't see.</div>
-          <a class="cs-btn" href="block.html">Learn about co|op Block →</a>
-          <div class="cs-foot">preview shows sample data · live once your Block ships</div>
-        </div>
-      </div>
       <div class="intel-wrap">
 
         <!-- NOT CONNECTED STATE -->
@@ -1566,13 +1550,12 @@ const INTEL_STORAGE_KEY = 'syphir_intel_device_' + ORG_KEY;
 const INTEL_LOCAL       = 'http://localhost:7474';
 
 function intelCheckSavedDevice() {
-  const saved = localStorage.getItem(INTEL_STORAGE_KEY);
-  if (saved) {
-    intelActivate(saved);
-  } else {
-    document.getElementById('intel-connect-screen').style.display = 'flex';
-    document.getElementById('intel-chat-screen').style.display    = 'none';
-  }
+  // Intel opens straight into chat now — most of what it does (answering
+  // questions, checking incidents, chatting) doesn't need a physical Block
+  // connected at all. Real commands still honestly succeed or fail based
+  // on whether a Block actually responds; this just skips a redundant
+  // "connect" step that isn't a real prerequisite anymore.
+  intelActivate(ORG_KEY);
 }
 const INTEL_DEMO_KEY    = 'SYP-NET-DEMO-0001';
 let intelRunning        = false;
