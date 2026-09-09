@@ -2560,10 +2560,12 @@ app.post('/shield/heartbeat', async (c) => {
     heartbeat_at:      new Date().toISOString(),
     shield_ip:         body.shield_ip         || '',
     version:           body.version           || '',
-    // Piggybacked real firewall state — heartbeat.py already sends these,
-    // they were just being dropped on the floor server-side until now.
     isolated_devices:  body.isolated_devices  || {},
     blocked_ips:       body.blocked_ips       || {},
+    // True unless the Pi explicitly says otherwise — if this is ever
+    // missing/undefined, safest assumption is "not actually enforcing,"
+    // not "assume it's fine."
+    stub_mode:         body.stub_mode ?? true,
   };
 
   console.log(`[Shield] heartbeat from ${body.org_key} @ ${body.shield_ip || 'unknown'}`);
@@ -2587,6 +2589,7 @@ app.get('/shield/status', async (c) => {
     online:           age < 120_000,
     isolated_devices: data.isolated_devices || {},
     blocked_ips:      data.blocked_ips      || {},
+    stub_mode:        data.stub_mode ?? true,
   });
 });
 

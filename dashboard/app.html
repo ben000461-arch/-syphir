@@ -646,6 +646,13 @@ select option{background:var(--bg3);color:var(--text);}
         </div>
       </div>
 
+      <!-- Stub/simulation mode warning — hidden unless the Block itself
+           reports it's not actually enforcing. This is the fix for commands
+           silently reporting success while doing nothing on real hardware. -->
+      <div id="ns-stub-warning" style="display:none;margin-bottom:16px;padding:12px 14px;border:1px solid rgba(251,191,36,0.4);background:rgba(251,191,36,0.08);border-radius:8px;color:#fbbf24;font-size:12px;line-height:1.5;">
+        ⚠️ This Block is running in <strong>simulation mode</strong> — isolate/block commands are logged as successful but are not actually enforced on the network. Contact support before relying on this device for real protection.
+      </div>
+
       <!-- Top stats -->
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;" id="ns-stats-row">
         <div style="background:var(--bg2);border:1px solid rgba(244,67,54,0.25);border-radius:10px;padding:14px 16px;">
@@ -2389,6 +2396,9 @@ async function networkLoadReal() {
     const res  = await fetch(`${API}/shield/status?key=${encodeURIComponent(ORG_KEY)}`);
     const data = await res.json();
     nsShieldOnline = !!data.online;
+
+    const stubWarning = document.getElementById('ns-stub-warning');
+    if (stubWarning) stubWarning.style.display = (data.online && data.stub_mode) ? 'block' : 'none';
 
     Object.keys(NS_ISOLATED).forEach(k => delete NS_ISOLATED[k]);
     Object.keys(NS_BLOCKED).forEach(k => delete NS_BLOCKED[k]);

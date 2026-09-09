@@ -80,6 +80,10 @@ class Heartbeat:
                 status = self.firewall.get_status()
                 payload_dict['isolated_devices'] = status.get('isolated_devices', {})
                 payload_dict['blocked_ips']      = status.get('blocked_ips', {})
+                # Was being silently dropped here — meant the dashboard had
+                # no way to ever know a Block was running in fake/stub mode
+                # (commands report success but never touch real iptables).
+                payload_dict['stub_mode']        = status.get('stub_mode', True)
             except Exception as e:
                 log.debug(f"Could not attach firewall status to heartbeat: {e}")
 
