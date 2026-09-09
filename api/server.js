@@ -2557,13 +2557,37 @@ app.post('/shield/heartbeat', async (c) => {
   const existing = shieldDeviceStore[body.org_key] || {};
   shieldDeviceStore[body.org_key] = {
     ...existing,
-    heartbeat_at: new Date().toISOString(),
-    shield_ip:    body.shield_ip   || '',
-    version:      body.version     || '',
+    heartbeat_at:      new Date().toISOString(),
+    shield_ip:         body.shield_ip         || '',
+    version:           body.version           || '',
+    // Piggybacked real firewall state — heartbeat.py already sends these,
+    // they were just being dropped on the floor server-side until now.
+    isolated_devices:  body.isolated_devices  || {},
+    blocked_ips:       body.blocked_ips       || {},
   };
 
   console.log(`[Shield] heartbeat from ${body.org_key} @ ${body.shield_ip || 'unknown'}`);
   return c.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Dashboard → Render: poll for real isolated/blocked firewall state.
+// Populated by the heartbeat above — same in-memory store as /shield/devices,
+// same online/stale staleness check (>2 min since last heartbeat = offline).
+app.get('/shield/status', async (c) => {
+  const key = c.req.query('key') || c.req.query('org_key');
+  if (!key) return c.json({ error: 'Missing key' }, 400);
+
+  const data = shieldDeviceStore[key];
+  if (!data) return c.json({ online: false, isolated_devices: {}, blocked_ips: {} });
+
+  const lastSeen = data.heartbeat_at || data.received_at;
+  const age = lastSeen ? Date.now() - new Date(lastSeen).getTime() : Infinity;
+
+  return c.json({
+    online:           age < 120_000,
+    isolated_devices: data.isolated_devices || {},
+    blocked_ips:      data.blocked_ips      || {},
+  });
 });
 
 console.log("co|op API v2.11.0 running");
