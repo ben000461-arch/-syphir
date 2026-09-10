@@ -886,6 +886,15 @@ const PLAN_SEAT_CAPS = { Starter: 15, Professional: 50, Institution: Infinity };
 const PLAN_RETENTION_DAYS = { Starter: 30, Professional: 365, Institution: Infinity };
 const PLAN_WHITELIST_CAPS = { Starter: 5, Professional: 200, Institution: 200 };
 const PLAN_ALLOWS_MODE_OVERRIDES = { Starter: false, Professional: true, Institution: true };
+// Custom Keywords — the dashboard's "🎯 Custom Keywords" card existed as
+// static, unwired UI with no backend at all until now. Same gating shape
+// as mode_overrides: fully blocked on Starter, real cap on paid tiers.
+const PLAN_ALLOWS_CUSTOM_KEYWORDS = { Starter: false, Professional: true, Institution: true };
+const PLAN_CUSTOM_KEYWORD_CAPS    = { Starter: 0,     Professional: 100,  Institution: 100 };
+// Intel monthly usage cap — first real usage limit on the AI assistant.
+// These numbers are a starting placeholder, easy to tune later; they are
+// not derived from any cost analysis, just reasonable-sounding defaults.
+const PLAN_INTEL_MONTHLY_LIMIT = { Starter: 50, Professional: 500, Institution: Infinity };
 
 async function getOrgPlan(org_id) {
   try {
@@ -1013,28 +1022,31 @@ const VALID_MODES = new Set(["block", "warn"]);
 
 app.get("/policies", async (c) => {
   const key = c.req.query("key");
-  if (!key) return c.json({ whitelist: [], mode_overrides: {} });
+  if (!key) return c.json({ whitelist: [], mode_overrides: {}, custom_keywords: [] });
   try {
     const rows = await db(`license_keys?key=eq.${encodeURIComponent(key)}&status=eq.active&select=organizations(policies)`);
-    if (!rows || rows.length === 0) return c.json({ whitelist: [], mode_overrides: {} });
+    if (!rows || rows.length === 0) return c.json({ whitelist: [], mode_overrides: {}, custom_keywords: [] });
     const policies = rows[0].organizations?.policies || {};
     return c.json({
       whitelist: Array.isArray(policies.whitelist) ? policies.whitelist : [],
       mode_overrides: (policies.mode_overrides && typeof policies.mode_overrides === "object") ? policies.mode_overrides : {},
+      custom_keywords: Array.isArray(policies.custom_keywords) ? policies.custom_keywords : [],
     });
   } catch (err) {
-    return c.json({ whitelist: [], mode_overrides: {} }); // non-fatal — extension just uses defaults this cycle
+    return c.json({ whitelist: [], mode_overrides: {}, custom_keywords: [] }); // non-fatal — extension just uses defaults this cycle
   }
 });
 
 app.put("/policies/:org_id", async (c) => {
   const { org_id } = c.req.param();
-  const { key, whitelist, mode_overrides } = await c.req.json().catch(() => ({}));
+  const { key, whitelist, mode_overrides, custom_keywords } = await c.req.json().catch(() => ({}));
   if (!(await keyOwnsOrg(key, org_id))) return c.json({ success: false, message: "Unauthorized" }, 401);
   if (!Array.isArray(whitelist)) return c.json({ success: false, message: "whitelist must be an array" }, 400);
   const plan = await getOrgPlan(org_id);
   const whitelistCap = PLAN_WHITELIST_CAPS[plan] ?? PLAN_WHITELIST_CAPS.Starter;
   const modeOverridesAllowed = PLAN_ALLOWS_MODE_OVERRIDES[plan] ?? false;
+  const customKeywordsAllowed = PLAN_ALLOWS_CUSTOM_KEYWORDS[plan] ?? false;
+  const customKeywordCap = PLAN_CUSTOM_KEYWORD_CAPS[plan] ?? PLAN_CUSTOM_KEYWORD_CAPS.Starter;
   const cleanedWhitelist = whitelist.map(v => String(v).trim()).filter(Boolean).slice(0, whitelistCap);
   const cleanedModes = {};
   if (modeOverridesAllowed && mode_overrides && typeof mode_overrides === "object") {
@@ -1042,14 +1054,25 @@ app.put("/policies/:org_id", async (c) => {
       if (VALID_MODES.has(mode)) cleanedModes[type] = mode;
     }
   }
+  const cleanedKeywords = (customKeywordsAllowed && Array.isArray(custom_keywords))
+    ? custom_keywords.map(v => String(v).trim()).filter(Boolean).slice(0, customKeywordCap)
+    : [];
   try {
+    // Read-then-write on the whole policies JSON blob — it also holds
+    // intel_usage (written by /intel/interpret), which this endpoint has
+    // no business touching. Overwriting the whole object blind would
+    // silently reset a customer's usage count every time they save a
+    // policy change.
+    const existingRows = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=policies`);
+    const existingPolicies = existingRows?.[0]?.policies || {};
     await db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
       method: "PATCH", prefer: "return=minimal",
-      body: JSON.stringify({ policies: { whitelist: cleanedWhitelist, mode_overrides: cleanedModes } }),
+      body: JSON.stringify({ policies: { ...existingPolicies, whitelist: cleanedWhitelist, mode_overrides: cleanedModes, custom_keywords: cleanedKeywords } }),
     });
     return c.json({
-      success: true, whitelist: cleanedWhitelist, mode_overrides: cleanedModes,
+      success: true, whitelist: cleanedWhitelist, mode_overrides: cleanedModes, custom_keywords: cleanedKeywords,
       plan, whitelist_cap: whitelistCap, mode_overrides_allowed: modeOverridesAllowed,
+      custom_keywords_allowed: customKeywordsAllowed, custom_keywords_cap: customKeywordCap,
       truncated: whitelist.length > cleanedWhitelist.length,
     });
   } catch (err) {
@@ -2848,6 +2871,39 @@ app.post('/intel/interpret', async (c) => {
     // message instead of breaking.
     return c.json({ action: 'unknown', target_ip: null, reason: 'AI not configured' });
   }
+
+  // Enforce per-plan monthly Intel usage cap. Stored inside the same
+  // organizations.policies JSON blob as whitelist/mode_overrides/custom_keywords
+  // (intel_usage key) rather than a new column — read-then-write so we never
+  // clobber the other policy fields a customer may have saved separately.
+  let orgPlan = 'Starter', orgPolicies = {};
+  try {
+    const orgRows = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=plan,policies`);
+    orgPlan = orgRows?.[0]?.plan || 'Starter';
+    orgPolicies = orgRows?.[0]?.policies || {};
+  } catch (err) {
+    // If this lookup fails, fail open — don't let a usage-tracking bug break Intel entirely.
+  }
+  const monthlyLimit = PLAN_INTEL_MONTHLY_LIMIT[orgPlan] ?? PLAN_INTEL_MONTHLY_LIMIT.Starter;
+  const nowMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const currentUsage = (orgPolicies.intel_usage && orgPolicies.intel_usage.month === nowMonth) ? (orgPolicies.intel_usage.count || 0) : 0;
+
+  if (monthlyLimit !== Infinity && currentUsage >= monthlyLimit) {
+    return c.json({
+      action: 'chat',
+      reply: `You've hit this month's Intel usage limit for your ${orgPlan} plan (${monthlyLimit} messages). Upgrade for more, or it resets next month.`,
+      confidence: 'high',
+      usage_limit_reached: true,
+      usage: { used: currentUsage, limit: monthlyLimit, plan: orgPlan },
+    });
+  }
+
+  // Increment before the actual call — counts real attempts, not just
+  // successful ones, which is the honest definition of "usage."
+  db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
+    method: "PATCH", prefer: "return=minimal",
+    body: JSON.stringify({ policies: { ...orgPolicies, intel_usage: { month: nowMonth, count: currentUsage + 1 } } }),
+  }).catch(() => {}); // fire-and-forget — never let usage tracking block the actual chat response
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {

@@ -803,7 +803,11 @@ select option{background:var(--bg3);color:var(--text);}
         </div>
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">🎯 Custom Keywords</div></div>
-          <div class="card-body"><div class="inp-group"><label class="inp-lbl">Sensitive terms (one per line)</label><textarea class="inp" rows="7" style="resize:vertical;" placeholder="patient portal&#10;acquisition target&#10;internal pricing"></textarea></div></div>
+          <div class="card-body">
+            <div class="tog-sub" style="margin-bottom:10px;" id="policy-keywords-sub">Sensitive terms Trace should flag beyond the built-in PII types — internal project names, acquisition targets, anything specific to your business. One per line.</div>
+            <div class="inp-group"><textarea class="inp" id="policy-keywords" rows="7" style="resize:vertical;" placeholder="patient portal&#10;acquisition target&#10;internal pricing"></textarea></div>
+            <div class="tog-sub" id="policy-keywords-status" style="margin-top:8px;"></div>
+          </div>
         </div>
         <div class="card mb-16">
           <div class="card-hdr"><div class="card-title">✅ Whitelist</div></div>
@@ -953,6 +957,7 @@ const ORG_NAME_PARAM = decodeURIComponent(params.get('org') || _session?.org_nam
 if (!ORG_KEY) window.location.replace('index.html?error=session-expired');
 
 let ORG_ID = null, ORG_NAME = ORG_NAME_PARAM, ORG_PLAN = 'Business';
+let INCIDENTS_RETENTION_DAYS = null; // null = unlimited; set from /incidents response, reflects the org's actual plan
 let ORG_ADMIN_EMAIL = '', ORG_EMP_KEY = '', ORG_EXPIRES_AT = null;
 let incidents = [], dataInterval = null;
 let incFilters = { source: 'all', severity: 'all', status: 'all' };
@@ -1133,6 +1138,8 @@ function setPolicyMode(type, mode) {
 async function loadPolicies() {
   const ta = document.getElementById('policy-whitelist');
   const status = document.getElementById('policy-whitelist-status');
+  const kwTa = document.getElementById('policy-keywords');
+  const kwSub = document.getElementById('policy-keywords-sub');
   renderModesList(); // draw defaults immediately, don't wait on the network
   if (!ta || !ORG_KEY) return;
   try {
@@ -1141,6 +1148,16 @@ async function loadPolicies() {
     ta.value = (Array.isArray(data.whitelist) ? data.whitelist : []).join('\n');
     currentModeOverrides = (data.mode_overrides && typeof data.mode_overrides === 'object') ? data.mode_overrides : {};
     renderModesList();
+    if (kwTa) {
+      const plan = ORG_PLAN || 'Starter';
+      const keywordsAllowed = plan !== 'Starter'; // Starter is always blocked — mirrors PLAN_ALLOWS_CUSTOM_KEYWORDS server-side
+      kwTa.value = (Array.isArray(data.custom_keywords) ? data.custom_keywords : []).join('\n');
+      kwTa.disabled = !keywordsAllowed;
+      kwTa.style.opacity = keywordsAllowed ? '1' : '0.4';
+      if (kwSub) kwSub.textContent = keywordsAllowed
+        ? 'Sensitive terms Trace should flag beyond the built-in PII types — internal project names, acquisition targets, anything specific to your business. One per line.'
+        : `Custom Keywords needs Professional or higher — your ${plan} plan uses the built-in detection types only. Upgrade to unlock.`;
+    }
     if (status) status.textContent = '';
   } catch (e) {
     if (status) { status.textContent = 'Could not load saved policies — try refreshing.'; status.style.color = 'var(--red)'; }
@@ -1150,12 +1167,15 @@ async function loadPolicies() {
 async function savePolicies() {
   const ta = document.getElementById('policy-whitelist');
   const status = document.getElementById('policy-whitelist-status');
+  const kwTa = document.getElementById('policy-keywords');
+  const kwStatus = document.getElementById('policy-keywords-status');
   if (!ta || !ORG_ID) { showToast('Still loading your org — try again in a moment'); return; }
   const whitelist = ta.value.split('\n').map(v => v.trim()).filter(Boolean);
+  const custom_keywords = kwTa ? kwTa.value.split('\n').map(v => v.trim()).filter(Boolean) : [];
   try {
     const res = await fetch(`${API}/policies/${encodeURIComponent(ORG_ID)}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: ORG_KEY, whitelist, mode_overrides: currentModeOverrides }),
+      body: JSON.stringify({ key: ORG_KEY, whitelist, mode_overrides: currentModeOverrides, custom_keywords }),
     });
     const data = await res.json();
     if (data.success) {
@@ -1176,6 +1196,18 @@ async function savePolicies() {
         currentModeOverrides = {}; // server didn't save these — don't let the UI imply otherwise
         renderModesList();
         showToast(`Block/Warn customization needs Professional or higher — your ${data.plan || 'Starter'} plan uses the defaults.`);
+      }
+      if (kwTa) {
+        kwTa.value = (data.custom_keywords || []).join('\n');
+        if (kwStatus) {
+          if (!data.custom_keywords_allowed) {
+            kwStatus.style.color = 'var(--yellow)';
+            kwStatus.textContent = `Custom Keywords needs Professional or higher — your ${data.plan || 'Starter'} plan uses the built-in detection types only.`;
+          } else {
+            kwStatus.style.color = 'var(--text3)';
+            kwStatus.textContent = `${data.custom_keywords.length} custom keyword${data.custom_keywords.length===1?'':'s'} saved — Trace picks this up within 30 minutes.`;
+          }
+        }
       }
     } else {
       if (status) { status.style.color = 'var(--red)'; status.textContent = data.message || 'Could not save — try again.'; }
@@ -1247,7 +1279,18 @@ function renderIncidentTable() {
   const container = document.getElementById('tbl-incidents');
   if (!container) return;
   const sub = document.getElementById('inc-count-sub');
-  if (sub) sub.textContent = `${filtered.length} incident${filtered.length !== 1 ? 's' : ''} · newest first`;
+  if (sub) {
+    let subText = `${filtered.length} incident${filtered.length !== 1 ? 's' : ''} · newest first`;
+    // "All Time" is a UI label, not a literal promise — the backend always
+    // enforces the org's plan retention window (PLAN_RETENTION_DAYS server-side).
+    // Without this note, a Starter org on a demo dataset older than 30 days
+    // sees "0 incidents" on All Time and it looks broken instead of gated.
+    const allTimeActive = document.querySelector('.filter-btn.active')?.textContent === 'All Time';
+    if (allTimeActive && INCIDENTS_RETENTION_DAYS !== null) {
+      subText += ` · showing last ${INCIDENTS_RETENTION_DAYS} days (${ORG_PLAN} plan retention — upgrade for longer history)`;
+    }
+    sub.textContent = subText;
+  }
   if (!filtered.length) { container.innerHTML = '<div class="empty"><div class="empty-icon">○</div><div class="empty-msg">No incidents match the current filters</div></div>'; return; }
   const sorted = [...filtered].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
   container.innerHTML = sorted.map(inc => {
@@ -1406,6 +1449,8 @@ async function loadData() {
     const [iR, sR] = await Promise.all([fetch(`${API}/incidents/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`), fetch(`${API}/stats/${ORG_ID}?key=${encodeURIComponent(ORG_KEY)}`)]);
     const iD = await iR.json(), sD = await sR.json();
     incidents = iD.incidents || [];
+    INCIDENTS_RETENTION_DAYS = (typeof iD.retention_days === 'number') ? iD.retention_days : null; // null = unlimited (Institution plan)
+    if (iD.plan) ORG_PLAN = iD.plan;
     const h=sD.high_risk||0,m=sD.medium_risk||0,l=sD.low_risk||0,res=sD.resolved||0,tot=sD.total_incidents||0;
     document.getElementById('s-total').textContent=tot; document.getElementById('s-high').textContent=h; document.getElementById('s-medium').textContent=m; document.getElementById('s-resolved').textContent=res; document.getElementById('donut-total').textContent=tot;
     const pct=v=>tot>0?'('+Math.round(v/tot*100)+'%)':'(0%)';
