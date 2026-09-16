@@ -765,7 +765,7 @@ app.patch("/orgs/:org_id/upgrade", async (c) => {
   let expiresAt;
 
   if (reset_trial) {
-    expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     if (!resolvedPlan) {
       // Fetch current plan from DB so we don't overwrite it
       const cur = await db(`organizations?id=eq.${encodeURIComponent(org_id)}&select=plan`).catch(() => []);
@@ -775,7 +775,7 @@ app.patch("/orgs/:org_id/upgrade", async (c) => {
     if (!org_id || !resolvedPlan) return c.json({ error: "org_id and plan are required" }, 400);
     const paidPlans = ["Starter", "Professional", "Institution"];
     const isPaid = paidPlans.includes(resolvedPlan);
-    expiresAt = isPaid ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    expiresAt = isPaid ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   }
 
   try {
@@ -1211,7 +1211,7 @@ app.post("/admin/create-org", async (c) => {
 
     // 2. Expiry (paying plans have no expiry)
     const isPaying = ["starter", "professional", "institution", "pro"].includes((plan || "").toLowerCase());
-    const expiresAt = isPaying ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = isPaying ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     // 3. Business key — 5 retries with escalating delay
     await dbWithRetry("license_keys", {
@@ -1374,7 +1374,7 @@ app.post("/admin/approve-signup", async (c) => {
     const org = orgs?.[0];
     if (!org) return c.json({ error: "Org not found" }, 404);
 
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     await db(`organizations?id=eq.${encodeURIComponent(org_id)}`, {
       method: "PATCH", prefer: "return=minimal",
@@ -1491,7 +1491,7 @@ app.patch("/admin/update-org", async (c) => {
   try {
     const paidPlans = ["Starter", "Professional", "Institution"];
     const isPaid = paidPlans.includes(plan);
-    const expiresAt = isPaid ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = isPaid ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const orgPatch = {};
     if (name)        orgPatch.name        = name;
@@ -2390,7 +2390,7 @@ app.post('/auth/provision', async (c) => {
     const orgName = displayName.includes('@')
       ? displayName.split('@')[0].replace(/[^a-zA-Z0-9 ]/g,' ').trim() + "'s Organization"
       : displayName + "'s Organization";
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     // Create org
     const newOrg = await db('organizations', {
