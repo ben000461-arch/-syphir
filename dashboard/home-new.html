@@ -128,6 +128,7 @@ html { scroll-behavior: smooth; }
 .contact-line a { color: #fff; text-decoration: none; border-bottom: 1px solid var(--line); }
 .contact-line a:hover { border-color: #fff; }
 .topbar-actions { display: flex; align-items: center; gap: 10px; }
+#navAuthSlot a.nav-btn { text-decoration: none; }
 .nav-ghost { color: var(--grey); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 8px 14px; border-radius: 8px; }
 .nav-ghost:hover { color: #fff; background: rgba(255,255,255,0.05); }
 @media (max-width: 520px) { .nav-ghost { display: none; } }
@@ -143,7 +144,7 @@ html { scroll-behavior: smooth; }
     <div class="topbar-actions">
       <a class="nav-ghost" href="#contact">Contact</a>
       <div id="navAuthSlot">
-        <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
+        <a class="nav-btn" href="https://ben000461-arch.github.io/coop-agent-legal/login.html">Dashboard Login</a>
       </div>
     </div>
   </div>
@@ -253,6 +254,7 @@ html { scroll-behavior: smooth; }
 <footer>
   <div class="wrap foot-inner">
     <div class="foot-links">
+      <a href="#" onclick="openModal();return false;">Extension login</a>
       <a href="terms.html">Terms</a>
       <a href="privacy.html">Privacy</a>
       <a href="mailto:cooptech126@gmail.com">Contact</a>
