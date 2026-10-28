@@ -1,16 +1,5 @@
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "agent.co-optech.com"
-        }
-      ],
-      "destination": "/agent/$1"
-    }
-  ],
+  "rewrites": [],
   "headers": [
     {
       "source": "/(.*)",
@@ -38,13 +27,7 @@
       ]
     },
     {
-      "source": "/dashboard.html",
-      "has": [
-        {
-          "type": "host",
-          "value": "agent.co-optech.com"
-        }
-      ],
+      "source": "/agent/dashboard.html",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -53,21 +36,11 @@
         {
           "key": "Cross-Origin-Opener-Policy",
           "value": "same-origin"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
         }
       ]
     },
     {
-      "source": "/login.html",
-      "has": [
-        {
-          "type": "host",
-          "value": "agent.co-optech.com"
-        }
-      ],
+      "source": "/agent/login.html",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -76,55 +49,54 @@
         {
           "key": "Cross-Origin-Opener-Policy",
           "value": "same-origin"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
         }
       ]
     },
     {
-      "source": "/(|index.html|privacy.html|terms.html)",
-      "has": [
-        {
-          "type": "host",
-          "value": "agent.co-optech.com"
-        }
-      ],
+      "source": "/agent",
       "headers": [
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
-        },
+        }
+      ]
+    },
+    {
+      "source": "/agent/",
+      "headers": [
         {
-          "key": "X-Frame-Options",
-          "value": "DENY"
+          "key": "Content-Security-Policy",
+          "value": "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/agent/index.html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/agent/privacy.html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/agent/terms.html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/agent/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "co-optech.com"
-        }
-      ],
-      "destination": "https://agent.co-optech.com/:path*",
-      "permanent": false
-    },
-    {
-      "source": "/agent/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.co-optech.com"
-        }
-      ],
-      "destination": "https://agent.co-optech.com/:path*",
-      "permanent": false
-    }
-  ]
+  "redirects": []
 }
