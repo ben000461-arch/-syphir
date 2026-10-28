@@ -2308,5 +2308,311 @@
       "device_name": "Syphir Shield",
       "firmware": "1.0.0"
     }
+  },
+  {
+    "id": "inc_0eb1fe5c59b34ed7a430",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "message": "After-hours High-volume data_transfer transfer: 566.1KB to Pastebin",
+    "timestamp": "2026-08-22T05:32:58.484178Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "566.1KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "566.1KB in 1s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 579637,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 566.1KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_20100c45641240f4a9a0",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "message": "Elevated data volume: 43.9KB to Claude in 9s",
+    "timestamp": "2026-08-22T05:33:04.298237Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "43.9KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "43.9KB in 9s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 45000,
+      "queries": 4,
+      "duration_secs": 9,
+      "risk_weight": 1.0,
+      "reason": "Elevated data volume: 43.9KB to Claude in 9s",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_9d4eac4f6a754695a8fb",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Claude",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "message": "High-volume data exfiltration risk: 122.1KB to Claude",
+    "timestamp": "2026-08-22T05:33:07.581801Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "122.1KB to Claude",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "122.1KB in 12s",
+        "domain": "claude.ai"
+      }
+    ],
+    "shield_meta": {
+      "domain": "claude.ai",
+      "bytes_sent": 125000,
+      "queries": 5,
+      "duration_secs": 12,
+      "risk_weight": 1.0,
+      "reason": "High-volume data exfiltration risk: 122.1KB to Claude",
+      "provider": "Anthropic",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_c792b9c283c34e1092c6",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "WeTransfer",
+    "user_email": null,
+    "ip_address": "192.168.1.63",
+    "message": "After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s",
+    "timestamp": "2026-08-22T05:33:13.922830Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "7812.5KB to WeTransfer",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "7812.5KB in 1s",
+        "domain": "wetransfer.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "wetransfer.com",
+      "bytes_sent": 8000000,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.5,
+      "reason": "After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_7af0337d08fc4f1dad20",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Pastebin",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "message": "After-hours High-volume data_transfer transfer: 146.5KB to Pastebin",
+    "timestamp": "2026-08-22T05:33:17.215060Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "146.5KB to Pastebin",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "146.5KB in 1s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 150000,
+      "queries": 1,
+      "duration_secs": 1,
+      "risk_weight": 1.8,
+      "reason": "After-hours High-volume data_transfer transfer: 146.5KB to Pastebin",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_16c8cca47583428f853a",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "medium",
+    "ai_tool": "Network \u2014 Connection to known C2",
+    "user_email": null,
+    "ip_address": "192.168.1.71",
+    "message": "192.168.1.71 connected to known C2 domain pastebin.com \u2014 Pastebin \u2014 C2 config hosting",
+    "timestamp": "2026-08-22T05:33:17.285886Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 Connection to known C2",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": "pastebin.com"
+      }
+    ],
+    "shield_meta": {
+      "domain": "pastebin.com",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "192.168.1.71 connected to known C2 domain pastebin.com \u2014 Pastebin \u2014 C2 config hosting",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_03456fd55bb7424c943e",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Network \u2014 C2 domain connection",
+    "user_email": null,
+    "ip_address": "192.168.1.42",
+    "message": "192.168.1.42 connected to ngrok.io",
+    "timestamp": "2026-08-22T05:33:20.566545Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 C2 domain connection",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": "ngrok.io"
+      }
+    ],
+    "shield_meta": {
+      "domain": "ngrok.io",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "192.168.1.42 connected to ngrok.io",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_f528e6e9874044b3b460",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Network \u2014 Brute force SSH",
+    "user_email": null,
+    "ip_address": "203.0.113.5",
+    "message": "203.0.113.5 \u2014 8 SSH attempts in 60s",
+    "timestamp": "2026-08-22T05:33:23.576077Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 Brute force SSH",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": ""
+      }
+    ],
+    "shield_meta": {
+      "domain": "",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "203.0.113.5 \u2014 8 SSH attempts in 60s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
+  },
+  {
+    "id": "inc_f93df2c6a94a4c59ac87",
+    "key": "SYP-XXXX-XXXX-XXXX",
+    "source": "network",
+    "risk_level": "high",
+    "ai_tool": "Network \u2014 Port scan \u2014 horizontal",
+    "user_email": null,
+    "ip_address": "192.168.1.55",
+    "message": "192.168.1.55 scanned 10 unique IPs in 60s",
+    "timestamp": "2026-08-22T05:33:38.862173Z",
+    "resolved": false,
+    "detections": [
+      {
+        "type": "NETWORK_DATA_VOLUME",
+        "label": "0.0KB to Network \u2014 Port scan \u2014 horizontal",
+        "entity_type": "NETWORK",
+        "isCode": false,
+        "value": "0.0KB in 0s",
+        "domain": ""
+      }
+    ],
+    "shield_meta": {
+      "domain": "",
+      "bytes_sent": 0,
+      "queries": 1,
+      "duration_secs": 0,
+      "risk_weight": 1.0,
+      "reason": "192.168.1.55 scanned 10 unique IPs in 60s",
+      "provider": "Unknown",
+      "device_name": "Syphir Shield",
+      "device_key": "SYP-NET-XXXX-XXXX",
+      "firmware": "1.0.0"
+    }
   }
 ]

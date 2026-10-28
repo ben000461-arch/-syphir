@@ -743,3 +743,201 @@
 2026-06-26 21:53:40  [INFO]  DNS monitor stopped — 42 total queries seen
 2026-06-26 21:53:40  [INFO]  Heartbeat stopped
 2026-06-26 21:53:40  [INFO]  Goodbye.
+2026-08-21 22:32:53  [INFO]  ========================================================
+2026-08-21 22:32:53  [INFO]    Syphir Shield — Starting up
+2026-08-21 22:32:53  [INFO]  ========================================================
+2026-08-21 22:32:53  [INFO]  Device key   : SYP-NET-XXXX-XXXX
+2026-08-21 22:32:53  [INFO]  Org          : SYP-XXXX-XXXX-XXXX
+2026-08-21 22:32:53  [INFO]  API          : https://syphir-api.onrender.com
+2026-08-21 22:32:53  [INFO]  AI tools     : 26 domains
+2026-08-21 22:32:53  [INFO]  General      : 58 domains
+2026-08-21 22:32:53  [INFO]  C2 domains   : 9 known
+2026-08-21 22:32:53  [INFO]  Signatures   : 12 loaded
+2026-08-21 22:32:53  [INFO]  AI warn      : 30KB
+2026-08-21 22:32:53  [INFO]  AI critical  : 100KB
+2026-08-21 22:32:53  [INFO]  Loaded 70 queued incidents from disk
+2026-08-21 22:32:53  [INFO]  Offline retry worker started
+2026-08-21 22:32:53  [INFO]  Firewall state loaded — 0 blocked, 2 isolated
+2026-08-21 22:32:53  [INFO]  Firewall in STUB mode — commands will be printed, not executed
+2026-08-21 22:32:53  [INFO]  Device registry loaded — 4 known devices
+2026-08-21 22:32:53  [INFO]  Intrusion detector loaded — 9 C2 domains, 5 bad IP ranges, 12 signatures
+2026-08-21 22:32:53  [INFO]  Heartbeat started — pinging every 60s
+2026-08-21 22:32:53  [INFO]  Restoring 2 isolation rules from previous session
+2026-08-21 22:32:53  [INFO]  [STUB] Keep Shield->device open for 192.168.1.71: iptables -I FORWARD -s 10.0.0.1 -d 192.168.1.71 -j ACCEPT
+2026-08-21 22:32:53  [INFO]  [STUB] Keep device->Shield open for 192.168.1.71: iptables -I FORWARD -s 192.168.1.71 -d 10.0.0.1 -j ACCEPT
+2026-08-21 22:32:53  [INFO]  [STUB] Block all outbound from 192.168.1.71: iptables -I FORWARD -s 192.168.1.71 -j DROP
+2026-08-21 22:32:53  [INFO]  [STUB] Block all inbound to 192.168.1.71: iptables -I FORWARD -d 192.168.1.71 -j DROP
+2026-08-21 22:32:53  [WARNING]  Device ISOLATED: 192.168.1.71 — cut off from network. Shield connection preserved.
+2026-08-21 22:32:53  [INFO]  [STUB] Keep Shield->device open for 192.168.1.42: iptables -I FORWARD -s 10.0.0.1 -d 192.168.1.42 -j ACCEPT
+2026-08-21 22:32:53  [INFO]  [STUB] Keep device->Shield open for 192.168.1.42: iptables -I FORWARD -s 192.168.1.42 -d 10.0.0.1 -j ACCEPT
+2026-08-21 22:32:53  [INFO]  [STUB] Block all outbound from 192.168.1.42: iptables -I FORWARD -s 192.168.1.42 -j DROP
+2026-08-21 22:32:53  [INFO]  [STUB] Block all inbound to 192.168.1.42: iptables -I FORWARD -d 192.168.1.42 -j DROP
+2026-08-21 22:32:53  [WARNING]  Device ISOLATED: 192.168.1.42 — cut off from network. Shield connection preserved.
+2026-08-21 22:32:53  [INFO]  Firewall started
+2026-08-21 22:32:53  [INFO]  Blocker started
+2026-08-21 22:32:53  [INFO]  Intrusion detector started
+2026-08-21 22:32:53  [INFO]  DNS monitor starting in simulation mode
+2026-08-21 22:32:53  [INFO]  DNS listener started (simulation mode)
+2026-08-21 22:32:53  [INFO]  Packet inspector starting in simulation mode
+2026-08-21 22:32:53  [INFO]  Packet flow simulator started
+2026-08-21 22:32:53  [INFO]  Network monitor started — AI + General + IDS active
+2026-08-21 22:32:53  [INFO]  Command poller started — checking every 5s
+2026-08-21 22:32:53  [INFO]  ========================================================
+2026-08-21 22:32:53  [INFO]    Shield active — all systems running
+2026-08-21 22:32:53  [INFO]    AI monitoring     : ON
+2026-08-21 22:32:53  [INFO]    General monitoring: ON
+2026-08-21 22:32:53  [INFO]    Intrusion detection: ON
+2026-08-21 22:32:53  [INFO]    Active firewall   : ON (stub)
+2026-08-21 22:32:53  [INFO]    Confidence scoring: ON (no false positives)
+2026-08-21 22:32:53  [INFO]  ========================================================
+2026-08-21 22:32:53  [INFO]  SIMULATION MODE — injecting test events in 2s
+2026-08-21 22:32:55  [INFO]  [SIM] John opens Claude — small query (WATCH)
+2026-08-21 22:32:58  [INFO]  [SIM] John sends another message — still normal
+2026-08-21 22:32:58  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 566.1KB to Pastebin
+2026-08-21 22:32:58  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Pastebin | After-hours High-volume data_transfer transfer: 566.1KB to Pastebin
+2026-08-21 22:32:58  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Pastebin | 566.1KB
+2026-08-21 22:32:59  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:32:59  [WARNING]  API unreachable — incident queued (71 pending)
+2026-08-21 22:33:01  [INFO]  [SIM] John pastes large document — threshold approaching
+2026-08-21 22:33:04  [INFO]  [SIM] Large payload — WARN triggered
+2026-08-21 22:33:04  [WARNING]  WARN  | Elevated data volume: 43.9KB to Claude in 9s
+2026-08-21 22:33:04  [INFO]  DISPATCH | risk=medium | 192.168.1.42 -> Claude | Elevated data volume: 43.9KB to Claude in 9s
+2026-08-21 22:33:04  [INFO]  Reporting [MEDIUM] | 192.168.1.42 -> Claude | 43.9KB
+2026-08-21 22:33:04  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:04  [WARNING]  API unreachable — incident queued (72 pending)
+2026-08-21 22:33:07  [INFO]  [SIM] Massive dump — CRITICAL triggered
+2026-08-21 22:33:07  [ERROR]  CRIT  | High-volume data exfiltration risk: 122.1KB to Claude
+2026-08-21 22:33:07  [INFO]  DISPATCH | risk=high | 192.168.1.42 -> Claude | High-volume data exfiltration risk: 122.1KB to Claude
+2026-08-21 22:33:07  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Claude | 122.1KB
+2026-08-21 22:33:07  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:07  [WARNING]  API unreachable — incident queued (73 pending)
+2026-08-21 22:33:10  [INFO]  [SIM] Sarah opens ChatGPT — normal (WATCH)
+2026-08-21 22:33:13  [INFO]  [SIM] Mike uploads to WeTransfer — general WARN
+2026-08-21 22:33:13  [WARNING]  WARN  | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-08-21 22:33:13  [INFO]  DISPATCH | risk=medium | 192.168.1.63 -> WeTransfer | After-hours Cloud Storage transfer: 7812.5KB to WeTransfer in 1s
+2026-08-21 22:33:13  [INFO]  Reporting [MEDIUM] | 192.168.1.63 -> WeTransfer | 7812.5KB
+2026-08-21 22:33:14  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:14  [WARNING]  API unreachable — incident queued (74 pending)
+2026-08-21 22:33:17  [INFO]  [SIM] Lisa posts to Pastebin — data transfer flag
+2026-08-21 22:33:17  [WARNING]  THREAT [MEDIUM] Connection to known C2 | 192.168.1.71 | 192.168.1.71 connected to known C2 domain pastebin.com — Pastebin — C2 config hosting
+2026-08-21 22:33:17  [ERROR]  CRIT  | After-hours High-volume data_transfer transfer: 146.5KB to Pastebin
+2026-08-21 22:33:17  [INFO]  DISPATCH | risk=high | 192.168.1.71 -> Pastebin | After-hours High-volume data_transfer transfer: 146.5KB to Pastebin
+2026-08-21 22:33:17  [INFO]  Reporting [HIGH] | 192.168.1.71 -> Pastebin | 146.5KB
+2026-08-21 22:33:17  [INFO]  CONFIDENCE SCORE: 100/100 → ISOLATE | Connection to known C2 | 192.168.1.71
+2026-08-21 22:33:17  [INFO]    scoring: +40 known C2 domain: pastebin.com
+2026-08-21 22:33:17  [INFO]    scoring: +55 signature AS012
+2026-08-21 22:33:17  [INFO]    scoring: +15 after-hours activity (05:xx)
+2026-08-21 22:33:17  [INFO]    scoring: +10 one other signature on same device
+2026-08-21 22:33:17  [INFO]    scoring: +10 unusual hour for this device
+2026-08-21 22:33:17  [INFO]    scoring: -10 new device, baseline not established yet
+2026-08-21 22:33:17  [INFO]  Acting on scored threat [MEDIUM] AS012 — Connection to known C2 | response=isolate_and_alert
+2026-08-21 22:33:17  [INFO]  Reporting [MEDIUM] | 192.168.1.71 -> Network — Connection to known C2 | 0.0KB
+2026-08-21 22:33:17  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:17  [WARNING]  API unreachable — incident queued (75 pending)
+2026-08-21 22:33:17  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:17  [WARNING]  API unreachable — incident queued (76 pending)
+2026-08-21 22:33:17  [INFO]  Response complete — actions: logged, admin_notified, isolated_192.168.1.71, employee_notified
+2026-08-21 22:33:17  [INFO]  Investigation case opened: CASE-20260822-053317-192168171 for 192.168.1.71
+2026-08-21 22:33:17  [INFO]  Containment scored 100/100 → isolate for Connection to known C2
+2026-08-21 22:33:20  [INFO]  [SIM] John hits ngrok — C2 domain (high confidence ISOLATE)
+2026-08-21 22:33:20  [INFO]  CONFIDENCE SCORE: 100/100 → ISOLATE | C2 domain connection | 192.168.1.42
+2026-08-21 22:33:20  [INFO]    scoring: +40 known C2 domain: ngrok.io
+2026-08-21 22:33:20  [INFO]    scoring: +55 signature AS012
+2026-08-21 22:33:20  [INFO]    scoring: +15 after-hours activity (05:xx)
+2026-08-21 22:33:20  [INFO]    scoring: +10 one other signature on same device
+2026-08-21 22:33:20  [INFO]    scoring: +10 unusual hour for this device
+2026-08-21 22:33:20  [INFO]    scoring: +10 critical risk rating
+2026-08-21 22:33:20  [INFO]    scoring: -10 new device, baseline not established yet
+2026-08-21 22:33:20  [INFO]  Acting on scored threat [CRITICAL] AS012 — C2 domain connection | response=isolate_and_alert
+2026-08-21 22:33:20  [INFO]  Reporting [HIGH] | 192.168.1.42 -> Network — C2 domain connection | 0.0KB
+2026-08-21 22:33:20  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:20  [WARNING]  API unreachable — incident queued (77 pending)
+2026-08-21 22:33:20  [INFO]  Response complete — actions: logged, admin_notified, isolated_192.168.1.42, employee_notified
+2026-08-21 22:33:20  [INFO]  Investigation case opened: CASE-20260822-053320-192168142 for 192.168.1.42
+2026-08-21 22:33:20  [INFO]  Containment scored 100/100 → isolate for C2 domain connection
+2026-08-21 22:33:23  [INFO]  [SIM] External SSH brute force (BLOCK)
+2026-08-21 22:33:23  [INFO]  CONFIDENCE SCORE: 75/100 → BLOCK | Brute force SSH | 203.0.113.5
+2026-08-21 22:33:23  [INFO]    scoring: +40 signature AS003
+2026-08-21 22:33:23  [INFO]    scoring: +15 after-hours activity (05:xx)
+2026-08-21 22:33:23  [INFO]    scoring: +10 one other signature on same device
+2026-08-21 22:33:23  [INFO]    scoring: +10 unusual hour for this device
+2026-08-21 22:33:23  [INFO]    scoring: +10 critical risk rating
+2026-08-21 22:33:23  [INFO]    scoring: -10 new device, baseline not established yet
+2026-08-21 22:33:23  [INFO]  Acting on scored threat [CRITICAL] AS003 — Brute force SSH | response=block_and_alert
+2026-08-21 22:33:23  [INFO]  Reporting [HIGH] | 203.0.113.5 -> Network — Brute force SSH | 0.0KB
+2026-08-21 22:33:23  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:23  [WARNING]  API unreachable — incident queued (78 pending)
+2026-08-21 22:33:23  [INFO]  Response complete — actions: logged, admin_notified
+2026-08-21 22:33:23  [INFO]  Containment scored 75/100 → block for Brute force SSH
+2026-08-21 22:33:38  [WARNING]  THREAT [HIGH] Port scan — horizontal | 192.168.1.55 | 192.168.1.55 scanned 10 unique IPs in 60s
+2026-08-21 22:33:38  [INFO]  CONFIDENCE SCORE: 50/100 → WARN | Port scan — horizontal | 192.168.1.55
+2026-08-21 22:33:38  [INFO]    scoring: +25 signature AS001
+2026-08-21 22:33:38  [INFO]    scoring: +15 after-hours activity (05:xx)
+2026-08-21 22:33:38  [INFO]    scoring: +10 one other signature on same device
+2026-08-21 22:33:38  [INFO]    scoring: +10 unusual hour for this device
+2026-08-21 22:33:38  [INFO]    scoring: -10 new device, baseline not established yet
+2026-08-21 22:33:38  [INFO]  Acting on scored threat [HIGH] AS001 — Port scan — horizontal | response=alert
+2026-08-21 22:33:38  [INFO]  Reporting [HIGH] | 192.168.1.55 -> Network — Port scan — horizontal | 0.0KB
+2026-08-21 22:33:39  [WARNING]  API unreachable: Unauthorized
+2026-08-21 22:33:39  [WARNING]  API unreachable — incident queued (79 pending)
+2026-08-21 22:33:39  [INFO]  Response complete — actions: logged, admin_notified
+2026-08-21 22:33:39  [INFO]  Containment scored 50/100 → warn for Port scan — horizontal
+2026-08-21 22:33:42  [INFO]  Shutting down Syphir Shield...
+2026-08-21 22:33:42  [INFO]  DNS monitor stopped — 30 total queries seen
+2026-08-21 22:33:42  [INFO]  Heartbeat stopped
+2026-08-21 22:33:42  [INFO]  Command poller stopped
+2026-08-21 22:33:42  [INFO]  Goodbye.
+2026-08-22 13:07:33  [INFO]  ========================================================
+2026-08-22 13:07:33  [INFO]    Syphir Shield — Starting up
+2026-08-22 13:07:33  [INFO]  ========================================================
+2026-08-22 13:07:33  [INFO]  Device key   : SYP-NET-XXXX-XXXX
+2026-08-22 13:07:33  [INFO]  Org          : SYP-XXXX-XXXX-XXXX
+2026-08-22 13:07:33  [INFO]  API          : https://syphir-api.onrender.com
+2026-08-22 13:07:33  [INFO]  AI tools     : 26 domains
+2026-08-22 13:07:33  [INFO]  General      : 58 domains
+2026-08-22 13:07:33  [INFO]  C2 domains   : 9 known
+2026-08-22 13:07:33  [INFO]  Signatures   : 12 loaded
+2026-08-22 13:07:33  [INFO]  AI warn      : 30KB
+2026-08-22 13:07:33  [INFO]  AI critical  : 100KB
+2026-08-22 13:07:33  [INFO]  Loaded 79 queued incidents from disk
+2026-08-22 13:07:33  [INFO]  Offline retry worker started
+2026-08-22 13:07:33  [INFO]  Firewall state loaded — 0 blocked, 2 isolated
+2026-08-22 13:07:33  [INFO]  Firewall in STUB mode — commands will be printed, not executed
+2026-08-22 13:07:33  [INFO]  Device registry loaded — 4 known devices
+2026-08-22 13:07:33  [INFO]  Intrusion detector loaded — 9 C2 domains, 5 bad IP ranges, 12 signatures
+2026-08-22 13:07:33  [INFO]  Heartbeat started — pinging every 60s
+2026-08-22 13:07:33  [INFO]  Restoring 2 isolation rules from previous session
+2026-08-22 13:07:33  [INFO]  [STUB] Keep Shield->device open for 192.168.1.71: iptables -I FORWARD -s 10.0.0.1 -d 192.168.1.71 -j ACCEPT
+2026-08-22 13:07:33  [INFO]  [STUB] Keep device->Shield open for 192.168.1.71: iptables -I FORWARD -s 192.168.1.71 -d 10.0.0.1 -j ACCEPT
+2026-08-22 13:07:33  [INFO]  [STUB] Block all outbound from 192.168.1.71: iptables -I FORWARD -s 192.168.1.71 -j DROP
+2026-08-22 13:07:33  [INFO]  [STUB] Block all inbound to 192.168.1.71: iptables -I FORWARD -d 192.168.1.71 -j DROP
+2026-08-22 13:07:33  [WARNING]  Device ISOLATED: 192.168.1.71 — cut off from network. Shield connection preserved.
+2026-08-22 13:07:33  [INFO]  [STUB] Keep Shield->device open for 192.168.1.42: iptables -I FORWARD -s 10.0.0.1 -d 192.168.1.42 -j ACCEPT
+2026-08-22 13:07:33  [INFO]  [STUB] Keep device->Shield open for 192.168.1.42: iptables -I FORWARD -s 192.168.1.42 -d 10.0.0.1 -j ACCEPT
+2026-08-22 13:07:33  [INFO]  [STUB] Block all outbound from 192.168.1.42: iptables -I FORWARD -s 192.168.1.42 -j DROP
+2026-08-22 13:07:33  [INFO]  [STUB] Block all inbound to 192.168.1.42: iptables -I FORWARD -d 192.168.1.42 -j DROP
+2026-08-22 13:07:33  [WARNING]  Device ISOLATED: 192.168.1.42 — cut off from network. Shield connection preserved.
+2026-08-22 13:07:33  [INFO]  Firewall started
+2026-08-22 13:07:33  [INFO]  Blocker started
+2026-08-22 13:07:33  [INFO]  Intrusion detector started
+2026-08-22 13:07:33  [INFO]  DNS monitor starting in simulation mode
+2026-08-22 13:07:33  [INFO]  DNS listener started (simulation mode)
+2026-08-22 13:07:33  [INFO]  Packet inspector starting in simulation mode
+2026-08-22 13:07:33  [INFO]  Packet flow simulator started
+2026-08-22 13:07:33  [INFO]  Network monitor started — AI + General + IDS active
+2026-08-22 13:07:33  [INFO]  Command poller started — checking every 5s
+2026-08-22 13:07:33  [INFO]  ========================================================
+2026-08-22 13:07:33  [INFO]    Shield active — all systems running
+2026-08-22 13:07:33  [INFO]    AI monitoring     : ON
+2026-08-22 13:07:33  [INFO]    General monitoring: ON
+2026-08-22 13:07:33  [INFO]    Intrusion detection: ON
+2026-08-22 13:07:33  [INFO]    Active firewall   : ON (stub)
+2026-08-22 13:07:33  [INFO]    Confidence scoring: ON (no false positives)
+2026-08-22 13:07:33  [INFO]  ========================================================
+2026-08-22 13:07:33  [INFO]  SIMULATION MODE — injecting test events in 2s
+2026-08-22 13:07:35  [INFO]  [SIM] John opens Claude — small query (WATCH)
+2026-08-22 13:07:37  [INFO]  Shutting down Syphir Shield...
+2026-08-22 13:07:37  [INFO]  DNS monitor stopped — 3 total queries seen
+2026-08-22 13:07:37  [INFO]  Heartbeat stopped
+2026-08-22 13:07:37  [INFO]  Command poller stopped
+2026-08-22 13:07:37  [INFO]  Goodbye.

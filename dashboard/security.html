@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>co|op — AI that does the work. You stay in control.</title>
-<meta name="description" content="co|op agents draft your emails, manage your calendar and handle everyday tasks. They never act without your yes, and every action is logged.">
+<title>co|op — the line between your data and AI</title>
+<meta name="description" content="co|op stops your team from leaking sensitive data into AI tools. Working in cooperation with AI, not against it.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -26,8 +26,8 @@ body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-s
 .nav-links a { color: var(--grey); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: color 0.15s, background 0.15s; }
 .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .nav-links a.active { color: #fff; }
-#navLogin .nav-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000 !important; border: none; padding: 9px 18px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
-#navLogin .nav-btn:hover { opacity: 0.88; }
+#navAuthSlot .nav-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000 !important; border: none; padding: 9px 18px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
+#navAuthSlot .nav-btn:hover { opacity: 0.88; }
 @media (max-width: 820px) { .nav-links { display: none; } }
 
 .hero { padding: 96px 0 72px; }
@@ -122,16 +122,6 @@ footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
 .profile-dropdown a:hover, .profile-dropdown button:hover { background:rgba(255,255,255,0.06); }
 .profile-dropdown svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; flex-shrink:0; }
 .profile-dropdown button.danger { color:#ff6b6b; }
-
-html { scroll-behavior: smooth; }
-.contact-line { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--grey); margin-top: 22px; }
-.contact-line a { color: #fff; text-decoration: none; border-bottom: 1px solid var(--line); }
-.contact-line a:hover { border-color: #fff; }
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
-#navLogin a.nav-btn { text-decoration: none; }
-.nav-ghost { color: var(--grey); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 8px 14px; border-radius: 8px; }
-.nav-ghost:hover { color: #fff; background: rgba(255,255,255,0.05); }
-@media (max-width: 520px) { .nav-ghost { display: none; } }
 </style>
 </head>
 <body>
@@ -141,128 +131,232 @@ html { scroll-behavior: smooth; }
 <div class="topbar">
   <div class="wrap topbar-inner">
     <a href="index.html" class="brand"><span class="coop-logo">co<span class="bar">|</span>op</span></a>
-    <div class="topbar-actions">
-      <a class="nav-ghost" href="#contact">Contact</a>
-      <div id="navLogin">
-        <a class="nav-btn" href="https://ben000461-arch.github.io/coop-agent-legal/login.html"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Dashboard Login</a>
-      </div>
+    <div class="nav-links">
+      <a href="how-it-works.html">How it works</a>
+      <a href="features.html">Features</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="block.html">Block</a>
+      <a href="programs.html">Programs</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div id="navAuthSlot">
+      <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
     </div>
   </div>
 </div>
 
 <div class="hero">
   <div class="wrap">
-    <div class="hero-eyebrow"><span class="tick"></span>Secure AI automation</div>
-    <h1>AI that does the work <span class="div">|</span> you stay in control.</h1>
-    <p class="hero-sub">co|op agents draft your emails, check your calendar and handle everyday tasks right from Telegram. They show you every step first and never act without your yes.</p>
+    <div class="hero-eyebrow"><span class="tick"></span>Real-time AI security</div>
+    <h1>The line between your data <span class="div">|</span> and AI tools.</h1>
+    <p class="hero-sub">Your team uses ChatGPT, Claude, and Copilot every day. co|op sits at the checkpoint — catching patient records, SSNs, card numbers, and API keys before they ever leave the browser.</p>
     <div class="hero-cta">
-      <a href="/agent/login.html#signup" class="btn-solid" style="display:inline-block">Get your agent</a>
-      <a href="#how" class="btn-line">See how it works</a>
+      <button class="btn-solid" onclick="openModal()">Access Dashboard</button>
+      <a href="how-it-works.html" class="btn-line">See how it works</a>
     </div>
     <div class="checkpoint">
       <div class="checkpoint-row">
-        <div class="checkpoint-side left"><span class="checkpoint-label">You ask</span>"draft an email to Sam about Friday"</div>
+        <div class="checkpoint-side left"><span class="checkpoint-label">Your team</span>types a prompt</div>
         <div class="checkpoint-bar"></div>
-        <div class="checkpoint-side"><span class="checkpoint-label">Your agent</span>shows it first, waits for your yes</div>
+        <div class="checkpoint-side"><span class="checkpoint-label">AI tool</span>receives it — clean</div>
       </div>
     </div>
     <div class="hero-meta">
-      <span><b>Asks</b> before it acts</span>
-      <span>Every action <b>logged</b></span>
-      <span>Set up in <b>minutes</b></span>
+      <span><b>SOC 2</b> ready</span>
+      <span>Installs in <b>2 minutes</b></span>
+      <span>Built for <b>any team</b></span>
     </div>
   </div>
 </div>
 
 <div class="strip">
   <div class="wrap">
-    <div class="strip-label">Works with the tools you already use</div>
+    <div class="strip-label">Watches every major AI tool</div>
     <div class="strip-tools">
-      <span>Telegram</span><span>Gmail</span><span>Google Calendar</span><span>Spreadsheets</span><span>GitHub</span>
+      <span>ChatGPT</span><span>Claude</span><span>Gemini</span><span>Copilot</span><span>Grok</span><span>Perplexity</span>
     </div>
   </div>
 </div>
 
-<div class="section" id="about">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="section-eyebrow">What it is</div>
-      <h2 class="section-title">An assistant that works for your business, safely.</h2>
-      <p class="section-desc">Your agent takes the routine work off your plate and keeps a record of everything it does. It is built to be trusted: it prepares, you decide.</p>
-    </div>
-    <div class="feats">
-      <div class="feat">
-        <div class="feat-k">// automate</div>
-        <h3>Everyday work, handled</h3>
-        <p>Email drafts, calendar questions, spreadsheets, notes and small code changes. Ask in plain words, the way you would text a coworker.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// approval</div>
-        <h3>It asks before it acts</h3>
-        <p>Anything that changes something is shown to you first. It saves drafts, it never sends your email, and it only reads your calendar.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// logs</div>
-        <h3>Every action on record</h3>
-        <p>See what your agent did, when, and how it went. Logs keep counts and names only, never the text of your emails or files.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// isolation</div>
-        <h3>Your agent, only yours</h3>
-        <p>Each business gets its own agent and its own workspace. Nobody else can see your chat, your files or your logs.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="section" id="how">
+<div class="section">
   <div class="wrap">
     <div class="section-head">
       <div class="section-eyebrow">How it works</div>
-      <h2 class="section-title">Three steps to your own agent.</h2>
-      <p class="section-desc">No IT team and no training. Sign up, say hello in Telegram, and start asking.</p>
+      <h2 class="section-title">Three steps. Then it runs itself.</h2>
+      <p class="section-desc">No IT department, no training. Deploy it once and co|op works quietly in the background.</p>
     </div>
     <div class="steps">
       <div class="step">
         <div class="step-n"><b>01</b> / 03</div>
-        <h3>Sign up</h3>
-        <p>Tell us a little about your business. We review each request and approve it, so every agent starts with a person on our side.</p>
+        <h3>Get your key</h3>
+        <p>Sign up and your organization gets a unique key. It's your account's identity — it gates your dashboard and scopes every incident to you alone.</p>
       </div>
       <div class="step">
         <div class="step-n"><b>02</b> / 03</div>
-        <h3>Open your agent</h3>
-        <p>Once approved, tap your personal link. It opens Telegram and connects your login to your own agent in one tap.</p>
+        <h3>Share one link</h3>
+        <p>Send your team one install link. They add Trace, our browser extension, in about a minute — no account, no key to type, no setup.</p>
       </div>
       <div class="step">
         <div class="step-n"><b>03</b> / 03</div>
-        <h3>Ask, approve, review</h3>
-        <p>Connect Gmail and Calendar if you want, then just ask. You approve what changes, and the dashboard shows what it did.</p>
+        <h3>Watch the line</h3>
+        <p>Every risky paste is caught at the checkpoint and flows to your dashboard. You see what was stopped, when, and by whom.</p>
       </div>
     </div>
   </div>
 </div>
 
-<div class="band" id="contact">
+<div class="section">
   <div class="wrap">
-    <h2>Try it on a real task.</h2>
-    <p>Start a free pilot. No credit card required.</p>
-    <a href="/agent/login.html#signup" class="btn-solid" style="display:inline-block">Get your agent</a>
-    <div class="contact-line">Questions? <a href="mailto:cooptech126@gmail.com">cooptech126@gmail.com</a></div>
+    <div class="section-head">
+      <div class="section-eyebrow">What it catches</div>
+      <h2 class="section-title">Cooperation with AI, not a wall against it.</h2>
+      <p class="section-desc">co|op doesn't block your team from using AI. It just holds the line on what shouldn't cross it.</p>
+    </div>
+    <div class="feats">
+      <div class="feat">
+        <div class="feat-k">// pii</div>
+        <h3>40+ sensitive data types</h3>
+        <p>SSNs, credit cards, medical records, API keys, driver's licenses, EINs, IBANs — detected with precision before the prompt sends.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// realtime</div>
+        <h3>Caught before it sends</h3>
+        <p>Scanning happens in the browser, at the moment of paste. Nothing leaves until your employee confirms the risk is intentional.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// privacy</div>
+        <h3>The data never touches us</h3>
+        <p>co|op only logs metadata — type, risk, timestamp. The actual sensitive text never leaves the browser or reaches our servers.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// isolation</div>
+        <h3>Your incidents, only yours</h3>
+        <p>Every organization sees its own data and nothing else. Complete separation — your logs never mix with another company's.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">Free for your team</div>
+      <h2 class="section-title">We'll teach your team AI safety — free.</h2>
+      <p class="section-desc">A 20-minute session, in person or on a call. No pitch, no obligation — just what your team actually needs to know before the next risky paste happens.</p>
+    </div>
+    <div class="feats">
+      <div class="feat">
+        <div class="feat-k">// what it covers</div>
+        <h3>The real risk, in plain terms</h3>
+        <p>Recent industry research found 77% of employees paste company data into AI tools, and over half of those pastes contain real sensitive information — most from personal accounts no one's watching.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// practical rules</div>
+        <h3>What safe AI use actually looks like</h3>
+        <p>Simple, memorable rules your team can use immediately — what never to paste, and how to describe a situation without the sensitive specifics.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// live demo</div>
+        <h3>See the gap it can't close alone</h3>
+        <p>Even the best-trained team forgets sometimes, especially on a busy day. We'll show you what catches the moment training isn't enough.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// zero pressure</div>
+        <h3>No obligation, no card required</h3>
+        <p>This is genuinely free, whether or not you ever use co|op. If it's useful, great — if not, your team still walks away knowing more than they did.</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:36px;">
+      <button class="btn-solid" onclick="openTrainingModal()">Request a Free Training Session →</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="trainingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeTrainingModal()">✕</button>
+    <div id="training-form-view">
+      <h2>Request free AI safety training</h2>
+      <p class="modal-sub">A 20-minute session for your team, in person or on a call. We'll reach out within 24 hours to find a time.</p>
+      <div class="field"><label>Name *</label><input type="text" id="training-name" placeholder="Jane Smith" autocomplete="name"></div>
+      <div class="field"><label>Work Email *</label><input type="email" id="training-email" placeholder="jane@company.com" autocomplete="email"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="training-phone" placeholder="(951) 555-0123" autocomplete="tel"></div>
+      <div class="field"><label>Company</label><input type="text" id="training-company" placeholder="Acme Dental Group" autocomplete="organization"></div>
+      <div class="err-msg" id="training-err"></div>
+      <button class="modal-btn" id="training-submit-btn" onclick="submitTraining()">Request Free Session →</button>
+    </div>
+    <div id="training-success-view" style="display:none;text-align:center;padding:8px 0;">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;">✓</div>
+      <h2>Request sent</h2>
+      <p class="modal-sub">Thanks — we'll reply to <strong id="training-success-email" style="color:#fff;"></strong> within 24 hours to find a time.</p>
+      <button class="modal-btn" onclick="closeTrainingModal()" style="margin-top:8px;">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="band">
+  <div class="wrap">
+    <h2>Hold the line.</h2>
+    <p>Start a free pilot — no credit card required.</p>
+    <button class="btn-solid" onclick="openModal()">Access Dashboard</button>
   </div>
 </div>
 
 <footer>
   <div class="wrap foot-inner">
     <div class="foot-links">
-      <a href="#" onclick="openModal();return false;">Extension login</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="features.html">Features</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="block.html">Block</a>
+      <a href="programs.html">Programs</a>
       <a href="terms.html">Terms</a>
       <a href="privacy.html">Privacy</a>
       <a href="mailto:cooptech126@gmail.com">Contact</a>
     </div>
-    <div class="foot-copy">© 2026 co|op · all rights reserved</div>
+    <div class="foot-copy">© 2025 co|op · all rights reserved</div>
   </div>
 </footer>
 
+<script>
+const TRAINING_API = 'https://syphir-api.onrender.com';
+
+function openTrainingModal() {
+  document.getElementById('training-form-view').style.display = '';
+  document.getElementById('training-success-view').style.display = 'none';
+  document.getElementById('training-err').textContent = '';
+  document.getElementById('trainingModal').classList.add('active');
+  setTimeout(() => document.getElementById('training-name').focus(), 100);
+}
+function closeTrainingModal() { document.getElementById('trainingModal').classList.remove('active'); }
+async function submitTraining() {
+  const name    = document.getElementById('training-name').value.trim();
+  const email   = document.getElementById('training-email').value.trim();
+  const phone   = document.getElementById('training-phone').value.trim();
+  const company = document.getElementById('training-company').value.trim();
+  const errEl   = document.getElementById('training-err');
+  const btn     = document.getElementById('training-submit-btn');
+  errEl.textContent = '';
+  if (!name || !email) { errEl.textContent = 'Name and email are required.'; return; }
+  if (!email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try {
+    const phoneLine = phone ? ` Phone: ${phone}.` : '';
+    const res = await fetch(`${TRAINING_API}/contact`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, company, message: `Requesting a free 20-minute AI Safety Training session for their team.${phoneLine}` })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to send');
+    document.getElementById('training-success-email').textContent = email;
+    document.getElementById('training-form-view').style.display = 'none';
+    document.getElementById('training-success-view').style.display = 'block';
+  } catch(e) {
+    errEl.textContent = 'Could not send: ' + e.message;
+    btn.textContent = 'Request Free Session →'; btn.disabled = false;
+  }
+}
+</script>
 <script src="auth.js"></script>
 </body>
 </html>
