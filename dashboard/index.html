@@ -3,360 +3,135 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>co|op — the line between your data and AI</title>
-<meta name="description" content="co|op stops your team from leaking sensitive data into AI tools. Working in cooperation with AI, not against it.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --ink: #ffffff; --paper: #000000; --paper-2: #0a0a0a;
-  --line: rgba(255,255,255,0.12); --line-soft: rgba(255,255,255,0.07);
-  --grey: #8a8a8a; --grey-dim: #555555;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-.wrap { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
-
-.topbar { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--line-soft); background: rgba(0,0,0,0.72); backdrop-filter: blur(14px); }
-.topbar-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
-.brand { display: flex; align-items: center; text-decoration: none; }
-.coop-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.5rem; letter-spacing: -0.03em; color: #fff; line-height: 1; display: inline-flex; align-items: center; }
-.coop-logo .bar { font-weight: 300; margin: 0 0.04em; color: var(--grey); transform: translateY(-1px); }
-.nav-links { display: flex; align-items: center; gap: 4px; }
-.nav-links a { color: var(--grey); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: color 0.15s, background 0.15s; }
-.nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
-.nav-links a.active { color: #fff; }
-#navAuthSlot .nav-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000 !important; border: none; padding: 9px 18px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
-#navAuthSlot .nav-btn:hover { opacity: 0.88; }
-@media (max-width: 820px) { .nav-links { display: none; } }
-
-.hero { padding: 96px 0 72px; }
-.hero-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey); margin-bottom: 32px; }
-.hero-eyebrow .tick { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.6); }
-.hero h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(2.6rem, 6vw, 5rem); line-height: 1.02; letter-spacing: -0.035em; margin-bottom: 28px; max-width: 16ch; }
-.hero h1 .div { color: var(--grey-dim); font-weight: 300; }
-.hero-sub { font-size: 1.12rem; line-height: 1.6; color: var(--grey); max-width: 46ch; margin-bottom: 40px; }
-.hero-cta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-.btn-solid { background: #fff; color: #000; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; transition: opacity 0.15s; cursor: pointer; border: none; font-family: 'Inter',sans-serif; }
-.btn-solid:hover { opacity: 0.88; }
-.btn-line { background: transparent; color: #fff; text-decoration: none; padding: 14px 28px; border: 1px solid var(--line); border-radius: 10px; font-weight: 600; font-size: 0.95rem; transition: border-color 0.15s; }
-.btn-line:hover { border-color: rgba(255,255,255,0.4); }
-.hero-meta { display: flex; gap: 28px; margin-top: 48px; flex-wrap: wrap; justify-content: center; }
-.hero-meta span { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--grey-dim); letter-spacing: 0.04em; }
-.hero-meta b { color: var(--grey); font-weight: 500; }
-
-.checkpoint { margin-top: 40px; border-top: 1px solid var(--line-soft); padding-top: 40px; }
-.checkpoint-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; }
-.checkpoint-side { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--grey); }
-.checkpoint-side.left { text-align: right; }
-.checkpoint-bar { width: 2px; height: 56px; background: linear-gradient(to bottom, transparent, #fff, transparent); }
-.checkpoint-label { display: block; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-dim); margin-bottom: 6px; }
-@media (max-width: 640px){ .checkpoint-row{ grid-template-columns: 1fr; text-align:center; } .checkpoint-side.left{text-align:center;} .checkpoint-bar{ width:56px; height:2px; margin:0 auto; background: linear-gradient(to right, transparent, #fff, transparent);} }
-
-.strip { border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); padding: 22px 0; margin-top: 72px; }
-.strip-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-dim); margin-bottom: 14px; text-align: center; }
-.strip-tools { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
-.strip-tools span { font-size: 0.92rem; color: var(--grey); font-weight: 500; }
-
-.section { padding: 96px 0; border-top: 1px solid var(--line-soft); }
-.section-head { max-width: 640px; margin-bottom: 56px; }
-.section-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-dim); margin-bottom: 16px; }
-.section-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: clamp(1.8rem, 3.5vw, 2.6rem); letter-spacing: -0.025em; line-height: 1.1; margin-bottom: 16px; }
-.section-desc { font-size: 1.05rem; color: var(--grey); line-height: 1.6; }
-
-.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; }
-.step { background: var(--paper); padding: 36px 32px; }
-.step-n { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--grey-dim); margin-bottom: 20px; }
-.step-n b { color: #fff; font-weight: 500; }
-.step h3 { font-family: 'Space Grotesk',sans-serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 10px; }
-.step p { font-size: 0.92rem; color: var(--grey); line-height: 1.6; }
-@media (max-width: 760px){ .steps{ grid-template-columns: 1fr; } }
-
-.feats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.feat { border: 1px solid var(--line-soft); border-radius: 14px; padding: 30px; transition: border-color 0.15s; }
-.feat:hover { border-color: var(--line); }
-.feat-k { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--grey-dim); margin-bottom: 14px; }
-.feat h3 { font-family: 'Space Grotesk',sans-serif; font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
-.feat p { font-size: 0.92rem; color: var(--grey); line-height: 1.6; }
-@media (max-width: 640px){ .feats{ grid-template-columns: 1fr; } }
-
-.band { border-top: 1px solid var(--line-soft); padding: 96px 0; text-align: center; }
-.band h2 { font-family: 'Space Grotesk',sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.03em; margin-bottom: 18px; }
-.band p { font-size: 1.1rem; color: var(--grey); margin-bottom: 32px; }
-
-footer { border-top: 1px solid var(--line-soft); padding: 48px 0 64px; }
-.foot-inner { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; text-align: center; }
-.foot-links { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
-.foot-links a { color: var(--grey); text-decoration: none; font-size: 0.88rem; transition: color 0.15s; }
-.foot-links a:hover { color: #fff; }
-.foot-copy { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--grey-dim); }
-
-/* ── auth.js injected UI (login modal + profile menu) — co|op styling ── */
-.modal-overlay { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.78); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:24px; }
-.modal-overlay.active { display:flex; }
-.modal { background:#0a0a0a; border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:32px; width:100%; max-width:400px; position:relative; font-family:'Inter',sans-serif; }
-.modal-close { position:absolute; top:16px; right:18px; background:none; border:none; color:#8a8a8a; font-size:1.1rem; cursor:pointer; line-height:1; }
-.modal-close:hover { color:#fff; }
-.modal-logo { margin-bottom:20px; }
-.modal h2 { font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:600; color:#fff; margin-bottom:6px; letter-spacing:-0.01em; }
-.modal-sub { font-size:0.9rem; color:#8a8a8a; line-height:1.5; }
-.modal .field { margin-bottom:14px; }
-.modal .field label { display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:#8a8a8a; margin-bottom:7px; }
-.modal .field input { width:100%; background:#000; border:1px solid rgba(255,255,255,0.12); color:#fff; padding:11px 13px; border-radius:8px; font-size:0.92rem; font-family:inherit; box-sizing:border-box; }
-.modal .field input:focus { outline:none; border-color:rgba(255,255,255,0.4); }
-.modal .field input.mono { font-family:'JetBrains Mono',monospace; letter-spacing:0.04em; }
-.modal-btn { width:100%; background:#fff; color:#000; border:none; padding:13px; border-radius:9px; font-size:0.92rem; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; margin-top:4px; }
-.modal-btn:hover { opacity:0.88; }
-.modal .err-msg { font-size:0.82rem; color:#ff4d4d; min-height:1em; margin:6px 0; }
-.modal .switch-link, .modal a { color:#8a8a8a; }
-.modal-footer { text-align:center; font-size:0.82rem; color:#555; margin-top:14px; }
-.modal-row { display:flex; justify-content:space-between; margin-top:14px; }
-.modal-row a { font-size:0.82rem; text-decoration:none; }
-/* profile menu (logged in) */
-.profile-wrap { position:relative; }
-.profile-btn { width:34px; height:34px; border-radius:50%; background:#fff; color:#000; border:none; font-weight:700; font-size:0.9rem; cursor:pointer; font-family:'Inter',sans-serif; display:flex; align-items:center; justify-content:center; }
-.profile-dropdown { display:none; position:absolute; top:calc(100% + 10px); right:0; background:#0a0a0a; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:6px; min-width:210px; box-shadow:0 12px 40px rgba(0,0,0,0.6); z-index:1001; }
-.profile-dropdown.open { display:block; }
-.profile-dropdown-email { font-size:0.78rem; color:#8a8a8a; padding:10px 12px 8px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:4px; word-break:break-all; }
-.profile-dropdown a, .profile-dropdown button { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border:none; color:#eee; font-size:0.88rem; padding:9px 12px; border-radius:8px; cursor:pointer; font-family:'Inter',sans-serif; text-decoration:none; transition:background 0.12s; }
-.profile-dropdown a:hover, .profile-dropdown button:hover { background:rgba(255,255,255,0.06); }
-.profile-dropdown svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; flex-shrink:0; }
-.profile-dropdown button.danger { color:#ff6b6b; }
-</style>
+<title>co|op — AI that does the work. You stay in control.</title>
+<meta name="description" content="co|op agents draft your emails, manage your calendar and handle everyday tasks from Telegram. They never act without your yes, and every action is logged.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="stylesheet" href="/site.css">
 </head>
 <body>
-
-<div id="authModalMount"></div>
-
 <div class="topbar">
   <div class="wrap topbar-inner">
-    <a href="index.html" class="brand"><span class="coop-logo">co<span class="bar">|</span>op</span></a>
-    <div class="nav-links">
-      <a href="how-it-works.html">How it works</a>
-      <a href="features.html">Features</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="block.html">Block</a>
-      <a href="programs.html">Programs</a>
-      <a href="contact.html">Contact</a>
-    </div>
-    <div id="navAuthSlot">
-      <button class="nav-btn" onclick="openModal()">Dashboard Login</button>
-    </div>
+    <a href="/" class="brand" aria-label="co|op home"><span class="coop-logo">co<span class="bar">|</span>op</span></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/" aria-current="page">Home</a>
+      <a href="/#about">About</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <div class="topbar-actions"><a class="nav-btn" href="/agent/login.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Dashboard Login</a></div>
   </div>
 </div>
-
 <div class="hero">
   <div class="wrap">
-    <div class="hero-eyebrow"><span class="tick"></span>Real-time AI security</div>
-    <h1>The line between your data <span class="div">|</span> and AI tools.</h1>
-    <p class="hero-sub">Your team uses ChatGPT, Claude, and Copilot every day. co|op sits at the checkpoint — catching patient records, SSNs, card numbers, and API keys before they ever leave the browser.</p>
+    <div class="hero-eyebrow"><span class="tick"></span>Secure AI automation</div>
+    <h1>AI that does the work <span class="div">|</span> you stay in control.</h1>
+    <p class="hero-sub">co|op agents draft your emails, check your calendar and handle everyday tasks right from Telegram. They show you every step first and never act without your yes.</p>
     <div class="hero-cta">
-      <button class="btn-solid" onclick="openModal()">Access Dashboard</button>
-      <a href="how-it-works.html" class="btn-line">See how it works</a>
+      <a href="/agent/login.html#signup" class="btn-solid" >Get your agent</a>
+      <a href="#how" class="btn-line">See how it works</a>
     </div>
     <div class="checkpoint">
       <div class="checkpoint-row">
-        <div class="checkpoint-side left"><span class="checkpoint-label">Your team</span>types a prompt</div>
+        <div class="checkpoint-side left"><span class="checkpoint-label">You ask</span>"draft an email to Sam about Friday"</div>
         <div class="checkpoint-bar"></div>
-        <div class="checkpoint-side"><span class="checkpoint-label">AI tool</span>receives it — clean</div>
+        <div class="checkpoint-side"><span class="checkpoint-label">Your agent</span>shows it first, waits for your yes</div>
       </div>
     </div>
     <div class="hero-meta">
-      <span><b>SOC 2</b> ready</span>
-      <span>Installs in <b>2 minutes</b></span>
-      <span>Built for <b>any team</b></span>
+      <span><b>Asks</b> before it acts</span>
+      <span>Every action <b>logged</b></span>
+      <span>Set up in <b>minutes</b></span>
     </div>
   </div>
 </div>
 
 <div class="strip">
   <div class="wrap">
-    <div class="strip-label">Watches every major AI tool</div>
+    <div class="strip-label">Works with the tools you already use</div>
     <div class="strip-tools">
-      <span>ChatGPT</span><span>Claude</span><span>Gemini</span><span>Copilot</span><span>Grok</span><span>Perplexity</span>
+      <span>Telegram</span><span>Gmail</span><span>Google Calendar</span><span>Spreadsheets</span><span>GitHub</span>
     </div>
   </div>
 </div>
 
-<div class="section">
+<div class="section" id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">What it is</div>
+      <h2 class="section-title">An assistant that works for your business, safely.</h2>
+      <p class="section-desc">Your agent takes the routine work off your plate and keeps a record of everything it does. It is built to be trusted: it prepares, you decide.</p>
+    </div>
+    <div class="feats">
+      <div class="feat">
+        <div class="feat-k">// automate</div>
+        <h3>Everyday work, handled</h3>
+        <p>Email drafts, calendar questions, spreadsheets, notes and small code changes. Ask in plain words, the way you would text a coworker.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// approval</div>
+        <h3>It asks before it acts</h3>
+        <p>Anything that changes something is shown to you first. It saves drafts, it never sends your email, and it only reads your calendar.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// logs</div>
+        <h3>Every action on record</h3>
+        <p>See what your agent did, when, and how it went. Logs keep counts and names only, never the text of your emails or files.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-k">// isolation</div>
+        <h3>Your agent, only yours</h3>
+        <p>Each business gets its own agent and its own workspace. Nobody else can see your chat, your files or your logs.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="how">
   <div class="wrap">
     <div class="section-head">
       <div class="section-eyebrow">How it works</div>
-      <h2 class="section-title">Three steps. Then it runs itself.</h2>
-      <p class="section-desc">No IT department, no training. Deploy it once and co|op works quietly in the background.</p>
+      <h2 class="section-title">Three steps to your own agent.</h2>
+      <p class="section-desc">No IT team and no training. Sign up, say hello in Telegram, and start asking.</p>
     </div>
     <div class="steps">
       <div class="step">
         <div class="step-n"><b>01</b> / 03</div>
-        <h3>Get your key</h3>
-        <p>Sign up and your organization gets a unique key. It's your account's identity — it gates your dashboard and scopes every incident to you alone.</p>
+        <h3>Sign up</h3>
+        <p>Tell us a little about your business. We review each request and approve it, so every agent starts with a person on our side.</p>
       </div>
       <div class="step">
         <div class="step-n"><b>02</b> / 03</div>
-        <h3>Share one link</h3>
-        <p>Send your team one install link. They add Trace, our browser extension, in about a minute — no account, no key to type, no setup.</p>
+        <h3>Open your agent</h3>
+        <p>Once approved, tap your personal link. It opens Telegram and connects your login to your own agent in one tap.</p>
       </div>
       <div class="step">
         <div class="step-n"><b>03</b> / 03</div>
-        <h3>Watch the line</h3>
-        <p>Every risky paste is caught at the checkpoint and flows to your dashboard. You see what was stopped, when, and by whom.</p>
+        <h3>Ask, approve, review</h3>
+        <p>Connect Gmail and Calendar if you want, then just ask. You approve what changes, and the dashboard shows what it did.</p>
       </div>
     </div>
   </div>
 </div>
 
-<div class="section">
+<div class="band" id="contact">
   <div class="wrap">
-    <div class="section-head">
-      <div class="section-eyebrow">What it catches</div>
-      <h2 class="section-title">Cooperation with AI, not a wall against it.</h2>
-      <p class="section-desc">co|op doesn't block your team from using AI. It just holds the line on what shouldn't cross it.</p>
-    </div>
-    <div class="feats">
-      <div class="feat">
-        <div class="feat-k">// pii</div>
-        <h3>40+ sensitive data types</h3>
-        <p>SSNs, credit cards, medical records, API keys, driver's licenses, EINs, IBANs — detected with precision before the prompt sends.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// realtime</div>
-        <h3>Caught before it sends</h3>
-        <p>Scanning happens in the browser, at the moment of paste. Nothing leaves until your employee confirms the risk is intentional.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// privacy</div>
-        <h3>The data never touches us</h3>
-        <p>co|op only logs metadata — type, risk, timestamp. The actual sensitive text never leaves the browser or reaches our servers.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// isolation</div>
-        <h3>Your incidents, only yours</h3>
-        <p>Every organization sees its own data and nothing else. Complete separation — your logs never mix with another company's.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="section-eyebrow">Free for your team</div>
-      <h2 class="section-title">We'll teach your team AI safety — free.</h2>
-      <p class="section-desc">A 20-minute session, in person or on a call. No pitch, no obligation — just what your team actually needs to know before the next risky paste happens.</p>
-    </div>
-    <div class="feats">
-      <div class="feat">
-        <div class="feat-k">// what it covers</div>
-        <h3>The real risk, in plain terms</h3>
-        <p>Recent industry research found 77% of employees paste company data into AI tools, and over half of those pastes contain real sensitive information — most from personal accounts no one's watching.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// practical rules</div>
-        <h3>What safe AI use actually looks like</h3>
-        <p>Simple, memorable rules your team can use immediately — what never to paste, and how to describe a situation without the sensitive specifics.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// live demo</div>
-        <h3>See the gap it can't close alone</h3>
-        <p>Even the best-trained team forgets sometimes, especially on a busy day. We'll show you what catches the moment training isn't enough.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-k">// zero pressure</div>
-        <h3>No obligation, no card required</h3>
-        <p>This is genuinely free, whether or not you ever use co|op. If it's useful, great — if not, your team still walks away knowing more than they did.</p>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:36px;">
-      <button class="btn-solid" onclick="openTrainingModal()">Request a Free Training Session →</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="trainingModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeTrainingModal()">✕</button>
-    <div id="training-form-view">
-      <h2>Request free AI safety training</h2>
-      <p class="modal-sub">A 20-minute session for your team, in person or on a call. We'll reach out within 24 hours to find a time.</p>
-      <div class="field"><label>Name *</label><input type="text" id="training-name" placeholder="Jane Smith" autocomplete="name"></div>
-      <div class="field"><label>Work Email *</label><input type="email" id="training-email" placeholder="jane@company.com" autocomplete="email"></div>
-      <div class="field"><label>Phone</label><input type="tel" id="training-phone" placeholder="(951) 555-0123" autocomplete="tel"></div>
-      <div class="field"><label>Company</label><input type="text" id="training-company" placeholder="Acme Dental Group" autocomplete="organization"></div>
-      <div class="err-msg" id="training-err"></div>
-      <button class="modal-btn" id="training-submit-btn" onclick="submitTraining()">Request Free Session →</button>
-    </div>
-    <div id="training-success-view" style="display:none;text-align:center;padding:8px 0;">
-      <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;">✓</div>
-      <h2>Request sent</h2>
-      <p class="modal-sub">Thanks — we'll reply to <strong id="training-success-email" style="color:#fff;"></strong> within 24 hours to find a time.</p>
-      <button class="modal-btn" onclick="closeTrainingModal()" style="margin-top:8px;">Done</button>
-    </div>
-  </div>
-</div>
-
-<div class="band">
-  <div class="wrap">
-    <h2>Hold the line.</h2>
-    <p>Start a free pilot — no credit card required.</p>
-    <button class="btn-solid" onclick="openModal()">Access Dashboard</button>
+    <h2>Try it on a real task.</h2>
+    <p>Start a free pilot. No credit card required.</p>
+    <a href="/agent/login.html#signup" class="btn-solid" >Get your agent</a>
+    <div class="contact-line">Questions? <a href="/contact.html">Get in touch</a> or email <a href="mailto:cooptech126@gmail.com">cooptech126@gmail.com</a></div>
   </div>
 </div>
 
 <footer>
   <div class="wrap foot-inner">
     <div class="foot-links">
-      <a href="how-it-works.html">How it works</a>
-      <a href="features.html">Features</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="block.html">Block</a>
-      <a href="programs.html">Programs</a>
-      <a href="terms.html">Terms</a>
-      <a href="privacy.html">Privacy</a>
-      <a href="mailto:cooptech126@gmail.com">Contact</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/agent/terms.html">Terms</a>
+      <a href="/agent/privacy.html">Privacy</a>
     </div>
-    <div class="foot-copy">© 2025 co|op · all rights reserved</div>
+    <div class="foot-copy">© 2026 co|op · all rights reserved</div>
   </div>
 </footer>
-
-<script>
-const TRAINING_API = 'https://syphir-api.onrender.com';
-
-function openTrainingModal() {
-  document.getElementById('training-form-view').style.display = '';
-  document.getElementById('training-success-view').style.display = 'none';
-  document.getElementById('training-err').textContent = '';
-  document.getElementById('trainingModal').classList.add('active');
-  setTimeout(() => document.getElementById('training-name').focus(), 100);
-}
-function closeTrainingModal() { document.getElementById('trainingModal').classList.remove('active'); }
-async function submitTraining() {
-  const name    = document.getElementById('training-name').value.trim();
-  const email   = document.getElementById('training-email').value.trim();
-  const phone   = document.getElementById('training-phone').value.trim();
-  const company = document.getElementById('training-company').value.trim();
-  const errEl   = document.getElementById('training-err');
-  const btn     = document.getElementById('training-submit-btn');
-  errEl.textContent = '';
-  if (!name || !email) { errEl.textContent = 'Name and email are required.'; return; }
-  if (!email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
-  btn.textContent = 'Sending…'; btn.disabled = true;
-  try {
-    const phoneLine = phone ? ` Phone: ${phone}.` : '';
-    const res = await fetch(`${TRAINING_API}/contact`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, company, message: `Requesting a free 20-minute AI Safety Training session for their team.${phoneLine}` })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to send');
-    document.getElementById('training-success-email').textContent = email;
-    document.getElementById('training-form-view').style.display = 'none';
-    document.getElementById('training-success-view').style.display = 'block';
-  } catch(e) {
-    errEl.textContent = 'Could not send: ' + e.message;
-    btn.textContent = 'Request Free Session →'; btn.disabled = false;
-  }
-}
-</script>
-<script src="auth.js"></script>
 </body>
 </html>
