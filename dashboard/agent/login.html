@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://*.supabase.co; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<title>Log in — co|op Agent</title>
+<link rel="stylesheet" href="app.css">
+<script src="theme.js"></script>
+</head>
+<body data-page="login">
+<div id="fatal" class="fatal" hidden><div class="box" role="alert"></div></div>
+<main id="app" class="center">
+  <div class="card">
+    <div class="coop-logo">co<span class="bar">|</span>op</div>
+    <h1>Your agent dashboard</h1>
+    <p id="sub" class="muted">Log in to see what your agent has been doing.</p>
+    <p id="note" class="ok-note" role="status" hidden></p>
+    <form id="form" novalidate>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false">
+      <div id="pw-wrap">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password">
+        <p class="muted small tight pwtools"><button id="show-pw" class="linklike" type="button" aria-pressed="false">Show password</button></p>
+      </div>
+      <div id="signup-fields" hidden>
+        <label for="password2">Confirm password</label>
+        <input id="password2" type="password" autocomplete="new-password">
+        <p class="muted small">At least 8 characters. Type it the same both times.</p>
+        <label for="business_name">Business name</label>
+        <input id="business_name" type="text" maxlength="60" autocomplete="organization">
+        <label for="business_type">What kind of business is it?</label>
+        <input id="business_type" type="text" maxlength="80" placeholder="For example: plumbing, law firm, bakery">
+        <label for="use_case">What will you use your agent for?</label>
+        <select id="use_case">
+          <option value="">Choose one…</option>
+          <option value="tasks">Everyday tasks (email, files, calendar)</option>
+          <option value="dev">Coding / development</option>
+          <option value="both">Both</option>
+          <option value="other">Something else</option>
+        </select>
+        <label for="notes">Anything else we should know? <span class="muted">(optional)</span></label>
+        <textarea id="notes" rows="3" maxlength="500"></textarea>
+        <p class="muted small">By creating an account you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>. We review every request before an agent is set up.</p>
+      </div>
+      <div id="err" class="error" role="alert" hidden></div>
+      <button id="go" class="btn block" type="submit">Log in</button>
+      <p id="forgot-wrap" class="muted small switch"><button id="forgot" class="linklike" type="button">Forgot your password?</button></p>
+    </form>
+    <div id="reset" hidden>
+      <h2>Choose a new password</h2>
+      <form id="reset-form" novalidate>
+        <label for="pw-a">New password</label>
+        <input id="pw-a" type="password" autocomplete="new-password">
+        <label for="pw-b">Confirm new password</label>
+        <input id="pw-b" type="password" autocomplete="new-password">
+        <p class="muted small tight pwtools"><button id="show-pw2" class="linklike" type="button" aria-pressed="false">Show passwords</button></p>
+        <p class="muted small">At least 8 characters.</p>
+        <div id="reset-err" class="error" role="alert" hidden></div>
+        <button id="reset-go" class="btn block" type="submit">Save new password</button>
+      </form>
+    </div>
+    <div id="reset-done" hidden>
+      <h2>Password updated</h2>
+      <p>You can log in with your new password now.</p>
+      <button id="reset-login" class="btn block" type="button">Go to log in</button>
+    </div>
+    <div id="done" hidden>
+      <h2>Check your email</h2>
+      <p>If <strong id="done-email"></strong> is new here, we’ve sent it a confirmation link. Click the link, then come back and log in.</p>
+      <p class="muted small">Already have an account? Just log in. After you log in, we’ll review your request, and this site will tell you when you’re approved.</p>
+      <button id="back-login" class="btn ghost block" type="button">Go to log in</button>
+    </div>
+    <p class="muted small switch"><span id="toggle-text">New here?</span> <button id="toggle" class="linklike" type="button">Create an account</button></p>
+    <div class="links"><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
+  </div>
+</main>
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<script src="app.js"></script>
+</body></html>
