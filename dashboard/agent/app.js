@@ -1415,11 +1415,43 @@
     // Card payments aren't switched on yet, so choosing a plan records a request (saved on the login, and nothing is charged).
     // It never changes what the account is allowed to do: only the bot writes plans. When payments go live, this one function
     // is where "send the person to checkout" replaces "record a request".
+    const billingOff = (r) => r.status === 404 || r.status === 501 || (r.body && (r.body.error === 'billing_off' || r.body.error === 'off'));
     async function choosePlan(t, msgId) {
-      const buttons = document.querySelectorAll('.pcard button'); buttons.forEach((b) => { b.disabled = true; });
-      const ok = await settings.update({ data: { plan_request: { plan: t.key, at: new Date().toISOString() } } }, msgId,
-        `Got it. We’ve noted your request for ${t.name} ($${t.price}/month) and will email you to switch it on. Nothing is charged yet.`);
-      if (!ok) buttons.forEach((b) => { if (b.textContent !== 'Your plan') b.disabled = false; });
+      const buttons = [...document.querySelectorAll('.pcard button')]; const was = buttons.map((b) => b.disabled);
+      buttons.forEach((b) => { b.disabled = true; });
+      const restore = () => buttons.forEach((b, i) => { b.disabled = was[i]; });
+      settings.say(msgId, 'Opening secure checkout…', true);
+      const r = await webCall('POST', '/billing/checkout', { plan: t.key });
+      const url = r.body && r.body.url;
+      if (r.status === 200 && typeof url === 'string' && /^https:\/\/checkout\.stripe\.com\//.test(url)) { location.assign(url); return; } // card details are only ever typed on Stripe's page
+      if (billingOff(r)) { // payments aren't switched on on the bot yet: leave a request instead
+        const ok = await settings.update({ data: { plan_request: { plan: t.key, at: new Date().toISOString() } } }, msgId,
+          `Got it. We’ve noted your request for ${t.name} ($${t.price}/month) and will email you to switch it on. Nothing is charged yet.`);
+        if (!ok) restore();
+        return;
+      }
+      settings.say(msgId, webError(r, 'Couldn’t open checkout. Try again in a moment.'), false);
+      restore();
+    }
+    // Coming back from Stripe: ?checkout=success means they paid, and the plan switches on a moment later when Stripe tells the bot.
+    async function checkoutReturn() {
+      const qs = new URLSearchParams(location.search); const c = qs.get('checkout');
+      if (!c) return;
+      try { history.replaceState(null, '', `${location.pathname}${location.hash}`); } catch { /* ignore */ }
+      const bar = $('paused-banner');
+      if (c === 'cancelled') { bar.textContent = 'Checkout cancelled. You weren’t charged.'; bar.className = 'notice'; bar.hidden = false; return; }
+      if (c !== 'success') return;
+      bar.textContent = 'Thanks! Payment received. We’re switching your plan on now…'; bar.className = 'notice'; bar.hidden = false;
+      for (let i = 0; i < 12; i++) { // the plan is written when Stripe calls the bot, usually within seconds
+        await account.load(true);
+        if (isPaidPlan(account.info) && account.info.state === 'active') {
+          renderPlanCard(); account.banner();
+          bar.textContent = `You’re on ${account.info.label}. Thank you!`; bar.className = 'notice'; bar.hidden = false;
+          return;
+        }
+        await new Promise((res) => setTimeout(res, 3000));
+      }
+      bar.textContent = `Your payment went through, but your plan hasn’t switched on yet. Refresh in a minute, or email ${CONTACT} and we’ll sort it out.`;
     }
     function renderPlanCards(box, msgId) {
       if (!box) return;
@@ -1586,6 +1618,15 @@
           if (name.length > 80) return this.say('profile-msg', 'That name is too long.', false);
           const btn = $('profile-save'); btn.disabled = true;
           await this.update({ data: { full_name: name } }, 'profile-msg', 'Saved.');
+          btn.disabled = false;
+        });
+        $('portal-btn').addEventListener('click', async () => { // Stripe's own page for card, invoices and cancelling
+          const btn = $('portal-btn'); btn.disabled = true;
+          this.say('portal-msg', 'Opening billing…', true);
+          const r = await webCall('POST', '/billing/portal', {});
+          const url = r.body && r.body.url;
+          if (r.status === 200 && typeof url === 'string' && /^https:\/\/billing\.stripe\.com\//.test(url)) { location.assign(url); return; }
+          this.say('portal-msg', billingOff(r) ? `Billing management isn’t switched on yet. Email ${CONTACT} and we’ll help.` : webError(r, 'Couldn’t open billing. Try again in a moment.'), false);
           btn.disabled = false;
         });
         $('billing-save').addEventListener('click', async () => {
@@ -1776,6 +1817,7 @@
     }
     show(view);
     startWatch();
+    checkoutReturn();
   }
 
   // ---- start ------------------------------------------------------------------------------

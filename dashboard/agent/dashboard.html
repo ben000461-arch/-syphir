@@ -314,7 +314,7 @@
       <p class="muted small up-lead">Plans are monthly and you can change or cancel any time. Credits measure usage: a chat message is 2 credits and an action, like drafting an email or adding an event, is 5.</p>
       <div id="up-current" class="small muted"></div>
       <div id="up-cards" class="plan-grid"></div>
-      <p class="muted small up-note">Run out of credits mid-month? Add 500 for $10. Top-up credits expire at the end of your billing cycle. Card payments aren’t switched on yet, so choosing a plan sends us a request and nothing is charged.</p>
+      <p class="muted small up-note">Run out of credits mid-month? Add 500 for $10. Top-up credits expire at the end of your billing cycle. Payment is handled securely by Stripe, and you can cancel any time.</p>
       <p id="up-msg" class="set-msg" role="status" hidden></p>
     </section>
 
@@ -358,7 +358,7 @@
               <div><div id="plan-cards-inline" class="plan-grid"></div><p id="plan-pick-msg" class="set-msg" role="status" hidden></p></div></div>
             <div id="plan-paid-rows" hidden>
             <div class="set-row"><div><b>Payment method</b><span>How you’ll pay once billing starts.</span></div>
-              <div><p class="small tight">No card on file. Card payments aren’t switched on yet, so this site never asks for card details.</p><button class="btn ghost small" type="button" disabled>Add payment method</button></div></div>
+              <div><p class="small tight">Your card is handled by Stripe. This site never sees or stores card details. Use billing to update your card, download invoices, or cancel.</p><button id="portal-btn" class="btn ghost small" type="button">Manage billing</button><p id="portal-msg" class="set-msg" role="status" hidden></p></div></div>
             <div class="set-row"><div><b>Billing details</b><span>Used on invoices. No card numbers here.</span></div>
               <div>
                 <div class="fld"><label for="bill-name">Billing name</label><input id="bill-name" type="text" maxlength="120" autocomplete="name"></div>
@@ -366,7 +366,7 @@
                 <div class="fld"><label for="bill-email">Billing email</label><input id="bill-email" type="email" maxlength="160" autocomplete="email"></div>
                 <div class="fld"><label for="bill-address">Address</label><textarea id="bill-address" rows="3" maxlength="300" autocomplete="street-address"></textarea></div>
               </div></div>
-            <div class="set-row"><div><b>Invoices</b><span>Past payments.</span></div><div class="muted small">No invoices yet.</div></div>
+            <div class="set-row"><div><b>Invoices</b><span>Past payments.</span></div><div class="muted small">Your invoices are in Manage billing above.</div></div>
             </div>
             <p id="billing-msg" class="set-msg" role="status" hidden></p>
           </div>
