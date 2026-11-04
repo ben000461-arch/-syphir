@@ -354,7 +354,24 @@ textarea{resize:vertical;font-family:inherit}
 /* sidebar: main sections, then settings/help/legal pinned to the bottom */
 .side{position:sticky;top:0;align-self:start;height:calc(100vh - 60px);overflow-y:auto}
 .navmain{display:flex;flex-direction:column;gap:2px;margin-top:6px}
-.navfoot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.navup{margin-top:auto;padding:0 0 12px}
+.navfoot{margin-top:0;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.side .upgrade-link{background:var(--accent);color:var(--accent-fg);font-weight:600;text-align:center;border:1px solid var(--accent)}
+.side .upgrade-link:hover{background:var(--accent);color:var(--accent-fg);opacity:.88}
+.side .upgrade-link[aria-current=page]{background:var(--sel);color:var(--fg);box-shadow:none;border-color:var(--line)}
+.plan-card .upgrade-btn{float:right;margin:0 0 6px 12px}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:6px}
+#view-upgrade .plan-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:22px;max-width:880px}
+.pcard{border:1px solid var(--line-soft);background:var(--panel);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:2px}
+.pcard.current{border-color:var(--fg)}
+.pcard h3{margin:0;font-family:var(--display);font-size:1.05rem}
+.pcard .pprice{font-family:var(--display);font-size:1.7rem;font-weight:700;margin:6px 0 4px}
+.pcard .pprice small{font-size:.85rem;font-weight:500;color:var(--muted)}
+.pcard .btn{margin-top:auto;align-self:stretch;text-align:center}
+.pcard p.tight{margin:4px 0}
+.pcard p.tight:last-of-type{margin-bottom:14px}
+.up-lead{max-width:640px;margin:4px 0 10px}
+.up-note{max-width:640px;margin-top:20px}
 .side .sub{padding:8px 12px 8px 30px;font-size:.9rem}
 .toolsub{display:flex;flex-direction:column;gap:1px;margin:2px 0 4px 12px;border-left:1px solid var(--line-soft)}
 .toolsub .sub{padding-left:16px}
@@ -421,3 +438,7 @@ textarea{resize:vertical;font-family:inherit}
   .calcell .dots i.a{background:var(--muted)}
   .calgrid .dow{padding:6px 2px;text-align:center;font-size:.62rem;letter-spacing:.02em}
 }
+
+#plan-pick-row{grid-template-columns:1fr}
+#plan-pick-row>div:first-child{max-width:none}
+#plan-pick-row .plan-grid{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
