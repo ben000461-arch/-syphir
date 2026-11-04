@@ -319,7 +319,7 @@
     const isAuthError = (e) => e && (e.status === 401 || e.code === 'PGRST301' || /jwt/i.test(e.message || ''));
 
     // which view is showing
-    const VIEWS = ['chat', 'calendar', 'agents', 'tools', 'start', 'logs', 'help', 'settings'];
+    const VIEWS = ['chat', 'calendar', 'agents', 'tools', 'start', 'logs', 'help', 'settings', 'upgrade'];
     const TOOL_PAGES = new Set(['tool-email', 'tool-files', 'tool-notes', 'tool-github']); // each tool's own page, listed under Tools in the sidebar
     const NEEDS_AGENT = new Set(['chat', 'calendar', 'agents', 'tools', 'logs']); // Get started, Help and Settings work for anyone
     const rawHash = location.hash.slice(1);
@@ -348,6 +348,7 @@
       if (real === 'calendar' && linked === true) { calendar.load(); tools.load(); }
       if (real === 'agents' && linked === true) agentsView.load();
       if (real === 'settings') settings.open();
+      if (real === 'upgrade') upgrade.open();
     }
     for (const b of document.querySelectorAll('.side button[data-view]')) {
       b.addEventListener('click', () => {
@@ -1377,13 +1378,21 @@
     // The plan card in Settings. Left as the simple built-in text when the plan can't be read.
     function renderPlanCard() {
       const a = account.info; const card = $('plan-card');
+      refreshPlanUi();
       if (!card || !a) return;
       card.replaceChildren();
+      const upBtn = () => { // the Upgrade button on the plan card; paid plans get "Change plan"
+        const b = el('button', 'btn small upgrade-btn', isPaidPlan(a) ? 'Change plan' : 'Upgrade');
+        b.type = 'button'; b.addEventListener('click', () => show('upgrade'));
+        return b;
+      };
       if (a.state === 'none') {
+        card.appendChild(upBtn());
         card.appendChild(el('strong', null, 'Free trial'));
         card.appendChild(el('p', 'muted small tight', 'Your 30-day free trial starts with your first message to your agent. Nothing is charged.'));
         return;
       }
+      card.appendChild(upBtn());
       card.appendChild(el('strong', null, `${a.label} `));
       const badge = { trial: ['b-asked', 'Trial'], active: ['b-done', 'Active'], pilot: ['b-done', 'Pilot'], frozen: ['b-failed', 'Paused'] }[a.state];
       if (badge) card.appendChild(el('span', `badge ${badge[0]}`, badge[1]));
@@ -1395,6 +1404,57 @@
       if (a.credits) line(`${num(Math.max(0, a.credits.left))} of ${num(a.credits.total)} credits left this month. They reset on ${dayText(a.reset)}.`);
       else if (a.creditsFailed) line('We couldn’t load your credits just now. Refresh in a moment.');
     }
+
+    // ---- plans you can choose. Same numbers as the pricing page and PLAN_INFO above (placeholders until the pilot sets real ones).
+    const PLAN_TIERS = [
+      { key: 'starter', name: 'Starter', price: 19, credits: 1000, chats: 500, actions: 200, perk: 'Everything in the pilot' },
+      { key: 'pro', name: 'Pro', price: 49, credits: 3500, chats: 1750, actions: 700, perk: 'Lower cost per credit' },
+      { key: 'business', name: 'Business', price: 99, credits: 9000, chats: 4500, actions: 1800, perk: 'Lowest cost per credit' },
+    ];
+    const isPaidPlan = (a) => Boolean(a && PLAN_TIERS.some((t) => t.key === a.key));
+    // Card payments aren't switched on yet, so choosing a plan records a request (saved on the login, and nothing is charged).
+    // It never changes what the account is allowed to do: only the bot writes plans. When payments go live, this one function
+    // is where "send the person to checkout" replaces "record a request".
+    async function choosePlan(t, msgId) {
+      const buttons = document.querySelectorAll('.pcard button'); buttons.forEach((b) => { b.disabled = true; });
+      const ok = await settings.update({ data: { plan_request: { plan: t.key, at: new Date().toISOString() } } }, msgId,
+        `Got it. We’ve noted your request for ${t.name} ($${t.price}/month) and will email you to switch it on. Nothing is charged yet.`);
+      if (!ok) buttons.forEach((b) => { if (b.textContent !== 'Your plan') b.disabled = false; });
+    }
+    function renderPlanCards(box, msgId) {
+      if (!box) return;
+      const a = account.info; const cur = a && a.state === 'active' ? a.key : null;
+      const curIdx = PLAN_TIERS.findIndex((t) => t.key === cur);
+      box.replaceChildren();
+      PLAN_TIERS.forEach((t, i) => {
+        const c = el('div', `pcard${t.key === cur ? ' current' : ''}`);
+        c.appendChild(el('h3', null, t.name));
+        const price = el('div', 'pprice', `$${t.price}`); price.appendChild(el('small', null, ' / month')); c.appendChild(price);
+        c.appendChild(el('p', 'muted small tight', `${num(t.credits)} credits a month. About ${num(t.chats)} chats or ${num(t.actions)} actions.`));
+        c.appendChild(el('p', 'muted small tight', t.perk));
+        const label = t.key === cur ? 'Your plan' : curIdx < 0 ? `Choose ${t.name}` : i > curIdx ? `Upgrade to ${t.name}` : `Switch to ${t.name}`;
+        const b = el('button', `btn small${t.key === cur ? ' ghost' : ''}`, label); b.type = 'button';
+        if (t.key === cur) b.disabled = true; else b.addEventListener('click', () => choosePlan(t, msgId));
+        c.appendChild(b);
+        box.appendChild(c);
+      });
+    }
+    // Keeps the sidebar button and the Plan and billing pane in step with the plan: card details only show once someone is on a paid plan.
+    function refreshPlanUi() {
+      const a = account.info; const paid = isPaidPlan(a);
+      $('side-upgrade-label').textContent = paid ? 'Change plan' : 'Upgrade';
+      $('plan-paid-rows').hidden = !paid; $('billing-save').hidden = !paid; $('plan-pick-row').hidden = paid;
+      if (!paid) renderPlanCards($('plan-cards-inline'), 'plan-pick-msg');
+    }
+    const upgrade = {
+      render() {
+        const a = account.info;
+        $('up-current').textContent = a && a.label && a.state !== 'none' ? `You’re on ${a.label}${isPaidPlan(a) ? '.' : ' right now.'}` : 'You’re on the free trial.';
+        renderPlanCards($('up-cards'), 'up-msg');
+        $('up-msg').hidden = true;
+      },
+      open() { this.render(); account.load(false).then(() => { this.render(); refreshPlanUi(); }); },
+    };
 
     // ---- usage: draws one bar. Credits when the plan has them; days for a trial; otherwise a request count.
     function usageNow() {

@@ -124,7 +124,12 @@ html { scroll-behavior: smooth; }
 .plan li{font-size:.94rem;color:#e8e8e8;line-height:1.5;padding:9px 0;border-top:1px solid var(--line-soft)}
 .plan li:first-child{border-top:none}
 .plan .btn-solid,.plan .btn-line{text-align:center;margin-top:auto}
-@media (max-width:760px){.plans{grid-template-columns:1fr}}
+.plans.four{grid-template-columns:repeat(4,1fr);gap:16px}
+.plans.four .plan{padding:26px}
+.plans.four .plan .price{font-size:2rem}
+.plans-note{margin-top:18px;font-size:.9rem;color:var(--grey);line-height:1.55;text-align:center}
+@media (max-width:1060px){.plans.four{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){.plans,.plans.four{grid-template-columns:1fr}}
 .faq{margin-top:72px;margin-bottom:96px;max-width:720px}
 .faq h2{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:600;margin-bottom:12px}
 .faq h3{font-family:'Space Grotesk',sans-serif;font-size:1.02rem;font-weight:600;margin:26px 0 6px}
