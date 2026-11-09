@@ -320,7 +320,7 @@
 
     // which view is showing
     const VIEWS = ['chat', 'calendar', 'agents', 'tools', 'start', 'logs', 'help', 'settings', 'upgrade'];
-    const TOOL_PAGES = new Set(['tool-email', 'tool-files', 'tool-notes', 'tool-github']); // each tool's own page, listed under Tools in the sidebar
+    const TOOL_PAGES = new Set(['tool-email', 'tool-files', 'tool-notes', 'tool-github', 'tool-add']); // each tool's own page, listed under Tools in the sidebar
     const NEEDS_AGENT = new Set(['chat', 'calendar', 'agents', 'tools', 'logs']); // Get started, Help and Settings work for anyone
     const rawHash = location.hash.slice(1);
     const fromHash = rawHash === 'agent' ? 'agents' : rawHash === 'schedule' ? 'calendar' : rawHash; // old links: the Agent page lives under Agents, Schedule became Calendar
@@ -342,9 +342,9 @@
         const open = name === real && (!NEEDS_AGENT.has(name) || linked === true);
         $(`view-${name}`).hidden = !open;
       }
-      if (real === 'tools') { if (TOOL_PAGES.has(v)) tools.open(v.slice(5)); else tools.close(); }
+      if (real === 'tools') { if (v === 'tool-add') tools.addOpen(); else if (TOOL_PAGES.has(v)) tools.open(v.slice(5)); else tools.close(); }
       if (real === 'logs' && linked === true && !logs.started) logs.start();
-      if (real === 'tools' && linked === true) tools.load();
+      if (real === 'tools' && linked === true) { tools.load(); treq.load(); }
       if (real === 'calendar' && linked === true) { calendar.load(); tools.load(); }
       if (real === 'agents' && linked === true) agentsView.load();
       if (real === 'settings') settings.open();
@@ -865,11 +865,18 @@
           card.addEventListener('click', () => show(t.view || `tool-${t.id}`));
           box.appendChild(card);
         }
+        const add = el('button', 'conn conn-add');
+        add.type = 'button';
+        add.appendChild(el('h2', null, '+ Add a tool'));
+        add.appendChild(el('p', 'muted small', 'Need an app that isn’t here? Ask for it and we’ll set it up.'));
+        add.addEventListener('click', () => show('tool-add'));
+        box.appendChild(add);
         if (toolOpen) this.renderDetail(toolOpen);
         this.fill(TOOLS.find((x) => x.id === 'calendar'), { usage: $('cd-usage'), manage: $('cd-manage'), rows: $('cd-rows'), none: $('cd-none'), tbl: $('cd-tbl') });
       },
-      open(id) { toolOpen = id; this.renderDetail(id); },
-      close() { toolOpen = null; $('tool-detail').hidden = true; $('tools-list').hidden = false; },
+      open(id) { toolOpen = id; $('tool-add').hidden = true; this.renderDetail(id); },
+      close() { toolOpen = null; $('tool-detail').hidden = true; $('tool-add').hidden = true; $('tools-list').hidden = false; },
+      addOpen() { toolOpen = null; $('tool-detail').hidden = true; $('tools-list').hidden = true; $('tool-add').hidden = false; wiz.start(); },
       renderDetail(id) {
         const t = TOOLS.find((x) => x.id === id);
         if (!t) return this.close();
@@ -959,7 +966,143 @@
         els.tbl.hidden = mine.length === 0;
       },
     };
-    $('tools-refresh').addEventListener('click', () => tools.load());
+    // ---- Add a tool: a step-by-step request. Nothing is connected until the owner approves it.
+    const SUGGEST = [['Slack', 'slack.com'], ['Notion', 'notion.so'], ['HubSpot', 'hubspot.com'], ['Trello', 'trello.com'], ['Asana', 'asana.com'], ['Shopify', 'shopify.com'], ['QuickBooks', 'quickbooks.intuit.com'], ['Zoom', 'zoom.us'], ['Dropbox', 'dropbox.com'], ['Airtable', 'airtable.com'], ['Jira', 'atlassian.com'], ['Salesforce', 'salesforce.com']];
+    const WIZ_STEPS = ['Tool', 'Purpose', 'Access', 'Sign-in', 'Review'];
+    const ACCESS_TXT = { read: 'Read only', write: 'Read and write (asks you every time)' };
+    const HOW_TXT = { signin: 'Sign in with the tool’s own login', key: 'Paste a key or token (we’ll share a secure way later)', unsure: 'Not sure' };
+    const wiz = {
+      step: 0, busy: false, done: false, d: null,
+      start() { this.step = 0; this.done = false; this.d = { name: '', url: '', purpose: '', access: 'read', scope: '', how: 'signin' }; setNote($('wiz-err'), ''); this.render(); },
+      opt(group, value, title, sub) {
+        const lab = el('label', 'wiz-opt');
+        const r = el('input'); r.type = 'radio'; r.name = group; r.value = value; r.checked = this.d[group] === value;
+        r.addEventListener('change', () => { this.d[group] = value; });
+        const t = el('span'); t.appendChild(el('b', null, title)); t.appendChild(el('span', 'muted small', sub));
+        lab.appendChild(r); lab.appendChild(t);
+        return lab;
+      },
+      field(label, input, hint) {
+        const w = el('div', 'wiz-field');
+        const l = el('label', null, label); input.id = input.id || `wf-${Math.random().toString(36).slice(2, 7)}`; l.htmlFor = input.id;
+        w.appendChild(l); w.appendChild(input);
+        if (hint) w.appendChild(el('p', 'muted small', hint));
+        return w;
+      },
+      render() {
+        const steps = $('wiz-steps'); steps.replaceChildren();
+        WIZ_STEPS.forEach((n, i) => { const li = el('li', i === this.step && !this.done ? 'on' : i < this.step || this.done ? 'past' : '', n); if (i === this.step && !this.done) li.setAttribute('aria-current', 'step'); steps.appendChild(li); });
+        const body = $('wiz-body'); body.replaceChildren();
+        $('wiz-nav').hidden = this.done;
+        $('wiz-prev').hidden = this.step === 0;
+        $('wiz-next').textContent = this.step === 4 ? 'Send request' : 'Next';
+        $('wiz-next').disabled = this.busy;
+        const d = this.d;
+        if (this.done) {
+          body.appendChild(el('h2', null, 'Request sent'));
+          body.appendChild(el('p', null, `We’ve been told you’d like ${d.name}. We’ll review it and message you on Telegram when there’s news. Nothing is connected until then.`));
+          const row = el('p', 'td-actions');
+          const a = el('button', 'btn small', 'Back to tools'); a.type = 'button'; a.addEventListener('click', () => show('tools'));
+          const b = el('button', 'btn ghost small', 'Add another'); b.type = 'button'; b.addEventListener('click', () => this.start());
+          row.appendChild(a); row.appendChild(b); body.appendChild(row);
+          return;
+        }
+        if (this.step === 0) {
+          body.appendChild(el('h2', null, 'Which tool do you want?'));
+          const name = el('input'); name.type = 'text'; name.maxLength = 60; name.value = d.name; name.placeholder = 'e.g. Slack';
+          name.addEventListener('input', () => { d.name = name.value; });
+          body.appendChild(this.field('Tool name', name));
+          const chips = el('div', 'chips');
+          const url = el('input'); url.type = 'text'; url.maxLength = 120; url.value = d.url; url.placeholder = 'e.g. slack.com';
+          url.addEventListener('input', () => { d.url = url.value; });
+          for (const [n, u] of SUGGEST) { const c = el('button', null, n); c.type = 'button'; c.addEventListener('click', () => { d.name = n; d.url = u; name.value = n; url.value = u; }); chips.appendChild(c); }
+          body.appendChild(chips);
+          body.appendChild(this.field('Website (optional)', url, 'Helps us find the right one.'));
+        } else if (this.step === 1) {
+          body.appendChild(el('h2', null, `What should your agent do with ${d.name}?`));
+          const ta = el('textarea'); ta.rows = 5; ta.maxLength = 500; ta.value = d.purpose; ta.placeholder = 'e.g. Post a daily summary to #team and tell me when someone mentions a customer.';
+          const cnt = el('p', 'muted small wiz-count', `${d.purpose.length}/500`);
+          ta.addEventListener('input', () => { d.purpose = ta.value; cnt.textContent = `${ta.value.length}/500`; });
+          body.appendChild(this.field('In plain words', ta, 'At least a sentence. No passwords or keys here.'));
+          body.appendChild(cnt);
+        } else if (this.step === 2) {
+          body.appendChild(el('h2', null, 'What is it allowed to do?'));
+          body.appendChild(this.opt('access', 'read', 'Read only', 'Look things up. Can’t change anything. Recommended.'));
+          body.appendChild(this.opt('access', 'write', 'Read and write', 'Can also make changes, but it asks you first, every time.'));
+          const sc = el('input'); sc.type = 'text'; sc.maxLength = 200; sc.value = d.scope; sc.placeholder = 'e.g. only the #team channel';
+          sc.addEventListener('input', () => { d.scope = sc.value; });
+          body.appendChild(this.field('Only these parts (optional)', sc));
+        } else if (this.step === 3) {
+          body.appendChild(el('h2', null, 'How would you connect?'));
+          body.appendChild(this.opt('how', 'signin', 'Sign in', 'Approve it with the tool’s own login page.'));
+          body.appendChild(this.opt('how', 'key', 'A key or token', 'Some tools use one. We’ll share a safe way to hand it over.'));
+          body.appendChild(this.opt('how', 'unsure', 'Not sure', 'That’s fine, we’ll work it out.'));
+          body.appendChild(el('p', 'wiz-warn small', 'Never type a password, key or token into this form.'));
+        } else {
+          body.appendChild(el('h2', null, 'Check and send'));
+          const dl = el('dl');
+          const add = (k, v) => { dl.appendChild(el('dt', null, k)); dl.appendChild(el('dd', null, v)); };
+          add('Tool', d.name + (d.url ? ` (${d.url})` : ''));
+          add('Purpose', d.purpose);
+          add('Access', ACCESS_TXT[d.access] + (d.scope ? ` · ${d.scope}` : ''));
+          add('Sign-in', HOW_TXT[d.how]);
+          body.appendChild(dl);
+          body.appendChild(el('p', 'muted small', 'What happens next: we get a message, review it, and tell you on Telegram. The tool stays off until we approve it.'));
+        }
+      },
+      check() {
+        const d = this.d;
+        if (this.step === 0 && d.name.trim().length < 2) return 'Enter the tool’s name.';
+        if (this.step === 1 && d.purpose.trim().length < 8) return 'Tell us a little more about what it should do.';
+        return '';
+      },
+      async next() {
+        const bad = this.check();
+        if (bad) return setNote($('wiz-err'), bad);
+        setNote($('wiz-err'), '');
+        if (this.step < 4) { this.step++; return this.render(); }
+        if (this.busy) return;
+        this.busy = true; this.render();
+        const d = this.d;
+        const r = await webCall('POST', '/toolreq/new', { name: d.name.trim(), url: d.url.trim() || undefined, purpose: d.purpose.trim(), access: d.access, scope: d.scope.trim() || undefined, how: d.how });
+        this.busy = false;
+        if (r.status === 200 && r.body.ok) { this.done = true; this.render(); treq.load(); return; }
+        const msg = r.status === 501 ? 'Tool requests aren’t switched on yet.' : r.status === 409 && r.body.error === 'duplicate' ? 'You already have a pending request for that tool.' : r.status === 429 ? (r.body.error === 'too_many_pending' ? 'You have 3 requests waiting. Wait for a reply first.' : 'That’s the daily limit for requests. Try again tomorrow.') : webError(r, 'Couldn’t send that. Check it and try again.');
+        this.render(); setNote($('wiz-err'), msg);
+      },
+    };
+    $('wiz-next').addEventListener('click', () => wiz.next());
+    $('wiz-prev').addEventListener('click', () => { if (wiz.step > 0) { wiz.step--; setNote($('wiz-err'), ''); wiz.render(); } });
+    $('wiz-back-top').addEventListener('click', () => show('tools'));
+    $('tool-add-btn').addEventListener('click', () => show('tool-add'));
+
+    const TREQ_STATUS = { pending: ['Waiting for review', 'other'], approved: ['Approved · setting up', 'asked'], ready: ['Ready', 'done'], denied: ['Not approved', 'failed'], cancelled: ['Cancelled', 'cancelled'] };
+    const treq = {
+      async load() {
+        const r = await webCall('GET', '/toolreq/list');
+        const box = $('treq-box');
+        if (r.status !== 200 || !Array.isArray(r.body.requests) || !r.body.requests.length) { box.hidden = true; return; }
+        box.hidden = false;
+        const list = $('treq-list'); list.replaceChildren();
+        for (const q of r.body.requests.slice(0, 20)) {
+          const row = el('div', 'treq-row');
+          const main = el('div', 'treq-main');
+          main.appendChild(el('b', null, q.tool_name));
+          main.appendChild(el('span', 'muted small', ` · ${q.access === 'write' ? 'read and write' : 'read only'} · ${fmtWhen(q.created_at)}`));
+          if (q.decision_note) main.appendChild(el('p', 'small', q.decision_note));
+          row.appendChild(main);
+          const [text, cls] = TREQ_STATUS[q.status] || [q.status, 'other'];
+          row.appendChild(el('span', `badge b-${cls}`, text));
+          if (q.status === 'pending') {
+            const c = el('button', 'btn ghost small', 'Cancel'); c.type = 'button';
+            c.addEventListener('click', async () => { c.disabled = true; await webCall('POST', '/toolreq/cancel', { id: q.id }); this.load(); });
+            row.appendChild(c);
+          }
+          list.appendChild(row);
+        }
+      },
+    };
+    $('tools-refresh').addEventListener('click', () => { tools.load(); treq.load(); });
     $('tool-back').addEventListener('click', () => show('tools'));
 
     // ---- chat: messages drop to the bottom like ChatGPT, with typing dots while the agent answers
@@ -1420,10 +1563,16 @@
       const buttons = [...document.querySelectorAll('.pcard button')]; const was = buttons.map((b) => b.disabled);
       buttons.forEach((b) => { b.disabled = true; });
       const restore = () => buttons.forEach((b, i) => { b.disabled = was[i]; });
-      settings.say(msgId, 'Opening secure checkout…', true);
-      const r = await webCall('POST', '/billing/checkout', { plan: t.key });
+      // Someone already paying changes plan in Stripe's billing portal (a second checkout would start a second subscription).
+      let viaPortal = isPaidPlan(account.info) && account.info.state === 'active';
+      settings.say(msgId, viaPortal ? 'Opening billing…' : 'Opening secure checkout…', true);
+      let r = viaPortal ? await webCall('POST', '/billing/portal', {}) : await webCall('POST', '/billing/checkout', { plan: t.key });
+      if (viaPortal && r.status === 409 && r.body && r.body.error === 'no_billing') { // a plan we switched on by hand has no Stripe subscription yet: let them subscribe
+        viaPortal = false; r = await webCall('POST', '/billing/checkout', { plan: t.key });
+      }
       const url = r.body && r.body.url;
-      if (r.status === 200 && typeof url === 'string' && /^https:\/\/checkout\.stripe\.com\//.test(url)) { location.assign(url); return; } // card details are only ever typed on Stripe's page
+      const goodUrl = viaPortal ? /^https:\/\/billing\.stripe\.com\// : /^https:\/\/checkout\.stripe\.com\//;
+      if (r.status === 200 && typeof url === 'string' && goodUrl.test(url)) { location.assign(url); return; } // card details are only ever typed on Stripe's page
       if (billingOff(r)) { // payments aren't switched on on the bot yet: leave a request instead
         const ok = await settings.update({ data: { plan_request: { plan: t.key, at: new Date().toISOString() } } }, msgId,
           `Got it. We’ve noted your request for ${t.name} ($${t.price}/month) and will email you to switch it on. Nothing is charged yet.`);

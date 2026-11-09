@@ -27,6 +27,7 @@
         <button type="button" class="sub" data-view="tool-files">Files &amp; sheets</button>
         <button type="button" class="sub" data-view="tool-notes">Notes</button>
         <button type="button" class="sub" data-view="tool-github">GitHub</button>
+        <button type="button" class="sub" data-view="tool-add">+ Add tool</button>
       </div>
       <button type="button" data-view="agents">Agents</button>
     </div>
@@ -199,9 +200,24 @@
       <div id="tools-list">
         <h1>Tools</h1>
         <p class="muted">The apps your agent can use. Pick one to see what it has done and how to connect or disconnect it. This shows counts and file or project names only, never the text of an email, an event or a file.</p>
-        <div class="bar"><span class="spacer"></span><span id="tools-updated" class="muted small"></span><button id="tools-refresh" class="btn ghost small" type="button">Refresh</button></div>
+        <div class="bar"><span class="spacer"></span><span id="tools-updated" class="muted small"></span><button id="tools-refresh" class="btn ghost small" type="button">Refresh</button><button id="tool-add-btn" class="btn small" type="button">+ Add tool</button></div>
         <div id="tools-err" class="error" role="alert" hidden></div>
         <div id="tools-grid" class="conn-grid"></div>
+        <div id="treq-box" class="treq" hidden>
+          <h2>Your tool requests</h2>
+          <div id="treq-list"></div>
+        </div>
+      </div>
+      <div id="tool-add" hidden>
+        <p class="td-back"><button id="wiz-back-top" class="linklike" type="button">← All tools</button></p>
+        <h1>Add a tool</h1>
+        <p class="muted">Ask for an app your agent doesn’t have yet. We review every request, and nothing is connected until you hear back.</p>
+        <div class="panel wiz">
+          <ol id="wiz-steps" class="wiz-steps" aria-label="Progress"></ol>
+          <div id="wiz-body"></div>
+          <div id="wiz-err" class="error" role="alert" hidden></div>
+          <div id="wiz-nav" class="wiz-nav"><button id="wiz-prev" class="btn ghost small" type="button">Back</button><span class="spacer"></span><button id="wiz-next" class="btn small" type="button">Next</button></div>
+        </div>
       </div>
       <div id="tool-detail" hidden>
         <p class="td-back"><button id="tool-back" class="linklike" type="button">← All tools</button></p>
