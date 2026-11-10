@@ -469,3 +469,9 @@ textarea{resize:vertical;font-family:inherit}
 .treq-main{flex:1;min-width:0}
 .treq-main p{margin:4px 0 0}
 @media (max-width:520px){.treq-row{flex-wrap:wrap}}
+
+/* connect page */
+.conn-req .badge{margin:0}
+#tc-panel .td-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.wiz-opt span,.wiz-opt b{text-transform:none;letter-spacing:normal}
+.wiz-opt .muted{font-size:.88rem;display:block;margin-top:2px}
