@@ -344,7 +344,7 @@
       }
       if (real === 'tools') { if (v === 'tool-add') tools.addOpen(); else if (TOOL_PAGES.has(v)) tools.open(v.slice(5)); else tools.close(); }
       if (real === 'logs' && linked === true && !logs.started) logs.start();
-      if (real === 'tools' && linked === true) { tools.load(); treq.load(); }
+      if (real === 'tools' && linked === true) { tools.load(); treq.load(); tconn.load(); }
       if (real === 'calendar' && linked === true) { calendar.load(); tools.load(); }
       if (real === 'agents' && linked === true) agentsView.load();
       if (real === 'settings') settings.open();
@@ -871,12 +871,13 @@
         add.appendChild(el('p', 'muted small', 'Need an app that isn’t here? Ask for it and we’ll set it up.'));
         add.addEventListener('click', () => show('tool-add'));
         box.appendChild(add);
+        tconn.cards();
         if (toolOpen) this.renderDetail(toolOpen);
         this.fill(TOOLS.find((x) => x.id === 'calendar'), { usage: $('cd-usage'), manage: $('cd-manage'), rows: $('cd-rows'), none: $('cd-none'), tbl: $('cd-tbl') });
       },
-      open(id) { toolOpen = id; $('tool-add').hidden = true; this.renderDetail(id); },
-      close() { toolOpen = null; $('tool-detail').hidden = true; $('tool-add').hidden = true; $('tools-list').hidden = false; },
-      addOpen() { toolOpen = null; $('tool-detail').hidden = true; $('tools-list').hidden = true; $('tool-add').hidden = false; wiz.start(); },
+      open(id) { toolOpen = id; $('tool-add').hidden = true; $('tool-conn').hidden = true; this.renderDetail(id); },
+      close() { toolOpen = null; $('tool-detail').hidden = true; $('tool-add').hidden = true; $('tool-conn').hidden = true; $('tools-list').hidden = false; },
+      addOpen() { toolOpen = null; $('tool-detail').hidden = true; $('tool-conn').hidden = true; $('tools-list').hidden = true; $('tool-add').hidden = false; wiz.start(); },
       renderDetail(id) {
         const t = TOOLS.find((x) => x.id === id);
         if (!t) return this.close();
@@ -1102,7 +1103,74 @@
         }
       },
     };
-    $('tools-refresh').addEventListener('click', () => { tools.load(); treq.load(); });
+    // ---- connect an approved tool: its card, sign-in, test and disconnect
+    const CONN_STATE = { setting_up: ['Setting up', 'asked'], manual: ['We’ll set it up for you', 'asked'], can_connect: ['Ready to connect', 'other'], connected: ['Connected', 'done'], failed: ['Needs attention', 'failed'] };
+    const tconn = {
+      tools: [], openId: null,
+      async load() {
+        const r = await webCall('GET', '/toolconn/list');
+        this.tools = r.status === 200 && Array.isArray(r.body.tools) ? r.body.tools : [];
+        this.cards();
+        if (this.openId !== null && !$('tool-conn').hidden) this.detail();
+      },
+      cards() {
+        const box = $('tools-grid');
+        for (const old of box.querySelectorAll('.conn-req')) old.remove();
+        const anchor = box.querySelector('.conn-add');
+        for (const t of this.tools) {
+          const card = el('button', 'conn conn-req');
+          card.type = 'button';
+          card.appendChild(el('h2', null, t.tool_name));
+          const [text, cls] = CONN_STATE[t.state] || [t.state, 'other'];
+          const p = el('p'); p.appendChild(el('span', `badge b-${cls}`, text)); card.appendChild(p);
+          if (t.account_label) card.appendChild(el('p', 'muted small', t.account_label));
+          card.appendChild(el('span', 'tool-open', 'OPEN →'));
+          card.addEventListener('click', () => this.open(t.request_id));
+          box.insertBefore(card, anchor);
+        }
+      },
+      open(id) { this.openId = id; $('tools-list').hidden = true; $('tool-detail').hidden = true; $('tool-add').hidden = true; $('tool-conn').hidden = false; this.detail(); },
+      detail(msg) {
+        const t = this.tools.find((x) => x.request_id === this.openId);
+        if (!t) { $('tool-conn').hidden = true; $('tools-list').hidden = false; return; }
+        $('tc-name').textContent = t.tool_name;
+        $('tc-blurb').textContent = t.access === 'write' ? 'Read and write. It asks you before any change.' : 'Read only. It can look things up but can’t change anything.';
+        const p = $('tc-panel'); p.replaceChildren();
+        const [text, cls] = CONN_STATE[t.state] || [t.state, 'other'];
+        const head = el('p'); head.appendChild(el('span', `badge b-${cls}`, text));
+        if (t.account_label) head.appendChild(document.createTextNode(`  ${t.account_label}`));
+        p.appendChild(head);
+        const say = (txt) => p.appendChild(el('p', 'small', txt));
+        if (t.state === 'setting_up') say('We’re getting this ready. We’ll message you on Telegram as soon as you can connect it.');
+        else if (t.state === 'manual') say('This one is set up by hand. We’ll message you on Telegram when it’s done.');
+        else if (t.state === 'can_connect') say('You’ll sign in on the tool’s own page. We never see your password, and you can disconnect any time.');
+        else if (t.state === 'connected') say(`Connected${t.tested_at ? ` and checked ${fmtWhen(t.tested_at)}` : ''}.`);
+        else if (t.state === 'failed') say(t.last_error || 'The last attempt didn’t work. You can try again.');
+        const note = el('p', 'small muted'); note.setAttribute('role', 'status'); if (msg) note.textContent = msg; p.appendChild(note);
+        const row = el('p', 'td-actions');
+        const btn = (label, cls, fn) => { const b = el('button', `btn ${cls}`, label); b.type = 'button'; b.addEventListener('click', async () => { for (const x of row.querySelectorAll('button')) x.disabled = true; await fn(note); for (const x of row.querySelectorAll('button')) x.disabled = false; }); row.appendChild(b); };
+        const hasToken = t.state === 'connected' || (t.state === 'failed' && t.connected_at);
+        if (t.state === 'can_connect' || t.state === 'failed') btn(t.state === 'failed' ? 'Try again' : 'Connect', 'small', async (n) => {
+          const r = await webCall('POST', '/toolconn/start', { request_id: t.request_id });
+          if (r.status === 200 && typeof r.body.url === 'string' && r.body.url.startsWith('https://')) { n.textContent = 'Opening the sign-in page…'; location.assign(r.body.url); return; }
+          n.textContent = r.status === 501 ? 'Connections aren’t switched on yet.' : webError(r, 'Couldn’t start that. Try again in a moment.');
+        });
+        if (hasToken) btn('Test connection', 'ghost small', async (n) => {
+          n.textContent = 'Checking…';
+          const r = await webCall('POST', '/toolconn/test', { request_id: t.request_id });
+          await this.load();
+          this.detail(r.status === 200 ? (r.body.ok ? 'Still working.' : r.body.error || 'The check failed.') : webError(r, 'Couldn’t check that.'));
+        });
+        if (hasToken) btn('Disconnect', 'ghost small', async (n) => {
+          if (!window.confirm(`Disconnect ${t.tool_name}? Your agent will lose access to it.`)) return;
+          const r = await webCall('POST', '/toolconn/disconnect', { request_id: t.request_id });
+          if (r.status === 200) { await this.load(); this.detail('Disconnected.'); } else n.textContent = webError(r, 'Couldn’t disconnect. Try again.');
+        });
+        if (row.children.length) p.appendChild(row);
+      },
+    };
+    $('tc-back').addEventListener('click', () => show('tools'));
+    $('tools-refresh').addEventListener('click', () => { tools.load(); treq.load(); tconn.load(); });
     $('tool-back').addEventListener('click', () => show('tools'));
 
     // ---- chat: messages drop to the bottom like ChatGPT, with typing dots while the agent answers
