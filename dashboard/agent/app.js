@@ -1177,11 +1177,51 @@
     const chat = {
       busy: false, api: cfg.chatApi,
       key: null, list: [], currentId: null, fresh: true, needHistory: false,
-      // Saved chats live only in THIS browser (never on a server), so the business's conversations stay private.
-      loadList(userId) {
+      // Chats are cached in this browser for speed. On a fresh device they sync from the server.
+       loadList(userId) {
         this.key = `coop-chats-${userId}`;
         try { const a = JSON.parse(localStorage.getItem(this.key) || '[]'); this.list = Array.isArray(a) ? a.filter((c) => c && typeof c.id === 'string' && Array.isArray(c.msgs)) : []; } catch { this.list = []; }
         this.renderList();
+        // New device / cleared storage → pull history from the server
+        if (!this.list.length) this.loadFromServer().catch(() => {});
+      },
+      async loadFromServer() {
+        if (!this.api) return;
+        try {
+          const { data: s } = await db.auth.getSession();
+          const token = s.session && s.session.access_token;
+          if (!token) return;
+          const ctl = new AbortController();
+          const timer = setTimeout(() => ctl.abort(), 12000);
+          let res;
+          try {
+            res = await fetch(`${this.api}/history`, {
+              method: 'GET',
+              headers: { Authorization: `Bearer ${token}`, 'ngrok-skip-browser-warning': '1' },
+              signal: ctl.signal,
+            });
+          } finally { clearTimeout(timer); }
+          if (!res.ok) return;
+          const rows = await res.json();
+          if (!Array.isArray(rows) || !rows.length) return;
+          // Group messages into conversations: a gap of 30+ minutes starts a new one
+          const convos = []; let cur = null;
+          for (const r of rows) {
+            const t = new Date(r.created_at).getTime() || Date.now();
+            if (!cur || t - cur._last > 30 * 60 * 1000) {
+              const title = (r.role === 'user' ? r.content : 'Conversation').replace(/\s+/g, ' ').slice(0, 40);
+              cur = { id: `sv${t.toString(36)}${Math.random().toString(36).slice(2, 5)}`, title: title + (title.length >= 40 ? '…' : ''), at: t, msgs: [], _last: t };
+              convos.push(cur);
+            }
+            cur.msgs.push({ cls: r.role === 'user' ? 'me' : 'agent', text: String(r.content).slice(0, 4000) });
+            cur._last = t;
+          }
+          for (const c of convos) delete c._last; // clean temp field
+          if (!convos.length) return;
+          this.list = convos;
+          this.saveList();
+          this.renderList();
+        } catch { /* server unreachable — chats just won't sync this time */ }
       },
       saveList() {
         this.list.sort((x, y) => y.at - x.at);
